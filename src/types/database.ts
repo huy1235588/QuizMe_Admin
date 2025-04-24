@@ -1,33 +1,45 @@
-// Interface cho phép định nghĩa các kiểu dữ liệu cho các đối tượng trong ứng dụng quiz
-
-export interface StatItem {
-    title: string;
-    value: number;
-    icon: React.ReactNode;
-    color: string;
-}
-
-export interface Category {
+// type cho phép định nghĩa các kiểu dữ liệu cho các đối tượng trong ứng dụng quiz
+export type Category = {
     id: number;
     name: string;
     description: string;
-    quiz_count: number;
-    total_play_count: number;
-    icon_url?: string;
+    iconUrl?: string;
+    quizCount: number;
+    totalPlayCount: number;
+    createAt?: string;
+    updatedAt?: string;
 }
 
-export interface Quiz {
+export type Quiz = {
     id: number;
     title: string;
-    category_name: string;
-    category_id: number;
+    description: string;
+    quizThumbUrls?: string;
+    categoryId: number;
+    categoryName: string;
+    createName: string;
+    creatorId: number;
     difficulty: 'easy' | 'medium' | 'hard';
-    question_count: number;
-    play_count: number;
-    is_public: boolean;
+    isPublic: boolean;
+    playCount: number;
+    questionCount: number;
+    createAt?: string;
+    updatedAt?: string;
 }
 
-export interface Activity {
+export type Question = {
+    id: number;
+    quizId: number;
+    content: string;
+    imageUrl?: string;
+    timeLimit: number;
+    points: number;
+    orderNumber: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export type Activity = {
     id: number;
     user: string;
     action: string;

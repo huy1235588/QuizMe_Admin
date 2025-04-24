@@ -26,56 +26,108 @@ import {
     FiBarChart2
 } from 'react-icons/fi';
 import { useTheme } from '@/contexts/ThemeContext';
-import { StatItem, Category, Quiz, Activity } from '@/types/database';
+import { Category, Quiz, Activity, Question } from '@/types/database';
 import axiosInstance from '@/utils/axios';
 
 const { Title } = Typography;
 
+type StatItem = {
+    title: string;
+    value: number;
+    icon: React.ReactNode;
+    color: string;
+}
+
 export default function Dashboard() {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
+
     const [topCategories, setTopCategories] = useState<Category[]>([]);
+    const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+
+    // State để quản lý trạng thái loading và error
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     // Dữ liệu mẫu cho thống kê
     const stats: StatItem[] = [
-        { title: 'Total Users', value: 1245, icon: <FiUsers />, color: 'blue' },
-        { title: 'Total Quizzes', value: 86, icon: <FiHelpCircle />, color: 'green' },
-        { title: 'Total Questions', value: 576, icon: <FiFileText />, color: 'purple' },
-        { title: 'Active Categories', value: 12, icon: <FiFolder />, color: 'orange' },
+        {
+            title: 'Total Users',
+            value: 12,
+            icon: <FiUsers />,
+            color: 'blue'
+        },
+        {
+            title: 'Total Quizzes',
+            value: quizzes.length,
+            icon: <FiHelpCircle />,
+            color: 'green'
+        },
+        {
+            title: 'Total Questions',
+            value: quizzes.reduce((sum, q) => sum + (q.questionCount || 0), 0),
+            icon: <FiFileText />,
+            color: 'purple'
+        },
+        {
+            title: 'Active Categories',
+            value: topCategories.length,
+            icon: <FiFolder />,
+            color: 'orange'
+        },
     ];
 
     // Fetch danh sách danh mục hàng đầu từ API
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                setLoading(true);
-                const response = await axiosInstance.get('/api/categories');
-                setTopCategories(response.data.data);
-                setError(null);
+    const fetchCategories = async () => {
+        try {
+            // Đặt trạng thái loading
+            setLoading(true);
 
-            } catch (err) {
-                console.error('Error fetching categories:', err);
-                setError('Failed to load categories. Please try again later.');
-              
-                setTopCategories([]);
-            } finally {
-                setLoading(false);
-            }
-        };
+            // Gọi API để lấy danh sách danh mục
+            const response = await axiosInstance.get<{ data: Category[] }>('/api/categories');
 
-        fetchCategories();
-    }, []);
+            // Cập nhật danh sách danh mục vào state
+            setTopCategories(response.data.data);
 
-    // Dữ liệu mẫu cho các bài quiz gần đây
-    const recentQuizzes: Quiz[] = [
-        { id: 1, title: 'JavaScript Fundamentals', category_name: 'Programming', category_id: 1, difficulty: 'medium', question_count: 20, play_count: 45, is_public: true },
-        { id: 2, title: 'React Advanced', category_name: 'Programming', category_id: 1, difficulty: 'hard', question_count: 25, play_count: 32, is_public: true },
-        { id: 3, title: 'Data Science Basics', category_name: 'Science', category_id: 2, difficulty: 'easy', question_count: 15, play_count: 56, is_public: true },
-        { id: 4, title: 'English Grammar', category_name: 'Language', category_id: 4, difficulty: 'medium', question_count: 30, play_count: 78, is_public: true },
-        { id: 5, title: 'World History', category_name: 'History', category_id: 5, difficulty: 'hard', question_count: 40, play_count: 23, is_public: false },
-    ];
+            // Đặt trạng thái lỗi thành null nếu không có lỗi
+            setError(null);
+
+        } catch (err) {
+            console.error('Error fetching categories:', err);
+            setError('Failed to load categories. Please try again later.');
+
+            setTopCategories([]);
+
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch danh sách quiz từ API
+    const fetchQuizzes = async () => {
+        try {
+            // Đặt trạng thái loading
+            setLoading(true);
+
+            // Gọi API để lấy danh sách quiz
+            const response = await axiosInstance.get<{ data: Quiz[] }>('/api/quizzes');
+
+            // Cập nhật danh sách quiz vào state
+            setQuizzes(response.data.data);
+
+            // Đặt trạng thái lỗi thành null nếu không có lỗi
+            setError(null);
+
+        } catch (err) {
+            console.error('Error fetching quizzes:', err);
+            setError('Failed to load quizzes. Please try again later.');
+
+            setQuizzes([]);
+
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Dữ liệu mẫu cho hoạt động người dùng gần đây
     const recentActivities: Activity[] = [
@@ -87,11 +139,31 @@ export default function Dashboard() {
     ];
 
     // Phân phối độ khó của quiz cho biểu đồ tròn
-    const difficultyData = [
-        { name: 'Easy', value: 32 },
-        { name: 'Medium', value: 43 },
-        { name: 'Hard', value: 11 },
-    ];
+    const [difficultyData, setDifficultyData] = useState([
+        { name: 'Easy', value: 0 },
+        { name: 'Medium', value: 0 },
+        { name: 'Hard', value: 0 },
+    ]);
+
+    // Fetch data độ khó
+    const fetchDifficultyData = async () => {
+        try {
+            const levels = ['easy', 'medium', 'hard'];
+            const responses = await Promise.all(
+                levels.map(level =>
+                    axiosInstance.get<{ data: Quiz[] }>(`/api/quizzes/difficulty/${level.toUpperCase()}`)
+                )
+            );
+            setDifficultyData(
+                responses.map((res, idx) => ({
+                    name: levels[idx].charAt(0).toUpperCase() + levels[idx].slice(1),
+                    value: res.data.data.length,
+                }))
+            );
+        } catch (err) {
+            console.error('Error fetching difficulty data:', err);
+        }
+    };
 
     // Cấu hình tùy chọn ECharts cho biểu đồ tròn
     const pieChartOption = {
@@ -163,7 +235,7 @@ export default function Dashboard() {
         },
         {
             title: 'Category',
-            dataIndex: 'category_name',
+            dataIndex: 'categoryName',
             key: 'category_name',
             render: (text: string) => <Tag color="blue">{text}</Tag>,
         },
@@ -179,12 +251,12 @@ export default function Dashboard() {
         },
         {
             title: 'Questions',
-            dataIndex: 'question_count',
+            dataIndex: 'questionCount',
             key: 'question_count',
         },
         {
             title: 'Play Count',
-            dataIndex: 'play_count',
+            dataIndex: 'playCount',
             key: 'play_count',
         },
         {
@@ -209,12 +281,12 @@ export default function Dashboard() {
         },
         {
             title: 'Quiz Count',
-            dataIndex: 'quiz_count',
+            dataIndex: 'quizCount',
             key: 'quiz_count',
         },
         {
             title: 'Total Plays',
-            dataIndex: 'total_play_count',
+            dataIndex: 'totalPlayCount',
             key: 'total_play_count',
         },
         {
@@ -222,7 +294,7 @@ export default function Dashboard() {
             key: 'popularity',
             render: (_: any, record: Category) => (
                 <Progress
-                    percent={Math.min(100, Math.round(record.total_play_count / 20))}
+                    percent={Math.min(100, Math.round(record.totalPlayCount / 20))}
                     size="small"
                     status="active"
                     format={(percent) => `${percent}%`}
@@ -230,6 +302,18 @@ export default function Dashboard() {
             ),
         },
     ];
+
+    useEffect(() => {
+        // Gọi hàm fetchCategories khi component được mount
+        fetchCategories();
+
+        // Gọi hàm fetchQuizzes khi component được mount
+        fetchQuizzes();
+
+        // Gọi hàm fetchDifficultyData khi component được mount
+        fetchDifficultyData();
+
+    }, []);
 
     return (
         <div className="space-y-6">
@@ -276,8 +360,8 @@ export default function Dashboard() {
                         className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
                     >
                         <div className="flex justify-center" style={{ height: 240 }}>
-                            <ReactECharts 
-                                option={pieChartOption} 
+                            <ReactECharts
+                                option={pieChartOption}
                                 style={{ height: '100%', width: '100%' }}
                             />
                         </div>
@@ -336,7 +420,8 @@ export default function Dashboard() {
                         extra={<a href="#">View All</a>}
                     >
                         <Table
-                            dataSource={recentQuizzes}
+                            dataSource={quizzes}
+                            loading={loading}
                             columns={quizColumns}
                             rowKey="id"
                             pagination={{ pageSize: 5 }}
