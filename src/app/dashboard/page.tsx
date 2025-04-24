@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Card,
     Row,
@@ -27,12 +27,16 @@ import {
 } from 'react-icons/fi';
 import { useTheme } from '@/contexts/ThemeContext';
 import { StatItem, Category, Quiz, Activity } from '@/types/database';
+import axiosInstance from '@/utils/axios';
 
 const { Title } = Typography;
 
 export default function Dashboard() {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
+    const [topCategories, setTopCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
     // Dữ liệu mẫu cho thống kê
     const stats: StatItem[] = [
@@ -42,14 +46,27 @@ export default function Dashboard() {
         { title: 'Active Categories', value: 12, icon: <FiFolder />, color: 'orange' },
     ];
 
-    // Dữ liệu mẫu cho danh mục
-    const topCategories: Category[] = [
-        { id: 1, name: 'Programming', description: 'Programming related quizzes', quiz_count: 24, total_play_count: 1245, icon_url: '/code.svg' },
-        { id: 2, name: 'Science', description: 'Science related quizzes', quiz_count: 18, total_play_count: 876, icon_url: '/science.svg' },
-        { id: 3, name: 'Mathematics', description: 'Math related quizzes', quiz_count: 15, total_play_count: 643, icon_url: '/math.svg' },
-        { id: 4, name: 'Language', description: 'Language related quizzes', quiz_count: 12, total_play_count: 589, icon_url: '/language.svg' },
-        { id: 5, name: 'History', description: 'History related quizzes', quiz_count: 8, total_play_count: 421, icon_url: '/history.svg' },
-    ];
+    // Fetch danh sách danh mục hàng đầu từ API
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                setLoading(true);
+                const response = await axiosInstance.get('/api/categories');
+                setTopCategories(response.data.data);
+                setError(null);
+
+            } catch (err) {
+                console.error('Error fetching categories:', err);
+                setError('Failed to load categories. Please try again later.');
+              
+                setTopCategories([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
 
     // Dữ liệu mẫu cho các bài quiz gần đây
     const recentQuizzes: Quiz[] = [
@@ -126,6 +143,7 @@ export default function Dashboard() {
         backgroundColor: 'transparent'
     };
 
+    // Hàm để lấy màu sắc cho độ khó của quiz
     const getQuizDifficultyColor = (difficulty: string) => {
         switch (difficulty) {
             case 'easy': return 'green';
@@ -135,6 +153,7 @@ export default function Dashboard() {
         }
     };
 
+    // Cấu hình cột cho bảng quiz và danh mục
     const quizColumns = [
         {
             title: 'Title',
@@ -180,6 +199,7 @@ export default function Dashboard() {
         },
     ];
 
+    // Cấu hình cột cho bảng danh mục
     const categoryColumns = [
         {
             title: 'Category Name',
@@ -292,7 +312,9 @@ export default function Dashboard() {
                         title={<span className="font-bold">Top Categories</span>}
                         bordered={false}
                         className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
+                        loading={loading}
                     >
+                        {error && <div className="text-red-500 mb-4">{error}</div>}
                         <Table
                             dataSource={topCategories}
                             columns={categoryColumns}
