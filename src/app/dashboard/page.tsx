@@ -315,6 +315,14 @@ export default function Dashboard() {
 
     }, []);
 
+    // Tính toán tổng số lượt chơi và số câu hỏi trung bình trên quiz
+    const totalPlayCount = quizzes.reduce((sum, q) => sum + (q.playCount || 0), 0);
+    // Tính toán số câu hỏi trung bình trên quiz
+    const avgQuestionsPerQuiz = quizzes.length > 0
+      ? Math.round(quizzes.reduce((sum, q) => sum + (q.questionCount || 0), 0) / quizzes.length)
+      : 0;
+  
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center mb-6">
@@ -330,7 +338,7 @@ export default function Dashboard() {
                 {stats.map((stat, index) => (
                     <Col xs={24} sm={12} lg={6} key={index}>
                         <Card
-                            bordered={false}
+                            variant='borderless'
                             className={`hover:shadow-md transition-shadow ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
                         >
                             <div className="flex items-center">
@@ -356,7 +364,7 @@ export default function Dashboard() {
                 <Col xs={24} lg={12}>
                     <Card
                         title={<span className="font-bold">Quiz Distribution by Difficulty</span>}
-                        bordered={false}
+                        variant='borderless'
                         className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
                     >
                         <div className="flex justify-center" style={{ height: 240 }}>
@@ -394,7 +402,7 @@ export default function Dashboard() {
                 <Col xs={24} lg={12}>
                     <Card
                         title={<span className="font-bold">Top Categories</span>}
-                        bordered={false}
+                        variant='borderless'
                         className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
                         loading={loading}
                     >
@@ -415,7 +423,7 @@ export default function Dashboard() {
                 <Col xs={24} lg={16}>
                     <Card
                         title={<span className="font-bold">Recent Quizzes</span>}
-                        bordered={false}
+                        variant='borderless'
                         className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
                         extra={<a href="#">View All</a>}
                     >
@@ -432,7 +440,7 @@ export default function Dashboard() {
                 <Col xs={24} lg={8}>
                     <Card
                         title={<span className="font-bold">Recent User Activities</span>}
-                        bordered={false}
+                        variant='borderless'
                         className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
                         extra={<a href="#">View All</a>}
                     >
@@ -474,13 +482,13 @@ export default function Dashboard() {
             {/* Trạng thái hoàn thành Quiz */}
             <Card
                 title={<span className="font-bold"><FiBarChart2 className="inline-block mr-2" />Quiz Engagement Overview</span>}
-                bordered={false}
+                variant='borderless'
                 className={isDarkMode ? 'bg-gray-800 border-gray-700' : ''}
             >
                 <Row gutter={[16, 16]}>
                     <Col xs={24} md={8}>
                         <Card
-                            bordered={false}
+                            variant='borderless'
                             className={`text-center ${isDarkMode ? 'bg-green-900/20' : 'bg-green-50'}`}
                         >
                             <Statistic
@@ -493,12 +501,12 @@ export default function Dashboard() {
                     </Col>
                     <Col xs={24} md={8}>
                         <Card
-                            bordered={false}
+                            variant='borderless'
                             className={`text-center ${isDarkMode ? 'bg-blue-900/20' : 'bg-blue-50'}`}
                         >
                             <Statistic
                                 title="Total Play Count"
-                                value={1991}
+                                value={totalPlayCount}
                                 valueStyle={{ color: isDarkMode ? '#93C5FD' : '#1890ff' }}
                                 prefix={<FiTrendingUp />}
                             />
@@ -506,12 +514,12 @@ export default function Dashboard() {
                     </Col>
                     <Col xs={24} md={8}>
                         <Card
-                            bordered={false}
+                            variant='borderless'
                             className={`text-center ${isDarkMode ? 'bg-amber-900/20' : 'bg-amber-50'}`}
                         >
                             <Statistic
                                 title="Average Questions Per Quiz"
-                                value={15}
+                                value={avgQuestionsPerQuiz}
                                 valueStyle={{ color: isDarkMode ? '#FCD34D' : '#d48806' }}
                                 prefix={<FiFileText />}
                             />
