@@ -12,7 +12,8 @@ import {
     FiFileText,
     FiUsers,
     FiSettings,
-    FiHelpCircle
+    FiHelpCircle,
+    FiFolder
 } from 'react-icons/fi';
 import { FiSun, FiMoon } from 'react-icons/fi';
 import Link from 'next/link';
@@ -86,6 +87,11 @@ export default function DashboardShell({
                                 key: 'quizzes',
                                 icon: <FiHelpCircle />,
                                 label: <Link href="/quizzes">Quizzes</Link>,
+                            },
+                            {
+                                key: 'categories',
+                                icon: <FiFolder />,
+                                label: <Link href="/categories">Categories</Link>,
                             },
                             {
                                 key: 'questions',
