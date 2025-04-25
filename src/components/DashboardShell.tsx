@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Layout, Menu, Button, theme, ConfigProvider, Dropdown, Avatar } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, Button, theme, ConfigProvider } from 'antd';
 import {
     FiMenu,
     FiChevronLeft,
-    FiLogOut,
-    FiUser
+    FiLogOut
 } from 'react-icons/fi';
 import {
     FiHome,
@@ -19,9 +18,9 @@ import {
 import { FiSun, FiMoon } from 'react-icons/fi';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePathname } from 'next/navigation';
 
 const { Header, Sider, Content } = Layout;
 
@@ -32,9 +31,17 @@ export default function DashboardShell({
 }>) {
     const [collapsed, setCollapsed] = useState(false);
     const { theme: currentTheme, toggleTheme } = useTheme();
-    const { user, logout, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, isLoading, logout } = useAuth();
+    const router = useRouter();
     const pathname = usePathname();
     const isDarkMode = currentTheme === 'dark';
+
+    // Chuyển hướng đến trang đăng nhập nếu chưa xác thực và không phải đang ở trang đăng nhập
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated && pathname !== '/login') {
+            router.push('/login');
+        }
+    }, [isAuthenticated, isLoading, router, pathname]);
 
     // Tuỳ chỉnh theme cho Ant Design
     const antTheme = {
@@ -44,57 +51,22 @@ export default function DashboardShell({
         },
     };
 
-    // Always call hooks at the top level, before any conditional returns
     const { token } = theme.useToken();
 
-    // Lấy chữ cái đầu của người dùng cho avatar
-    const getUserInitials = () => {
-        if (!user) return "?";
-        
-        if (user.username) {
-            return user.username.charAt(0).toUpperCase();
-        }
-        
-        if (user.email) {
-            return user.email.charAt(0).toUpperCase();
-        }
-        
-        return "?";
+    // Xử lý đăng xuất
+    const handleLogout = () => {
+        logout();
     };
 
-    // Bỏ qua việc hiển thị shell cho trang đăng nhập
+    // Chỉ hiển thị shell khi đã xác thực hoặc đang ở trang đăng nhập
+    if (!isAuthenticated && pathname !== '/login') {
+        return null;
+    }
+
+    // Không hiển thị shell cho trang đăng nhập
     if (pathname === '/login') {
         return <>{children}</>;
     }
-
-    // Nếu chưa xác thực và không ở trang đăng nhập, hiển thị màn hình loading
-    // Context xác thực sẽ tự chuyển hướng đến trang đăng nhập
-    if (!isAuthenticated) {
-        return <div className="flex justify-center items-center h-screen">Loading...</div>;
-    }
-
-    const userMenuItems = [
-        {
-            key: 'profile',
-            icon: <FiUser />,
-            label: 'Profile',
-        },
-        {
-            key: 'settings',
-            icon: <FiSettings />,
-            label: 'Settings',
-        },
-        {
-            type: 'divider' as const,
-        },
-        {
-            key: 'logout',
-            icon: <FiLogOut />,
-            label: 'Logout',
-            danger: true,
-            onClick: logout,
-        },
-    ];
 
     return (
         <ConfigProvider theme={antTheme}>
@@ -132,7 +104,6 @@ export default function DashboardShell({
                     <Menu
                         mode="inline"
                         defaultSelectedKeys={['dashboard']}
-                        selectedKeys={[pathname?.split('/')[1] || 'dashboard']}
                         items={[
                             {
                                 key: 'dashboard',
@@ -177,7 +148,7 @@ export default function DashboardShell({
                                     icon: <FiLogOut />,
                                     label: 'Logout',
                                     danger: true,
-                                    onClick: logout,
+                                    onClick: handleLogout,
                                 },
                             ]}
                         />
@@ -212,19 +183,13 @@ export default function DashboardShell({
                                     title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                                     className="flex items-center justify-center"
                                 />
-                                <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                                    <div className="flex items-center gap-2 cursor-pointer">
-                                        <Avatar 
-                                            className="bg-blue-500 flex items-center justify-center text-white font-bold"
-                                            size="default"
-                                        >
-                                            {getUserInitials()}
-                                        </Avatar>
-                                        <span className="hidden md:inline">
-                                            {user?.username || user?.email || 'User'}
-                                        </span>
+                                <Button type="text" shape="circle" icon={<FiSettings />} />
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                                        {user?.username?.charAt(0).toUpperCase() || 'U'}
                                     </div>
-                                </Dropdown>
+                                    <span className="hidden md:inline">{user?.fullName || user?.username}</span>
+                                </div>
                             </div>
                         </div>
                     </Header>

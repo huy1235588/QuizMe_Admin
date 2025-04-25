@@ -1,232 +1,166 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import axiosInstance from '@/utils/axios';
+import Cookies from 'js-cookie';
 
-// Định nghĩa kiểu dữ liệu User
 interface User {
     id: number;
     username: string;
     email: string;
+    fullName: string;
+    profileImage: string;
+    createdAt: string;
+    updatedAt: string;
+    lastLogin: string | null;
+    role: string;
+    active: boolean;
 }
 
-// Kiểu dữ liệu cho Context xác thực
 interface AuthContextType {
     user: User | null;
-    accessToken: string | null;
-    refreshToken: string | null;
-    accessTokenExpiresAt: Date | null;
-    refreshTokenExpiresAt: Date | null;
     isAuthenticated: boolean;
-    login: (
-        accessToken: string,
-        refreshToken: string,
-        user: User,
-        accessTokenExpiresAt: Date,
-        refreshTokenExpiresAt: Date
-    ) => void;
+    isLoading: boolean;
+    login: (usernameOrEmail: string, password: string) => Promise<{ success: boolean, message: string }>;
     logout: () => void;
-    refreshAccessToken: () => Promise<void>;
+    getAccessToken: () => string | null;
 }
 
-// Tạo context với giá trị mặc định
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Component AuthProvider
+/**
+ * @component AuthProvider
+ * @description 
+ * Thành phần cung cấp Context cho xác thực người dùng trong ứng dụng.
+ * Quản lý trạng thái đăng nhập, lưu trữ thông tin người dùng và xử lý các token xác thực.
+ * Cung cấp các hàm để đăng nhập, đăng xuất và kiểm tra trạng thái xác thực hiện tại.
+ * 
+ * Hoạt động:
+ * - Khi khởi tạo, kiểm tra xem người dùng đã đăng nhập từ trước chưa
+ * - Cung cấp phương thức đăng nhập với username/email và mật khẩu
+ * - Lưu trữ token xác thực vào localStorage và cookies để sử dụng cả ở client và server
+ * - Tự động thiết lập header Authorization cho các request API
+ * - Cung cấp phương thức đăng xuất để xóa dữ liệu phiên người dùng
+ * 
+ * @param {Object} props - Props của component
+ * @param {ReactNode} props.children - Các component con được bọc bởi Context Provider
+ * 
+ * @returns {JSX.Element} AuthContext.Provider với các giá trị và phương thức xác thực
+ * 
+ * @example
+ * // Bọc ứng dụng bằng AuthProvider
+ * <AuthProvider>
+ *   <App />
+ * </AuthProvider>
+ * 
+ * // Sử dụng trong component con
+ * const { user, login, logout, isAuthenticated } = useAuth();
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const router = useRouter();
-    const pathname = usePathname();
-
-    // State cho dữ liệu xác thực
     const [user, setUser] = useState<User | null>(null);
-    const [accessToken, setAccessToken] = useState<string | null>(null);
-    const [refreshToken, setRefreshToken] = useState<string | null>(null);
-    const [accessTokenExpiresAt, setAccessTokenExpiresAt] = useState<Date | null>(null);
-    const [refreshTokenExpiresAt, setRefreshTokenExpiresAt] = useState<Date | null>(null);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
 
-    // Khởi tạo trạng thái xác thực từ localStorage
     useEffect(() => {
-        const storedUser = localStorage.getItem('auth_user');
-        const storedAccessToken = localStorage.getItem('auth_access_token');
-        const storedRefreshToken = localStorage.getItem('auth_refresh_token');
-        const storedAccessTokenExpiresAt = localStorage.getItem('auth_access_token_expires_at');
-        const storedRefreshTokenExpiresAt = localStorage.getItem('auth_refresh_token_expires_at');
+        // Check if user is already logged in
+        const loadUser = () => {
+            const userStr = localStorage.getItem('user');
+            const accessToken = localStorage.getItem('accessToken') || Cookies.get('accessToken');
 
-        if (storedUser && storedAccessToken && storedRefreshToken &&
-            storedAccessTokenExpiresAt && storedRefreshTokenExpiresAt) {
+            if (userStr && accessToken) {
+                const user = JSON.parse(userStr);
+                setUser(user);
 
-            setUser(JSON.parse(storedUser));
-            setAccessToken(storedAccessToken);
-            setRefreshToken(storedRefreshToken);
-            setAccessTokenExpiresAt(new Date(storedAccessTokenExpiresAt));
-            setRefreshTokenExpiresAt(new Date(storedRefreshTokenExpiresAt));
-            setIsAuthenticated(true);
-        }
+                // Set auth header for API requests
+                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            }
 
-        setLoading(false);
+            setIsLoading(false);
+        };
+
+        loadUser();
     }, []);
 
-    // Thiết lập header authorization cho axios khi accessToken thay đổi
-    useEffect(() => {
-        if (accessToken) {
-            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-        } else {
-            delete axiosInstance.defaults.headers.common['Authorization'];
-        }
-    }, [accessToken]);
-
-    // Logic bảo vệ các route
-    useEffect(() => {
-        // Bỏ qua trong quá trình tải ban đầu
-        if (loading) return;
-
-        // Các route được bảo vệ ngoại trừ trang login
-        const isProtectedRoute =
-            !pathname?.startsWith('/login');
-
-        if (isProtectedRoute && !isAuthenticated) {
-            router.push('/login');
-        } else if (pathname === '/login' && isAuthenticated) {
-            router.push('/dashboard');
-        }
-    }, [pathname, isAuthenticated, loading, router]);
-
-    // Hàm đăng nhập
-    const login = (
-        newAccessToken: string,
-        newRefreshToken: string,
-        newUser: User,
-        newAccessTokenExpiresAt: Date,
-        newRefreshTokenExpiresAt: Date
-    ) => {
-        // Thiết lập state
-        setAccessToken(newAccessToken);
-        setRefreshToken(newRefreshToken);
-        setUser(newUser);
-        setAccessTokenExpiresAt(newAccessTokenExpiresAt);
-        setRefreshTokenExpiresAt(newRefreshTokenExpiresAt);
-        setIsAuthenticated(true);
-
-        // Ensure valid dates before storing them
-        const validAccessExpires = isValidDate(newAccessTokenExpiresAt) 
-            ? newAccessTokenExpiresAt.toISOString() 
-            : new Date(Date.now() + 3600 * 1000).toISOString(); // Default 1 hour expiry
-        
-        const validRefreshExpires = isValidDate(newRefreshTokenExpiresAt)
-            ? newRefreshTokenExpiresAt.toISOString()
-            : new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(); // Default 7 days expiry
-
-        // Lưu vào localStorage
-        localStorage.setItem('auth_access_token', newAccessToken);
-        localStorage.setItem('auth_refresh_token', newRefreshToken);
-        localStorage.setItem('auth_user', JSON.stringify(newUser));
-        localStorage.setItem('auth_access_token_expires_at', validAccessExpires);
-        localStorage.setItem('auth_refresh_token_expires_at', validRefreshExpires);
-    };
-
-    // Helper function to check if a date is valid
-    const isValidDate = (date: any): boolean => {
-        return date instanceof Date && !isNaN(date.getTime());
-    };
-
-    // Hàm đăng xuất
-    const logout = () => {
-        // Xóa state
-        setAccessToken(null);
-        setRefreshToken(null);
-        setUser(null);
-        setAccessTokenExpiresAt(null);
-        setRefreshTokenExpiresAt(null);
-        setIsAuthenticated(false);
-
-        // Xóa localStorage
-        localStorage.removeItem('auth_access_token');
-        localStorage.removeItem('auth_refresh_token');
-        localStorage.removeItem('auth_user');
-        localStorage.removeItem('auth_access_token_expires_at');
-        localStorage.removeItem('auth_refresh_token_expires_at');
-
-        // Chuyển hướng đến trang đăng nhập
-        router.push('/login');
-    };
-
-    // Hàm làm mới access token
-    const refreshAccessToken = async () => {
-        if (!refreshToken) {
-            logout();
-            return;
-        }
-
+    const login = async (usernameOrEmail: string, password: string): Promise<{ success: boolean, message: string }> => {
         try {
-            const response = await axiosInstance.post('/api/auth/refresh', {
-                refresh_token: refreshToken
+            const response = await axiosInstance.post('/api/auth/login', {
+                usernameOrEmail,
+                password
             });
 
             if (response.data.status === 'success') {
-                const data = response.data.data;
+                const { user, accessToken, refreshToken, accessTokenExpiry, refreshTokenExpiry } = response.data.data;
 
-                setAccessToken(data.access_token);
-                setAccessTokenExpiresAt(new Date(data.access_token_expires_at));
+                // Tính toán thời gian hết hạn cho cookie (convert ISO string to Date object)
+                const accessExpiry = new Date(accessTokenExpiry);
+                const refreshExpiry = new Date(refreshTokenExpiry);
 
-                localStorage.setItem('auth_access_token', data.access_token);
-                localStorage.setItem('auth_access_token_expires_at', data.access_token_expires_at);
+                // Store tokens in both localStorage and cookies
+                localStorage.setItem('accessToken', accessToken);
+                localStorage.setItem('refreshToken', refreshToken);
+                localStorage.setItem('accessTokenExpiry', accessTokenExpiry);
+                localStorage.setItem('refreshTokenExpiry', refreshTokenExpiry);
+                localStorage.setItem('user', JSON.stringify(user));
+
+                // Set cookies for server-side access
+                Cookies.set('accessToken', accessToken, { expires: accessExpiry, path: '/' });
+                Cookies.set('refreshToken', refreshToken, { expires: refreshExpiry, path: '/' });
+
+                // Set auth header for API requests
+                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+
+                setUser(user);
+                return { success: true, message: response.data.message };
             } else {
-                logout();
+                return { success: false, message: response.data.message || 'Login failed' };
             }
-        } catch (error) {
-            console.error('Failed to refresh token:', error);
-            logout();
+        } catch (error: any) {
+            console.error('Login error:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'An error occurred during login'
+            };
         }
     };
 
-    // Thiết lập cơ chế làm mới token
-    useEffect(() => {
-        if (!accessToken || !accessTokenExpiresAt) return;
+    const logout = () => {
+        // Remove tokens and user info from localStorage
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('accessTokenExpiry');
+        localStorage.removeItem('refreshTokenExpiry');
+        localStorage.removeItem('user');
 
-        // Tính toán thời gian đến khi token cần được làm mới (5 phút trước khi hết hạn)
-        const currentTime = new Date();
-        const expiryTime = new Date(accessTokenExpiresAt);
-        const timeUntilExpiry = expiryTime.getTime() - currentTime.getTime();
-        const refreshTime = timeUntilExpiry - (5 * 60 * 1000); // 5 phút trước khi hết hạn
+        // Remove tokens from cookies
+        Cookies.remove('accessToken', { path: '/' });
+        Cookies.remove('refreshToken', { path: '/' });
 
-        if (refreshTime <= 0) {
-            // Đã cần làm mới
-            refreshAccessToken();
-            return;
-        }
+        // Remove auth header
+        delete axiosInstance.defaults.headers.common['Authorization'];
 
-        // Thiết lập hẹn giờ để làm mới token
-        const refreshTimer = setTimeout(() => {
-            refreshAccessToken();
-        }, refreshTime);
+        setUser(null);
+        router.push('/login');
+    };
 
-        return () => clearTimeout(refreshTimer);
-    }, [accessToken, accessTokenExpiresAt]);
+    const getAccessToken = (): string | null => {
+        return localStorage.getItem('accessToken') || Cookies.get('accessToken') || null;
+    };
 
-    // Cung cấp context xác thực
     return (
-        <AuthContext.Provider
-            value={{
-                user,
-                accessToken,
-                refreshToken,
-                accessTokenExpiresAt,
-                refreshTokenExpiresAt,
-                isAuthenticated,
-                login,
-                logout,
-                refreshAccessToken
-            }}
-        >
+        <AuthContext.Provider value={{
+            user,
+            isAuthenticated: !!user,
+            isLoading,
+            login,
+            logout,
+            getAccessToken
+        }}>
             {children}
         </AuthContext.Provider>
     );
 }
 
-// Hook tùy chỉnh để sử dụng context xác thực
 export function useAuth() {
     const context = useContext(AuthContext);
     if (context === undefined) {

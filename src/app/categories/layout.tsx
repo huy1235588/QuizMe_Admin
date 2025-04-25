@@ -1,9 +1,6 @@
-import { Metadata } from 'next';
+"use client";
 
-export const metadata: Metadata = {
-    title: 'Categories | QuizMe Admin',
-    description: 'Manage quiz categories in the QuizMe application',
-};
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function CategoriesLayout({
     children,
@@ -11,8 +8,11 @@ export default function CategoriesLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div>
-            {children}
-        </div>
+        <ProtectedRoute>
+            <div className="container mx-auto px-4 py-6">
+                <h1 className="text-2xl font-bold mb-6">Categories</h1>
+                {children}
+            </div>
+        </ProtectedRoute>
     );
 }
