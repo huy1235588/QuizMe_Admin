@@ -103,7 +103,7 @@ export default function DashboardShell({
                     </div>
                     <Menu
                         mode="inline"
-                        defaultSelectedKeys={['dashboard']}
+                        selectedKeys={[pathname.split('/')[1] || 'dashboard']}
                         items={[
                             {
                                 key: 'dashboard',
