@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Layout, Menu, Button, theme, ConfigProvider } from 'antd';
+import { Layout, Menu, Button, theme, ConfigProvider, Dropdown, Avatar } from 'antd';
 import {
     FiMenu,
     FiChevronLeft,
-    FiLogOut
+    FiLogOut,
+    FiUser
 } from 'react-icons/fi';
 import {
     FiHome,
@@ -19,6 +20,8 @@ import { FiSun, FiMoon } from 'react-icons/fi';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePathname } from 'next/navigation';
 
 const { Header, Sider, Content } = Layout;
 
@@ -29,6 +32,8 @@ export default function DashboardShell({
 }>) {
     const [collapsed, setCollapsed] = useState(false);
     const { theme: currentTheme, toggleTheme } = useTheme();
+    const { user, logout, isAuthenticated } = useAuth();
+    const pathname = usePathname();
     const isDarkMode = currentTheme === 'dark';
 
     // Tuỳ chỉnh theme cho Ant Design
@@ -39,7 +44,57 @@ export default function DashboardShell({
         },
     };
 
+    // Always call hooks at the top level, before any conditional returns
     const { token } = theme.useToken();
+
+    // Lấy chữ cái đầu của người dùng cho avatar
+    const getUserInitials = () => {
+        if (!user) return "?";
+        
+        if (user.username) {
+            return user.username.charAt(0).toUpperCase();
+        }
+        
+        if (user.email) {
+            return user.email.charAt(0).toUpperCase();
+        }
+        
+        return "?";
+    };
+
+    // Bỏ qua việc hiển thị shell cho trang đăng nhập
+    if (pathname === '/login') {
+        return <>{children}</>;
+    }
+
+    // Nếu chưa xác thực và không ở trang đăng nhập, hiển thị màn hình loading
+    // Context xác thực sẽ tự chuyển hướng đến trang đăng nhập
+    if (!isAuthenticated) {
+        return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    }
+
+    const userMenuItems = [
+        {
+            key: 'profile',
+            icon: <FiUser />,
+            label: 'Profile',
+        },
+        {
+            key: 'settings',
+            icon: <FiSettings />,
+            label: 'Settings',
+        },
+        {
+            type: 'divider' as const,
+        },
+        {
+            key: 'logout',
+            icon: <FiLogOut />,
+            label: 'Logout',
+            danger: true,
+            onClick: logout,
+        },
+    ];
 
     return (
         <ConfigProvider theme={antTheme}>
@@ -77,6 +132,7 @@ export default function DashboardShell({
                     <Menu
                         mode="inline"
                         defaultSelectedKeys={['dashboard']}
+                        selectedKeys={[pathname?.split('/')[1] || 'dashboard']}
                         items={[
                             {
                                 key: 'dashboard',
@@ -121,6 +177,7 @@ export default function DashboardShell({
                                     icon: <FiLogOut />,
                                     label: 'Logout',
                                     danger: true,
+                                    onClick: logout,
                                 },
                             ]}
                         />
@@ -155,13 +212,19 @@ export default function DashboardShell({
                                     title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                                     className="flex items-center justify-center"
                                 />
-                                <Button type="text" shape="circle" icon={<FiSettings />} />
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                                        A
+                                <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+                                    <div className="flex items-center gap-2 cursor-pointer">
+                                        <Avatar 
+                                            className="bg-blue-500 flex items-center justify-center text-white font-bold"
+                                            size="default"
+                                        >
+                                            {getUserInitials()}
+                                        </Avatar>
+                                        <span className="hidden md:inline">
+                                            {user?.username || user?.email || 'User'}
+                                        </span>
                                     </div>
-                                    <span className="hidden md:inline">Lê Huy</span>
-                                </div>
+                                </Dropdown>
                             </div>
                         </div>
                     </Header>
