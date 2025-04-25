@@ -6,6 +6,7 @@ export type Category = {
     iconUrl?: string;
     quizCount: number;
     totalPlayCount: number;
+    isActive: boolean;
     createAt?: string;
     updatedAt?: string;
 }
