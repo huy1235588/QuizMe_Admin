@@ -44,6 +44,7 @@ export default function Dashboard() {
 
     const [topCategories, setTopCategories] = useState<Category[]>([]);
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+    const [userCount, setUserCount] = useState<number>(0);
 
     // State để quản lý trạng thái loading và error
     const [loading, setLoading] = useState<boolean>(true);
@@ -53,7 +54,7 @@ export default function Dashboard() {
     const stats: StatItem[] = [
         {
             title: 'Total Users',
-            value: 12,
+            value: userCount,
             icon: <FiUsers />,
             color: 'blue'
         },
@@ -94,7 +95,6 @@ export default function Dashboard() {
 
         } catch (err) {
             console.error('Error fetching categories:', err);
-            setError('Failed to load categories. Please try again later.');
 
             setTopCategories([]);
 
@@ -120,12 +120,21 @@ export default function Dashboard() {
 
         } catch (err) {
             console.error('Error fetching quizzes:', err);
-            setError('Failed to load quizzes. Please try again later.');
 
             setQuizzes([]);
 
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Fetch số lượng người dùng từ API
+    const fetchUserCount = async () => {
+        try {
+            const response = await axiosInstance.get<{ data: { count: number } }>('/api/users/count');
+            setUserCount(response.data.data.count);
+        } catch (err) {
+            console.error('Error fetching user count:', err);
         }
     };
 
@@ -313,6 +322,9 @@ export default function Dashboard() {
         // Gọi hàm fetchDifficultyData khi component được mount
         fetchDifficultyData();
 
+        // Gọi hàm fetchUserCount khi component được mount
+        fetchUserCount();
+
     }, []);
 
     // Tính toán tổng số lượt chơi và số câu hỏi trung bình trên quiz
@@ -325,7 +337,7 @@ export default function Dashboard() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 py-3">
                 <Title level={4} className="m-0">Dashboard Overview</Title>
                 <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     <FiClock className="mr-1 inline-block" />
