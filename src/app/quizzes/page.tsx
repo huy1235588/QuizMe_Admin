@@ -15,12 +15,14 @@ import DeleteQuizModal from '@/components/quizzes/DeleteQuizModal';
 
 // Import hook tùy chỉnh để quản lý các quiz
 import { useQuizzes } from '@/hooks/useQuizzes';
+import { useRouter } from 'next/navigation';
 
 const { Title } = Typography;
 
 // Component chính để quản lý trang Quizzes
 export default function Quizzes() {
     const { enqueueSnackbar } = useSnackbar();
+    const router = useRouter();
 
     // Sử dụng hook tùy chỉnh để quản lý tất cả dữ liệu và chức năng liên quan đến quiz
     const {
@@ -71,7 +73,7 @@ export default function Quizzes() {
                     type="primary"
                     size="large"
                     icon={<FiPlus />}
-                    onClick={() => enqueueSnackbar('Create Quiz Feature Coming Soon', { variant: 'info' })}
+                    onClick={() => router.push('/quizzes/new')}
                     className={`${isDarkMode ? 'bg-blue-600 hover:bg-blue-500' : ''}`}
                 >
                     Create New Quiz
