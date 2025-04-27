@@ -17,7 +17,6 @@ import {
 import {
     ArrowLeftOutlined,
     SaveOutlined,
-    PlusOutlined,
     InboxOutlined
 } from '@ant-design/icons';
 import { useSnackbar } from 'notistack';
@@ -26,15 +25,14 @@ import { RcFile } from 'antd/es/upload';
 import axiosInstance from '@/utils/axios';
 import ImageCropper from '@/components/ImageCropper';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { TextArea } = Input;
 const { Dragger } = Upload;
 
 // Các điểm cuối API
 const API_ENDPOINTS = {
     CATEGORIES: '/api/categories',
-    CATEGORY: (id: number) => `/api/categories/${id}`,
-    UPLOAD_IMAGE: '/api/upload/images'
+    CATEGORY: (id: number) => `/api/categories/${id}`
 };
 
 export default function CategoryDetailPage() {
@@ -122,83 +120,71 @@ export default function CategoryDetailPage() {
         setFileList(newFileList);
     };
 
+    // Tạo FormData cho category
+    const createCategoryFormData = (values: any) => {
+        const formData = new FormData();
+        formData.append('name', values.name);
+        
+        if (values.description) {
+            formData.append('description', values.description);
+        }
+        
+        formData.append('isActive', values.isActive.toString());
+        
+        // Thêm tệp biểu tượng nếu có
+        if (fileList.length > 0 && fileList[0].originFileObj) {
+            formData.append('iconFile', fileList[0].originFileObj as RcFile);
+        }
+        
+        return formData;
+    };
+
     // Xử lý gửi biểu mẫu
     const handleSubmit = async (values: any) => {
         setLoading(true);
         try {
+            let result;
+            
             if (isNewCategory) {
-                // Tạo danh mục mới sử dụng FormData cho multipart/form-data
-                const formData = new FormData();
-                formData.append('name', values.name);
-                
-                if (values.description) {
-                    formData.append('description', values.description);
-                }
-                
-                formData.append('isActive', values.isActive.toString());
-                
-                // Thêm tệp biểu tượng nếu có
-                if (fileList.length > 0 && fileList[0].originFileObj) {
-                    formData.append('iconFile', fileList[0].originFileObj as RcFile);
-                }
-                
-                // Gọi API với Content-Type: multipart/form-data
-                await axiosInstance.post(API_ENDPOINTS.CATEGORIES, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
+                // Tạo danh mục mới
+                const formData = createCategoryFormData(values);
+                result = await axiosInstance.post(API_ENDPOINTS.CATEGORIES, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
                 });
                 
                 enqueueSnackbar('Category created successfully!', { variant: 'success' });
             } else {
-                // Cập nhật danh mục hiện có sử dụng JSON
-                const categoryData= {
-                    name: values.name,
-                    description: values.description,
-                    iconUrl: iconPreview,
-                    isActive: values.isActive,
-                };
-                
-                // Chỉ cập nhật iconUrl nếu người dùng đã thay đổi biểu tượng
+                // Cập nhật danh mục hiện có
                 if (fileList.length > 0 && fileList[0].originFileObj) {
-                    // Nếu có tệp mới, tải lên riêng biệt trước
-                    try {
-                        setUploadLoading(true);
-                        const formData = new FormData();
-                        formData.append('file', fileList[0].originFileObj as RcFile);
-                        
-                        const uploadResponse = await axiosInstance.post(API_ENDPOINTS.UPLOAD_IMAGE, formData, {
-                            headers: {
-                                'Content-Type': 'multipart/form-data',
-                            },
-                        });
-                        
-                        if (uploadResponse.data.status === 'success') {
-                            categoryData.iconUrl = uploadResponse.data.data.url;
-                        }
-
-                    } catch (uploadError) {
-                        console.error('Error uploading icon:', uploadError);
-                        enqueueSnackbar('Failed to upload icon', { variant: 'error' });
-                        setLoading(false);
-                        setUploadLoading(false);
-                        return;
-                    } finally {
-                        setUploadLoading(false);
-                    }
+                    // Cập nhật với icon mới (sử dụng FormData)
+                    const formData = createCategoryFormData(values);
+                    result = await axiosInstance.put(API_ENDPOINTS.CATEGORY(id as number), formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
+                    });
+                } else {
+                    // Cập nhật không có icon mới (sử dụng JSON)
+                    const categoryData = {
+                        name: values.name,
+                        description: values.description,
+                        iconUrl: iconPreview,
+                        isActive: values.isActive,
+                    };
+                    
+                    result = await axiosInstance.put(API_ENDPOINTS.CATEGORY(id as number), categoryData);
                 }
                 
-                // Gọi API cập nhật danh mục
-                await axiosInstance.put(API_ENDPOINTS.CATEGORY(id as number), categoryData);
                 enqueueSnackbar('Category updated successfully!', { variant: 'success' });
             }
 
-            // Quay lại danh sách danh mục
+            // Quay lại danh sách danh mục sau khi gửi thành công
             router.push('/categories');
             
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving category:', error);
-            enqueueSnackbar('Failed to save category', { variant: 'error' });
+            
+            // Xử lý thông báo lỗi cụ thể hơn
+            const errorMessage = error.response?.data?.message || 'Failed to save category';
+            enqueueSnackbar(errorMessage, { variant: 'error' });
         } finally {
             setLoading(false);
         }
