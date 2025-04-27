@@ -18,18 +18,20 @@ import {
     Statistic
 } from 'antd';
 import {
-    PlusOutlined,
-    EditOutlined,
-    DeleteOutlined,
-    SearchOutlined,
-    ExclamationCircleOutlined,
-    FileExcelOutlined,
-    FilePdfOutlined,
-    BarChartOutlined,
-    PieChartOutlined,
-    ReloadOutlined,
-    CloseOutlined,
-} from '@ant-design/icons';
+    FiPlus,
+    FiEdit,
+    FiTrash2,
+    FiSearch,
+    FiRefreshCw,
+    FiX
+} from 'react-icons/fi';
+import {
+    FaExclamationCircle,
+    FaFileCsv,
+    FaFilePdf,
+    FaChartBar,
+    FaChartPie
+} from 'react-icons/fa';
 import ReactECharts from 'echarts-for-react';
 import { useSnackbar } from 'notistack';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -210,7 +212,7 @@ export default function CategoriesPage() {
                 <div style={{ marginTop: '12px' }}>
                     <div style={{ padding: '12px', background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: '4px', marginBottom: '16px' }}>
                         <p style={{ color: '#d48806', marginBottom: '0' }}>
-                            <ExclamationCircleOutlined style={{ marginRight: '8px' }} />
+                            <FaExclamationCircle style={{ marginRight: '8px' }} />
                             This action cannot be undone.
                         </p>
                     </div>
@@ -236,12 +238,12 @@ export default function CategoriesPage() {
             okText: 'Delete',
             okType: 'danger',
             okButtonProps: {
-                icon: <DeleteOutlined />,
+                icon: <FiTrash2 />,
                 danger: true,
             },
             cancelText: 'Cancel',
             cancelButtonProps: {
-                icon: <CloseOutlined />,
+                icon: <FiX />,
             },
             onOk() {
                 return deleteCategory(record.id);
@@ -337,14 +339,14 @@ export default function CategoriesPage() {
                 <Space size="small">
                     <Tooltip title="Edit">
                         <Button
-                            icon={<EditOutlined />}
+                            icon={<FiEdit />}
                             size="small"
                             onClick={() => handleEditCategory(record)}
                         />
                     </Tooltip>
                     <Tooltip title="Delete">
                         <Button
-                            icon={<DeleteOutlined />}
+                            icon={<FiTrash2 />}
                             size="small"
                             danger
                             onClick={() => handleDeleteCategory(record)}
@@ -364,13 +366,13 @@ export default function CategoriesPage() {
                 <Space>
                     <Button
                         type="primary"
-                        icon={<PlusOutlined />}
+                        icon={<FiPlus />}
                         onClick={handleAddCategory}
                     >
                         Add Category
                     </Button>
                     <Button
-                        icon={<ReloadOutlined />}
+                        icon={<FiRefreshCw />}
                         onClick={handleRefresh}
                         loading={loading}
                     >
@@ -478,14 +480,14 @@ export default function CategoriesPage() {
                     <Space>
                         <Button
                             type={chartView === 'bar' ? 'primary' : 'default'}
-                            icon={<BarChartOutlined />}
+                            icon={<FaChartBar />}
                             onClick={() => setChartView('bar')}
                         >
                             Bar Chart
                         </Button>
                         <Button
                             type={chartView === 'pie' ? 'primary' : 'default'}
-                            icon={<PieChartOutlined />}
+                            icon={<FaChartPie />}
                             onClick={() => setChartView('pie')}
                         >
                             Pie Chart
@@ -511,17 +513,17 @@ export default function CategoriesPage() {
                     <Space>
                         <Input
                             placeholder="Search categories"
-                            prefix={<SearchOutlined />}
+                            prefix={<FiSearch />}
                             onChange={handleSearchChange}
                             value={searchText}
                             allowClear
                             className="w-60"
                         />
                         <Tooltip title="Export to Excel">
-                            <Button icon={<FileExcelOutlined />} />
+                            <Button icon={<FaFileCsv />} />
                         </Tooltip>
                         <Tooltip title="Export to PDF">
-                            <Button icon={<FilePdfOutlined />} />
+                            <Button icon={<FaFilePdf />} />
                         </Tooltip>
                     </Space>
                 }

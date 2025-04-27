@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { Form, Input, Button, Alert, Card, Typography, Divider } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { FiUser, FiLock } from 'react-icons/fi';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useSnackbar } from 'notistack';
 
@@ -107,7 +107,7 @@ export default function LoginPage() {
                         rules={[{ required: true, message: 'Please enter your username or email!' }]}
                     >
                         <Input
-                            prefix={<UserOutlined className="site-form-item-icon mr-2" />}
+                            prefix={<FiUser className="site-form-item-icon mr-2" />}
                             placeholder="Username or Email"
                             autoComplete="username"
                         />
@@ -118,7 +118,7 @@ export default function LoginPage() {
                         rules={[{ required: true, message: 'Please enter your password!' }]}
                     >
                         <Input.Password
-                            prefix={<LockOutlined className="site-form-item-icon mr-2" />}
+                            prefix={<FiLock className="site-form-item-icon mr-2" />}
                             placeholder="Password"
                             autoComplete="current-password"
                         />

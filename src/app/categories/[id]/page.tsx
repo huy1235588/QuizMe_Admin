@@ -14,11 +14,8 @@ import {
     Typography,
     Spin
 } from 'antd';
-import {
-    ArrowLeftOutlined,
-    SaveOutlined,
-    InboxOutlined
-} from '@ant-design/icons';
+import { FiArrowLeft, FiSave } from 'react-icons/fi';
+import { FiInbox } from 'react-icons/fi';
 import { useSnackbar } from 'notistack';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { RcFile } from 'antd/es/upload';
@@ -244,7 +241,7 @@ export default function CategoryDetailPage() {
                 title={
                     <div className="flex items-center">
                         <Button
-                            icon={<ArrowLeftOutlined />}
+                            icon={<FiArrowLeft />}
                             onClick={handleCancel}
                             style={{ marginRight: 16 }}
                         />
@@ -330,7 +327,7 @@ export default function CategoryDetailPage() {
                                 }}
                             >
                                 <p className="ant-upload-drag-icon">
-                                    <InboxOutlined />
+                                    <FiInbox />
                                 </p>
                                 <p className="ant-upload-text">Click or drag icon file to this area to upload</p>
                                 <p className="ant-upload-hint">
@@ -377,7 +374,7 @@ export default function CategoryDetailPage() {
                                     </Button>
                                     <Button
                                         type="primary"
-                                        icon={<SaveOutlined />}
+                                        icon={<FiSave />}
                                         htmlType="submit"
                                         loading={loading}
                                         className="px-6 flex items-center gap-1 bg-blue-500 hover:bg-blue-600 shadow-sm"

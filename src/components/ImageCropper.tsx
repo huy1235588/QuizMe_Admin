@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import Cropper, { Area, CropperProps } from 'react-easy-crop';
 import { Modal, Slider, Button, Row, Col, Typography, Space } from 'antd';
-import { ZoomInOutlined, ZoomOutOutlined, RotateLeftOutlined, RotateRightOutlined } from '@ant-design/icons';
+import { FiZoomIn, FiZoomOut, FiRotateCcw, FiRotateCw } from 'react-icons/fi';
 
 const { Title } = Typography;
 
@@ -180,12 +180,12 @@ export default function ImageCropper({
                 <Col span={4}>
                     <Space.Compact block style={{ width: '100%' }}>
                         <Button 
-                            icon={<ZoomOutOutlined />} 
+                            icon={<FiZoomOut />} 
                             onClick={handleZoomOut}
                             disabled={zoom <= 1}
                         />
                         <Button 
-                            icon={<ZoomInOutlined />} 
+                            icon={<FiZoomIn />} 
                             onClick={handleZoomIn}
                             disabled={zoom >= 3}
                         />
@@ -198,14 +198,14 @@ export default function ImageCropper({
                     <div style={{ textAlign: 'center' }}>
                         <Space.Compact block style={{ width: '100%' }}>
                             <Button 
-                                icon={<RotateLeftOutlined />} 
+                                icon={<FiRotateCcw />} 
                                 onClick={handleRotateLeft}
                                 title="Rotate 90° left"
                             >
                                 Rotate Left
                             </Button>
                             <Button 
-                                icon={<RotateRightOutlined />} 
+                                icon={<FiRotateCw />} 
                                 onClick={handleRotateRight}
                                 title="Rotate 90° right"
                             >
