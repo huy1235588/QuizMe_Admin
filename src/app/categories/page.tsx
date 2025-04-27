@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     Card,
     Button,
@@ -10,8 +11,6 @@ import {
     Tag,
     Input,
     Modal,
-    Form,
-    Select,
     Tooltip,
     Divider,
     Row,
@@ -60,10 +59,8 @@ interface CategoryWithUIData extends Category {
 
 export default function CategoriesPage() {
     // Khởi tạo các state cho component
+    const router = useRouter();
     const [categories, setCategories] = useState<CategoryWithUIData[]>([]); // Danh sách các danh mục
-    const [isModalVisible, setIsModalVisible] = useState(false); // Trạng thái hiển thị modal
-    const [editingCategory, setEditingCategory] = useState<CategoryWithUIData | null>(null); // Danh mục đang được chỉnh sửa
-    const [form] = Form.useForm(); // Form Ant Design
     const [searchText, setSearchText] = useState(''); // Từ khóa tìm kiếm
     const { enqueueSnackbar } = useSnackbar(); // Hook hiển thị thông báo
     const [loading, setLoading] = useState(false); // Trạng thái đang tải
@@ -80,7 +77,6 @@ export default function CategoriesPage() {
         try {
             const response = await axiosInstance.get(API_ENDPOINTS.CATEGORIES);
             // Xử lý dữ liệu để thêm các trường UI
-            // Process the data to add UI specific fields
             const processedCategories = response.data.data.map((cat: Category) => ({
                 ...cat,
                 status: cat.isActive ? 'active' : 'inactive', // Chuyển đổi isActive thành status
@@ -191,26 +187,13 @@ export default function CategoriesPage() {
         };
     };
 
-    // Các xử lý sự kiện
-
-    // Xử lý thêm danh mục mới
+    // Navigation handlers for adding/editing categories
     const handleAddCategory = () => {
-        setEditingCategory(null);
-        form.resetFields();
-        form.setFieldsValue({ isActive: true });
-        setIsModalVisible(true);
+        router.push('/categories/new');
     };
 
-    // Xử lý chỉnh sửa danh mục
     const handleEditCategory = (record: CategoryWithUIData) => {
-        setEditingCategory(record);
-        form.setFieldsValue({
-            name: record.name,
-            description: record.description,
-            isActive: record.isActive,
-            iconUrl: record.iconUrl
-        });
-        setIsModalVisible(true);
+        router.push(`/categories/${record.id}`);
     };
 
     // Xử lý xóa danh mục
@@ -238,86 +221,6 @@ export default function CategoriesPage() {
         } catch (error) {
             console.error('Error deleting category:', error);
             enqueueSnackbar('Failed to delete category', { variant: 'error' });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Xử lý lưu danh mục (thêm mới hoặc cập nhật)
-    const handleSaveCategory = () => {
-        form.validateFields().then(values => {
-            if (editingCategory) {
-                updateCategory(editingCategory.id, values);
-            } else {
-                createCategory(values);
-            }
-        });
-    };
-
-    // Hàm tạo danh mục mới
-    const createCategory = async (values: any) => {
-        setLoading(true);
-        try {
-            // Dữ liệu gửi lên API
-            const categoryData: Partial<Category> = {
-                name: values.name,
-                description: values.description,
-                isActive: values.isActive,
-                iconUrl: values.iconUrl,
-                quizCount: 0,
-                totalPlayCount: 0
-            };
-
-            const response = await axiosInstance.post(API_ENDPOINTS.CATEGORIES, categoryData);
-
-            // Thêm dữ liệu UI đặc thù
-            const newCategory: CategoryWithUIData = {
-                ...response.data,
-                questionCount: 0
-            };
-
-            setCategories([...categories, newCategory]);
-            enqueueSnackbar('Category added successfully!', { variant: 'success' });
-            setIsModalVisible(false);
-        } catch (error) {
-            console.error('Error creating category:', error);
-            enqueueSnackbar('Failed to create category', { variant: 'error' });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Hàm cập nhật danh mục hiện có
-    const updateCategory = async (id: number, values: any) => {
-        setLoading(true);
-        try {
-            // Dữ liệu gửi lên API
-            const categoryData: Partial<Category> = {
-                name: values.name,
-                description: values.description,
-                isActive: values.isActive,
-                iconUrl: values.iconUrl
-            };
-
-            await axiosInstance.put(API_ENDPOINTS.CATEGORY(id), categoryData);
-
-            // Cập nhật state cục bộ
-            setCategories(
-                categories.map(cat =>
-                    cat.id === id
-                        ? {
-                            ...cat,
-                            ...categoryData
-                        }
-                        : cat
-                )
-            );
-
-            enqueueSnackbar('Category updated successfully!', { variant: 'success' });
-            setIsModalVisible(false);
-        } catch (error) {
-            console.error('Error updating category:', error);
-            enqueueSnackbar('Failed to update category', { variant: 'error' });
         } finally {
             setLoading(false);
         }
@@ -598,58 +501,6 @@ export default function CategoriesPage() {
                     }}
                 />
             </Card>
-
-            {/* Add/Edit Category Modal */}
-            <Modal
-                title={editingCategory ? 'Edit Category' : 'Add New Category'}
-                open={isModalVisible}
-                onCancel={() => setIsModalVisible(false)}
-                confirmLoading={loading}
-                footer={[
-                    <Button key="cancel" onClick={() => setIsModalVisible(false)}>
-                        Cancel
-                    </Button>,
-                    <Button key="submit" type="primary" loading={loading} onClick={handleSaveCategory}>
-                        Save
-                    </Button>
-                ]}
-            >
-                <Form
-                    form={form}
-                    layout="vertical"
-                    initialValues={{ isActive: true }}
-                >
-                    <Form.Item
-                        name="name"
-                        label="Category Name"
-                        rules={[{ required: true, message: 'Please enter category name' }]}
-                    >
-                        <Input placeholder="Enter category name" />
-                    </Form.Item>
-                    <Form.Item
-                        name="description"
-                        label="Description"
-                        rules={[{ required: true, message: 'Please enter category description' }]}
-                    >
-                        <Input.TextArea placeholder="Enter category description" rows={4} />
-                    </Form.Item>
-                    <Form.Item
-                        name="iconUrl"
-                        label="Icon URL"
-                    >
-                        <Input placeholder="Enter icon URL (optional)" />
-                    </Form.Item>
-                    <Form.Item
-                        name="isActive"
-                        label="Status"
-                    >
-                        <Select>
-                            <Select.Option value={true}>Active</Select.Option>
-                            <Select.Option value={false}>Inactive</Select.Option>
-                        </Select>
-                    </Form.Item>
-                </Form>
-            </Modal>
         </div>
     );
 }

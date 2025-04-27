@@ -13,7 +13,9 @@ import {
     FiUsers,
     FiSettings,
     FiHelpCircle,
-    FiFolder
+    FiFolder,
+    FiPlus,
+    FiList
 } from 'react-icons/fi';
 import { FiSun, FiMoon } from 'react-icons/fi';
 import Link from 'next/link';
@@ -56,6 +58,30 @@ export default function DashboardShell({
     // Xử lý đăng xuất
     const handleLogout = () => {
         logout();
+    };
+
+    // Determine active menu and submenu keys
+    const getSelectedKeys = () => {
+        const path = pathname.split('/');
+        const section = path[1] || 'dashboard';
+        const action = path[2];
+        
+        if (action === 'new') {
+            return [`${section}-add`];
+        } else if (action && !isNaN(Number(action))) {
+            return [`${section}-list`];
+        }
+        
+        return [section === 'dashboard' ? 'dashboard' : `${section}-list`];
+    };
+
+    // Determine which submenu should be open
+    const getOpenKeys = () => {
+        const section = pathname.split('/')[1];
+        if (section && section !== 'dashboard' && section !== 'settings') {
+            return [section];
+        }
+        return [];
     };
 
     // Chỉ hiển thị shell khi đã xác thực hoặc đang ở trang đăng nhập
@@ -103,37 +129,83 @@ export default function DashboardShell({
                     </div>
                     <Menu
                         mode="inline"
-                        selectedKeys={[pathname.split('/')[1] || 'dashboard']}
+                        selectedKeys={getSelectedKeys()}
+                        defaultOpenKeys={collapsed ? [] : getOpenKeys()}
                         items={[
                             {
                                 key: 'dashboard',
                                 icon: <FiHome />,
-                                label: <Link href="/dashboard">Dashboard</Link>,
+                                label: 'Dashboard',
+                                onClick: () => router.push('/dashboard')
                             },
                             {
                                 key: 'quizzes',
                                 icon: <FiHelpCircle />,
-                                label: <Link href="/quizzes">Quizzes</Link>,
+                                label: 'Quizzes',
+                                children: [
+                                    {
+                                        key: 'quizzes-list',
+                                        icon: <FiList />,
+                                        label: 'All Quizzes',
+                                        onClick: () => router.push('/quizzes')
+                                    },
+                                    {
+                                        key: 'quizzes-add',
+                                        icon: <FiPlus />,
+                                        label: 'Add Quiz',
+                                        onClick: () => router.push('/quizzes/new')
+                                    }
+                                ]
                             },
                             {
                                 key: 'categories',
                                 icon: <FiFolder />,
-                                label: <Link href="/categories">Categories</Link>,
+                                label: 'Categories',
+                                children: [
+                                    {
+                                        key: 'categories-list',
+                                        icon: <FiList />,
+                                        label: 'All Categories',
+                                        onClick: () => router.push('/categories')
+                                    },
+                                    {
+                                        key: 'categories-add',
+                                        icon: <FiPlus />,
+                                        label: 'Add Category',
+                                        onClick: () => router.push('/categories/new')
+                                    }
+                                ]
                             },
                             {
                                 key: 'questions',
                                 icon: <FiFileText />,
-                                label: <Link href="/questions">Questions</Link>,
+                                label: 'Questions',
+                                children: [
+                                    {
+                                        key: 'questions-list',
+                                        icon: <FiList />,
+                                        label: 'All Questions',
+                                        onClick: () => router.push('/questions')
+                                    },
+                                    {
+                                        key: 'questions-add',
+                                        icon: <FiPlus />,
+                                        label: 'Add Question',
+                                        onClick: () => router.push('/questions/new')
+                                    }
+                                ]
                             },
                             {
                                 key: 'users',
                                 icon: <FiUsers />,
-                                label: <Link href="/users">Users</Link>,
+                                label: 'Users',
+                                onClick: () => router.push('/users')
                             },
                             {
                                 key: 'settings',
                                 icon: <FiSettings />,
-                                label: <Link href="/settings">Settings</Link>,
+                                label: 'Settings',
+                                onClick: () => router.push('/settings')
                             },
                         ]}
                         className="border-none"
