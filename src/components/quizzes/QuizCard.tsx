@@ -6,6 +6,7 @@ import { FiEye, FiEdit, FiMoreVertical, FiFileText, FiUsers, FiTrash2, FiCopy } 
 import { IoShareSocialOutline } from 'react-icons/io5';
 import { useSnackbar } from 'notistack';
 import { Quiz } from '@/types/database';
+import { useRouter } from 'next/navigation';
 
 const { Text } = Typography;
 
@@ -29,6 +30,7 @@ const getDifficultyColor = (difficulty: string) => {
 const QuizCard = memo(({ quiz, onDelete, isDarkMode }: QuizCardProps) => {
     // Hook để hiển thị thông báo
     const { enqueueSnackbar } = useSnackbar();
+    const router = useRouter();
 
     // Tạo menu cho dropdown với các tùy chọn
     const getQuizMenu = () => ({
@@ -43,7 +45,7 @@ const QuizCard = memo(({ quiz, onDelete, isDarkMode }: QuizCardProps) => {
                 key: '2',
                 label: 'Edit Quiz',      // Chỉnh sửa quiz
                 icon: <FiEdit />,
-                onClick: () => enqueueSnackbar('Edit Quiz Feature Coming Soon', { variant: 'info' })
+                onClick: () => router.push(`/quizzes/${quiz.id}`)  // Cập nhật để chuyển đến trang edit
             },
             {
                 key: '3',
@@ -104,7 +106,11 @@ const QuizCard = memo(({ quiz, onDelete, isDarkMode }: QuizCardProps) => {
                     <Button type="text" icon={<FiEye />} />
                 </Tooltip>,
                 <Tooltip title="Edit Quiz" key="edit">
-                    <Button type="text" icon={<FiEdit />} />
+                    <Button
+                        type="text"
+                        icon={<FiEdit />}
+                        onClick={() => router.push(`/quizzes/${quiz.id}`)}
+                    />
                 </Tooltip>,
                 <Dropdown key="more" menu={getQuizMenu()} trigger={['click']} placement="bottomRight">
                     <Button type="text" icon={<FiMoreVertical />} />
@@ -114,8 +120,8 @@ const QuizCard = memo(({ quiz, onDelete, isDarkMode }: QuizCardProps) => {
             {/* Phần nội dung chính của thẻ */}
             <div className="flex flex-col h-32">
                 {/* Title được chuyển vào body */}
-                <Text className="font-semibold text-lg mb-2 line-clamp-2" 
-                      style={{ color: isDarkMode ? 'white' : 'inherit' }}>
+                <Text className="font-semibold text-lg mb-2 line-clamp-2"
+                    style={{ color: isDarkMode ? 'white' : 'inherit' }}>
                     {quiz.title}
                 </Text>
 

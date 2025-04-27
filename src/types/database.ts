@@ -40,6 +40,15 @@ export type Question = {
     updatedAt: string;
 }
 
+export type QuestionOption = {
+    id: number;
+    questionId: number;
+    content: string;
+    isCorrect: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export type Activity = {
     id: number;
     user: string;

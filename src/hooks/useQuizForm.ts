@@ -151,6 +151,8 @@ export const useQuizForm = () => {
         questions,
         isLoading,
         error,
+        setQuizData,
+        setQuestions,
         handleQuizChange,
         handleAddQuestion,
         handleQuestionChange,
