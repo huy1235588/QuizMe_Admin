@@ -6,7 +6,6 @@ import { Category } from '@/types/database';
 
 // Khởi tạo các component từ thư viện Ant Design
 const { Search } = Input;
-const { TabPane } = Tabs;
 const { Text } = Typography;
 
 // Định nghĩa interface cho props của component QuizFilters
@@ -69,10 +68,10 @@ const QuizFilters: React.FC<QuizFiltersProps> = ({
                         placeholder="Category"
                         className="min-w-[120px]"
                         allowClear
-                        value={selectedCategory}
-                        onChange={onCategoryChange}
+                        value={selectedCategory === null ? 'all' : selectedCategory}
+                        onChange={(value) => onCategoryChange(value === 'all' ? null : value as number)}
                         options={[
-                            { value: null, label: 'All Categories' },
+                            { value: 'all', label: 'All Categories' },
                             ...categories.map(cat => ({ value: cat.id, label: cat.name }))
                         ]}
                     />
@@ -81,10 +80,10 @@ const QuizFilters: React.FC<QuizFiltersProps> = ({
                         placeholder="Difficulty"
                         className="min-w-[120px]"
                         allowClear
-                        value={difficultyFilter}
-                        onChange={onDifficultyChange}
+                        value={difficultyFilter === null ? 'all' : difficultyFilter}
+                        onChange={(value) => onDifficultyChange(value === 'all' ? null : value as string)}
                         options={[
-                            { value: null, label: 'All Difficulties' },
+                            { value: 'all', label: 'All Difficulties' },
                             { value: 'easy', label: 'Easy' },
                             { value: 'medium', label: 'Medium' },
                             { value: 'hard', label: 'Hard' }
@@ -109,12 +108,16 @@ const QuizFilters: React.FC<QuizFiltersProps> = ({
 
             {/* Phần tabs */}
             <div className="mb-4">
-                <Tabs activeKey={activeTab} onChange={onTabChange}>
-                    <TabPane tab="All Quizzes" key="all" /> {/* Tất cả các quiz */}
-                    <TabPane tab="My Quizzes" key="my" /> {/* Quiz của tôi */}
-                    <TabPane tab="Favorites" key="favorites" /> {/* Quiz yêu thích */}
-                    <TabPane tab="Recently Viewed" key="recent" /> {/* Quiz đã xem gần đây */}
-                </Tabs>
+                <Tabs 
+                    activeKey={activeTab} 
+                    onChange={onTabChange}
+                    items={[
+                        { key: 'all', label: 'All Quizzes' }, // Tất cả các quiz
+                        { key: 'my', label: 'My Quizzes' },   // Quiz của tôi
+                        { key: 'favorites', label: 'Favorites' }, // Quiz yêu thích
+                        { key: 'recent', label: 'Recently Viewed' } // Quiz đã xem gần đây
+                    ]}
+                />
             </div>
 
             {/* Phần hiển thị thông tin tổng quan và bộ lọc công khai */}

@@ -211,7 +211,7 @@ export default function DashboardShell({
                         ]}
                         className="border-none"
                     />
-                    <div className="absolute bottom-0 w-full p-4">
+                    <div className="absolute bottom-0 w-full">
                         <Menu
                             mode="inline"
                             className="border-t border-gray-200"
@@ -276,7 +276,7 @@ export default function DashboardShell({
                         {children}
                     </Content>
                     <Footer
-                        style={{ 
+                        style={{
                             textAlign: 'center',
                         }}
                     >
