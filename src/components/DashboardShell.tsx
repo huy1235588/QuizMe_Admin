@@ -23,6 +23,7 @@ import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { Footer } from 'antd/es/layout/layout';
 
 const { Header, Sider, Content } = Layout;
 
@@ -65,13 +66,13 @@ export default function DashboardShell({
         const path = pathname.split('/');
         const section = path[1] || 'dashboard';
         const action = path[2];
-        
+
         if (action === 'new') {
             return [`${section}-add`];
         } else if (action && !isNaN(Number(action))) {
             return [`${section}-list`];
         }
-        
+
         return [section === 'dashboard' ? 'dashboard' : `${section}-list`];
     };
 
@@ -266,7 +267,7 @@ export default function DashboardShell({
                         </div>
                     </Header>
                     <Content
-                        className={`m-6 p-6 rounded-md shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
+                        className={`p-6 rounded-md shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
                         style={{
                             marginTop: 64,
                             minHeight: 'calc(100vh - 64px)',
@@ -274,6 +275,13 @@ export default function DashboardShell({
                     >
                         {children}
                     </Content>
+                    <Footer
+                        style={{ 
+                            textAlign: 'center',
+                        }}
+                    >
+                        QuizMe Admin ©{new Date().getFullYear()} Created by Le Thien Huy
+                    </Footer>
                 </Layout>
             </Layout>
         </ConfigProvider>
