@@ -2,23 +2,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { 
-    Card, 
-    Form, 
-    Input, 
-    Button, 
-    Switch, 
-    Upload, 
-    message, 
+import {
+    Card,
+    Form,
+    Input,
+    Button,
+    Switch,
+    Upload,
+    message,
     Space,
     Typography,
     Spin
 } from 'antd';
-import { 
-    ArrowLeftOutlined, 
-    SaveOutlined, 
-    PlusOutlined, 
-    InboxOutlined 
+import {
+    ArrowLeftOutlined,
+    SaveOutlined,
+    PlusOutlined,
+    InboxOutlined
 } from '@ant-design/icons';
 import { useSnackbar } from 'notistack';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
@@ -49,7 +49,7 @@ export default function CategoryDetailPage() {
     const [uploadLoading, setUploadLoading] = useState(false);
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [iconPreview, setIconPreview] = useState<string>('');
-    
+
     // Lấy dữ liệu danh mục khi chỉnh sửa danh mục hiện có
     useEffect(() => {
         if (!isNewCategory) {
@@ -63,7 +63,7 @@ export default function CategoryDetailPage() {
         try {
             const response = await axiosInstance.get(API_ENDPOINTS.CATEGORY(id as number));
             const category = response.data.data;
-            
+
             // Thiết lập giá trị cho form
             form.setFieldsValue({
                 name: category.name,
@@ -98,20 +98,20 @@ export default function CategoryDetailPage() {
             message.error('You can only upload JPG/PNG/GIF file!');
             return false;
         }
-        
+
         const isLt2M = file.size / 1024 / 1024 < 2;
         if (!isLt2M) {
             message.error('Image must be smaller than 2MB!');
             return false;
         }
-        
+
         // Tạo URL xem trước
         const reader = new FileReader();
         reader.onload = (e) => {
             setIconPreview(e.target?.result as string);
         };
         reader.readAsDataURL(file);
-        
+
         // Trả về false để ngăn tải lên tự động, chúng ta sẽ xử lý thủ công
         return false;
     };
@@ -125,7 +125,7 @@ export default function CategoryDetailPage() {
     const uploadIcon = async (file: RcFile): Promise<string> => {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         setUploadLoading(true);
         try {
             const response = await axiosInstance.post(API_ENDPOINTS.UPLOAD_IMAGE, formData, {
@@ -133,7 +133,7 @@ export default function CategoryDetailPage() {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            
+
             if (response.data.status === 'success') {
                 return response.data.data.url;
             } else {
@@ -152,7 +152,7 @@ export default function CategoryDetailPage() {
         setLoading(true);
         try {
             let iconUrl = iconPreview;
-            
+
             // Tải lên biểu tượng nếu một tệp mới được chọn
             if (fileList.length > 0 && fileList[0].originFileObj) {
                 try {
@@ -163,12 +163,12 @@ export default function CategoryDetailPage() {
                     return;
                 }
             }
-            
+
             const categoryData = {
                 ...values,
                 iconUrl: iconUrl,
             };
-            
+
             if (isNewCategory) {
                 // Tạo danh mục mới
                 await axiosInstance.post(API_ENDPOINTS.CATEGORIES, categoryData);
@@ -178,7 +178,7 @@ export default function CategoryDetailPage() {
                 await axiosInstance.put(API_ENDPOINTS.CATEGORY(id as number), categoryData);
                 enqueueSnackbar('Category updated successfully!', { variant: 'success' });
             }
-            
+
             // Quay lại danh sách danh mục
             router.push('/categories');
         } catch (error) {
@@ -200,8 +200,8 @@ export default function CategoryDetailPage() {
             <Card
                 title={
                     <div className="flex items-center">
-                        <Button 
-                            icon={<ArrowLeftOutlined />} 
+                        <Button
+                            icon={<ArrowLeftOutlined />}
                             onClick={handleCancel}
                             style={{ marginRight: 16 }}
                         />
@@ -228,9 +228,9 @@ export default function CategoryDetailPage() {
                             name="name"
                             label="Category Name"
                             rules={[
-                                { 
-                                    required: true, 
-                                    message: 'Please enter the category name' 
+                                {
+                                    required: true,
+                                    message: 'Please enter the category name'
                                 },
                                 {
                                     max: 50,
@@ -240,15 +240,15 @@ export default function CategoryDetailPage() {
                         >
                             <Input placeholder="Enter category name" />
                         </Form.Item>
-                        
+
                         {/* Trường mô tả */}
                         <Form.Item
                             name="description"
                             label="Description"
                             rules={[
-                                { 
-                                    required: true, 
-                                    message: 'Please enter a description' 
+                                {
+                                    required: true,
+                                    message: 'Please enter a description'
                                 },
                                 {
                                     max: 200,
@@ -256,14 +256,14 @@ export default function CategoryDetailPage() {
                                 }
                             ]}
                         >
-                            <TextArea 
-                                placeholder="Enter category description" 
-                                rows={4} 
-                                showCount 
-                                maxLength={200} 
+                            <TextArea
+                                placeholder="Enter category description"
+                                rows={4}
+                                showCount
+                                maxLength={200}
                             />
                         </Form.Item>
-                        
+
                         {/* Trường tải lên biểu tượng */}
                         <Form.Item
                             label="Category Icon"
@@ -282,7 +282,7 @@ export default function CategoryDetailPage() {
                                     showPreviewIcon: true,
                                     showRemoveIcon: true,
                                 }}
-                                style={{ 
+                                style={{
                                     width: '100%',
                                     marginBottom: 24
                                 }}
@@ -295,21 +295,21 @@ export default function CategoryDetailPage() {
                                     Recommended size: 128x128 pixels. Supports JPG, PNG, GIF
                                 </p>
                             </Dragger>
-                            
+
                             {iconPreview && (
                                 <div className="mt-4">
                                     <p>Preview:</p>
                                     <div className="w-32 h-32 border border-gray-200 rounded overflow-hidden mt-2">
-                                        <img 
-                                            src={iconPreview} 
-                                            alt="Category icon preview" 
+                                        <img
+                                            src={iconPreview}
+                                            alt="Category icon preview"
                                             className="w-full h-full object-contain"
                                         />
                                     </div>
                                 </div>
                             )}
                         </Form.Item>
-                        
+
                         {/* Chuyển đổi trạng thái hoạt động */}
                         <Form.Item
                             name="isActive"
@@ -322,22 +322,28 @@ export default function CategoryDetailPage() {
                                 defaultChecked
                             />
                         </Form.Item>
-                        
+
                         {/* Các hành động của biểu mẫu */}
                         <Form.Item>
-                            <Space>
-                                <Button onClick={handleCancel}>
-                                    Cancel
-                                </Button>
-                                <Button 
-                                    type="primary"
-                                    icon={<SaveOutlined />}
-                                    htmlType="submit"
-                                    loading={loading}
-                                >
-                                    {isNewCategory ? 'Create Category' : 'Update Category'}
-                                </Button>
-                            </Space>
+                            <div className="flex justify-end pt-4">
+                                <Space size="middle">
+                                    <Button
+                                        onClick={handleCancel}
+                                        className="px-6 hover:bg-gray-50 border border-gray-200"
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        type="primary"
+                                        icon={<SaveOutlined />}
+                                        htmlType="submit"
+                                        loading={loading}
+                                        className="px-6 flex items-center gap-1 bg-blue-500 hover:bg-blue-600 shadow-sm"
+                                    >
+                                        {isNewCategory ? 'Create Category' : 'Update Category'}
+                                    </Button>
+                                </Space>
+                            </div>
                         </Form.Item>
                     </Form>
                 </Spin>
