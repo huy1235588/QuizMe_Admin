@@ -24,7 +24,6 @@ import { useSnackbar } from 'notistack';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { RcFile } from 'antd/es/upload';
 import axiosInstance from '@/utils/axios';
-import { Category } from '@/types/database';
 import ImageCropper from '@/components/ImageCropper';
 
 const { Title, Text } = Typography;
@@ -123,66 +122,80 @@ export default function CategoryDetailPage() {
         setFileList(newFileList);
     };
 
-    // Xử lý tải tệp lên máy chủ
-    const uploadIcon = async (file: RcFile): Promise<string> => {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        setUploadLoading(true);
-        try {
-            const response = await axiosInstance.post(API_ENDPOINTS.UPLOAD_IMAGE, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
-            if (response.data.status === 'success') {
-                return response.data.data.url;
-            } else {
-                throw new Error('Upload failed');
-            }
-        } catch (error) {
-            console.error('Error uploading icon:', error);
-            throw error;
-        } finally {
-            setUploadLoading(false);
-        }
-    };
-
     // Xử lý gửi biểu mẫu
     const handleSubmit = async (values: any) => {
         setLoading(true);
         try {
-            let iconUrl = iconPreview;
-
-            // Tải lên biểu tượng nếu một tệp mới được chọn
-            if (fileList.length > 0 && fileList[0].originFileObj) {
-                try {
-                    iconUrl = await uploadIcon(fileList[0].originFileObj as RcFile);
-                } catch (error) {
-                    enqueueSnackbar('Failed to upload icon', { variant: 'error' });
-                    setLoading(false);
-                    return;
-                }
-            }
-
-            const categoryData = {
-                ...values,
-                iconUrl: iconUrl,
-            };
-
             if (isNewCategory) {
-                // Tạo danh mục mới
-                await axiosInstance.post(API_ENDPOINTS.CATEGORIES, categoryData);
+                // Tạo danh mục mới sử dụng FormData cho multipart/form-data
+                const formData = new FormData();
+                formData.append('name', values.name);
+                
+                if (values.description) {
+                    formData.append('description', values.description);
+                }
+                
+                formData.append('isActive', values.isActive.toString());
+                
+                // Thêm tệp biểu tượng nếu có
+                if (fileList.length > 0 && fileList[0].originFileObj) {
+                    formData.append('iconFile', fileList[0].originFileObj as RcFile);
+                }
+                
+                // Gọi API với Content-Type: multipart/form-data
+                await axiosInstance.post(API_ENDPOINTS.CATEGORIES, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                
                 enqueueSnackbar('Category created successfully!', { variant: 'success' });
             } else {
-                // Cập nhật danh mục hiện có
+                // Cập nhật danh mục hiện có sử dụng JSON
+                const categoryData= {
+                    name: values.name,
+                    description: values.description,
+                    iconUrl: iconPreview,
+                    isActive: values.isActive,
+                };
+                
+                // Chỉ cập nhật iconUrl nếu người dùng đã thay đổi biểu tượng
+                if (fileList.length > 0 && fileList[0].originFileObj) {
+                    // Nếu có tệp mới, tải lên riêng biệt trước
+                    try {
+                        setUploadLoading(true);
+                        const formData = new FormData();
+                        formData.append('file', fileList[0].originFileObj as RcFile);
+                        
+                        const uploadResponse = await axiosInstance.post(API_ENDPOINTS.UPLOAD_IMAGE, formData, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data',
+                            },
+                        });
+                        
+                        if (uploadResponse.data.status === 'success') {
+                            categoryData.iconUrl = uploadResponse.data.data.url;
+                        }
+
+                    } catch (uploadError) {
+                        console.error('Error uploading icon:', uploadError);
+                        enqueueSnackbar('Failed to upload icon', { variant: 'error' });
+                        setLoading(false);
+                        setUploadLoading(false);
+                        return;
+                    } finally {
+                        setUploadLoading(false);
+                    }
+                }
+                
+                // Gọi API cập nhật danh mục
                 await axiosInstance.put(API_ENDPOINTS.CATEGORY(id as number), categoryData);
                 enqueueSnackbar('Category updated successfully!', { variant: 'success' });
             }
 
             // Quay lại danh sách danh mục
             router.push('/categories');
+            
         } catch (error) {
             console.error('Error saving category:', error);
             enqueueSnackbar('Failed to save category', { variant: 'error' });
@@ -277,8 +290,12 @@ export default function CategoryDetailPage() {
                                     message: 'Please enter the category name'
                                 },
                                 {
-                                    max: 50,
-                                    message: 'Category name cannot exceed 50 characters'
+                                    min: 2,
+                                    message: 'Category name must be at least 2 characters'
+                                },
+                                {
+                                    max: 100,
+                                    message: 'Category name cannot exceed 100 characters'
                                 }
                             ]}
                         >
@@ -290,10 +307,6 @@ export default function CategoryDetailPage() {
                             name="description"
                             label="Description"
                             rules={[
-                                {
-                                    required: true,
-                                    message: 'Please enter a description'
-                                },
                                 {
                                     max: 200,
                                     message: 'Description cannot exceed 200 characters'
@@ -311,7 +324,6 @@ export default function CategoryDetailPage() {
                         {/* Trường tải lên biểu tượng */}
                         <Form.Item
                             label="Category Icon"
-                            required
                             tooltip="Upload an image to represent this category (JPG, PNG, GIF, max 2MB)"
                         >
                             <Dragger
