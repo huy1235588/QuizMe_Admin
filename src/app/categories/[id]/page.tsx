@@ -25,6 +25,7 @@ import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { RcFile } from 'antd/es/upload';
 import axiosInstance from '@/utils/axios';
 import { Category } from '@/types/database';
+import ImageCropper from '@/components/ImageCropper';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -49,6 +50,9 @@ export default function CategoryDetailPage() {
     const [uploadLoading, setUploadLoading] = useState(false);
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [iconPreview, setIconPreview] = useState<string>('');
+
+    const [showCropper, setShowCropper] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<RcFile | null>(null);
 
     // Lấy dữ liệu danh mục khi chỉnh sửa danh mục hiện có
     useEffect(() => {
@@ -105,12 +109,17 @@ export default function CategoryDetailPage() {
             return false;
         }
 
-        // Tạo URL xem trước
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            setIconPreview(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
+        else {
+            setSelectedFile(file);
+            setShowCropper(true);
+        }
+
+        // // Tạo URL xem trước
+        // const reader = new FileReader();
+        // reader.onload = (e) => {
+        //     setIconPreview(e.target?.result as string);
+        // };
+        // reader.readAsDataURL(file);
 
         // Trả về false để ngăn tải lên tự động, chúng ta sẽ xử lý thủ công
         return false;
@@ -197,6 +206,35 @@ export default function CategoryDetailPage() {
     // Hiển thị component
     return (
         <div className="category-detail-page">
+            {/* Cropper Modal */}
+            {showCropper && selectedFile && (
+                <ImageCropper
+                    visible={showCropper}
+                    imageSrc={URL.createObjectURL(selectedFile)}
+                    onCancel={() => {
+                        setShowCropper(false);
+                        setSelectedFile(null);
+                    }}
+                    onCrop={(blob) => {
+                        const file = new File([blob], selectedFile.name, {
+                            type: blob.type,
+                        });
+                        setFileList([
+                            {
+                                uid: '0',
+                                name: file.name,
+                                status: 'done',
+                                originFileObj: file,
+                                url: URL.createObjectURL(blob),
+                            },
+                        ]);
+                        setIconPreview(URL.createObjectURL(blob));
+                        setShowCropper(false);
+                        setSelectedFile(null);
+                    }}
+                />
+            )}
+
             <Card
                 title={
                     <div className="flex items-center">
