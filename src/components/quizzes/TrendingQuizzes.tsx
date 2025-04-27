@@ -75,7 +75,7 @@ const TrendingQuizzes: React.FC<TrendingQuizzesProps> = ({ quizzes, isDarkMode }
                                 <div className="relative h-36 overflow-hidden">
                                     {/* Hình ảnh thumbnail của quiz hoặc hình placeholder có màu ngẫu nhiên nếu không có thumbnail */}
                                     <img
-                                        src={quiz.quizThumbUrls || `https://placehold.co/400x300/${['3b82f6', '8b5cf6', 'ec4899', '22c55e', 'eab308', '8b5cf6'][index % 6]}/ffffff?text=${quiz.title.charAt(0)}`}
+                                        src={quiz.quizThumbnails || `https://placehold.co/400x300/${['3b82f6', '8b5cf6', 'ec4899', '22c55e', 'eab308', '8b5cf6'][index % 6]}/ffffff?text=${quiz.title.charAt(0)}`}
                                         alt={quiz.title}
                                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                                     />

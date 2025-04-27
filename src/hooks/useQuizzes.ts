@@ -37,7 +37,7 @@ export const useQuizzes = () => {
             id: i + 1,
             title: `Sample Quiz ${i + 1}: ${['Introduction to', 'Advanced', 'Mastering', 'Exploring', 'Ultimate'][i % 5]} ${categoryNames[i % categoryNames.length]}`,
             description: `This is a ${difficulties[i % 3]} quiz about ${categoryNames[i % categoryNames.length].toLowerCase()}.`,
-            quizThumbUrls: `https://placehold.co/600x400/${['3b82f6', '8b5cf6', 'ec4899', '22c55e', 'eab308', '8b5cf6'][i % 6]}/ffffff?text=${categoryNames[i % categoryNames.length]}`,
+            quizThumbnails: `https://placehold.co/600x400/${['3b82f6', '8b5cf6', 'ec4899', '22c55e', 'eab308', '8b5cf6'][i % 6]}/ffffff?text=${categoryNames[i % categoryNames.length]}`,
             categoryId: (i % categoryNames.length) + 1,
             categoryName: categoryNames[i % categoryNames.length],
             createName: ['John Doe', 'Jane Smith', 'Alex Johnson', 'Emma Davis'][i % 4],
@@ -69,18 +69,19 @@ export const useQuizzes = () => {
             };
 
             // Trong ứng dụng thực tế, gọi API với các tham số truy vấn
-            // const response = await axiosInstance.get('/api/quizzes', { params: queryParams });
+            const response = await axiosInstance.get('/api/quizzes', { params: queryParams });
 
             // Hiện tại, sử dụng dữ liệu mẫu
-            const sampleQuizzes = generateSampleQuizzes(24);
+            const quizzesData: Quiz[] = response.data.data || generateSampleQuizzes(100); // Giả lập 100 quiz
 
-            setQuizzes(sampleQuizzes);
-            setTotalQuizzes(sampleQuizzes.length);
+            setQuizzes(quizzesData);
+            setTotalQuizzes(quizzesData.length);
 
             // Thiết lập một số quiz thịnh hành
-            setTrendingQuizzes(sampleQuizzes
+            setTrendingQuizzes(quizzesData
                 .sort((a, b) => b.playCount - a.playCount)
                 .slice(0, 5));
+
         } catch (err) {
             console.error('Error fetching quizzes:', err);
             enqueueSnackbar('Failed to load quizzes', { variant: 'error' });
@@ -94,19 +95,10 @@ export const useQuizzes = () => {
     // Lấy danh sách danh mục từ API
     const fetchCategories = useCallback(async () => {
         try {
-            // const response = await axiosInstance.get<{ data: Category[] }>('/api/categories');
+            const response = await axiosInstance.get<{ data: Category[] }>('/api/categories');
 
-            // Sử dụng dữ liệu mẫu tạm thời
-            const sampleCategories = [
-                { id: 1, name: 'Science', description: 'Scientific knowledge', iconUrl: '🔬', quizCount: 8, totalPlayCount: 450, isActive: true },
-                { id: 2, name: 'History', description: 'Historical events', iconUrl: '📜', quizCount: 5, totalPlayCount: 320, isActive: true },
-                { id: 3, name: 'Mathematics', description: 'Math problems', iconUrl: '🧮', quizCount: 7, totalPlayCount: 280, isActive: true },
-                { id: 4, name: 'Literature', description: 'Books and authors', iconUrl: '📚', quizCount: 4, totalPlayCount: 200, isActive: true },
-                { id: 5, name: 'Geography', description: 'World geography', iconUrl: '🌎', quizCount: 6, totalPlayCount: 350, isActive: true },
-                { id: 6, name: 'Programming', description: 'Coding challenges', iconUrl: '💻', quizCount: 10, totalPlayCount: 520, isActive: true },
-            ];
+            setCategories(response.data.data);
 
-            setCategories(sampleCategories);
         } catch (err) {
             console.error('Error fetching categories:', err);
             enqueueSnackbar('Failed to load categories', { variant: 'error' });

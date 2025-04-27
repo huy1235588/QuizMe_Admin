@@ -78,7 +78,7 @@ const QuizCard = memo(({ quiz, onDelete, isDarkMode }: QuizCardProps) => {
                     <img
                         alt={quiz.title}
                         // Sử dụng hình ảnh từ URL hoặc tạo hình placeholder với màu tương ứng với độ khó
-                        src={quiz.quizThumbUrls || `https://placehold.co/600x400/${['3b82f6', '8b5cf6', 'ec4899'][['easy', 'medium', 'hard'].indexOf(quiz.difficulty)]}/ffffff?text=${quiz.title}`}
+                        src={quiz.quizThumbnails || `https://placehold.co/600x400/${['3b82f6', '8b5cf6', 'ec4899'][['easy', 'medium', 'hard'].indexOf(quiz.difficulty)]}/ffffff?text=${quiz.title}`}
                         className="object-cover h-full w-full"
                     />
                     <div className="absolute top-2 right-2">

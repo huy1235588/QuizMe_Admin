@@ -15,7 +15,7 @@ export type Quiz = {
     id: number;
     title: string;
     description: string;
-    quizThumbUrls?: string;
+    quizThumbnails?: string;
     categoryId: number;
     categoryName: string;
     createName: string;

@@ -43,7 +43,7 @@ const QuizList: React.FC<QuizListProps> = ({
                 <div className="flex items-center">
                     <div className="w-10 h-10 mr-3 rounded overflow-hidden">
                         <img
-                            src={record.quizThumbUrls || `https://placehold.co/100x100/${['3b82f6', '8b5cf6', 'ec4899'][['easy', 'medium', 'hard'].indexOf(record.difficulty)]}/ffffff?text=${record.title.charAt(0)}`}
+                            src={record.quizThumbnails || `https://placehold.co/100x100/${['3b82f6', '8b5cf6', 'ec4899'][['easy', 'medium', 'hard'].indexOf(record.difficulty)]}/ffffff?text=${record.title.charAt(0)}`}
                             alt={text}
                             className="w-full h-full object-cover"
                         />
