@@ -10,6 +10,14 @@ import { useQuizForm } from '@/hooks/useQuizForm';
 import QuizFormDetails from '@/components/quizzes/QuizForm/QuizFormDetails';
 import QuestionList from '@/components/quizzes/QuizForm/QuestionList';
 import axiosInstance from '@/utils/axios';
+import { 
+  ApiResponse, 
+  QuizResponse, 
+  QuizRequest, 
+  QuizDetailResponse,
+  FormQuestion,
+  QuestionOptionRequest
+} from '@/types/database';
 
 const { Title } = Typography;
 
@@ -33,8 +41,10 @@ export default function QuizForm() {
         setQuizData,
         setQuestions,
         handleQuizChange,
+        handleThumbnailChange,
         handleAddQuestion,
         handleQuestionChange,
+        handleQuestionImageChange,
         handleRemoveQuestion,
         handleQuizSubmit
     } = useQuizForm();
@@ -45,51 +55,82 @@ export default function QuizForm() {
             const fetchQuizData = async () => {
                 try {
                     // Trong ứng dụng thực tế, fetch từ API
-                    // const response = await axiosInstance.get(`/api/quizzes/${id}`);
-                    // const data = response.data.data;
+                    const response = await axiosInstance.get<ApiResponse<QuizDetailResponse>>(`/api/quizzes/${id}`);
                     
-                    // Demo: Giả lập lấy dữ liệu từ API
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    // Mock data cho demo
-                    const mockQuizData = {
-                        title: `Quiz #${id}`,
-                        description: "Sample quiz description for editing",
-                        categoryId: 2,
-                        difficulty: "medium",
-                        isPublic: true,
-                        thumbnailUrl: ""
-                    };
-                    
-                    const mockQuestions = [
-                        {
-                            id: "q1",
-                            content: "What is the capital of France?",
-                            timeLimit: 30,
-                            points: 10,
-                            answers: [
-                                { id: "a1", content: "Paris", isCorrect: true },
-                                { id: "a2", content: "London", isCorrect: false },
-                                { id: "a3", content: "Berlin", isCorrect: false },
-                                { id: "a4", content: "Madrid", isCorrect: false }
-                            ]
-                        },
-                        {
-                            id: "q2",
-                            content: "What is 2+2?",
-                            timeLimit: 15,
-                            points: 5,
-                            answers: [
-                                { id: "a5", content: "3", isCorrect: false },
-                                { id: "a6", content: "4", isCorrect: true },
-                                { id: "a7", content: "5", isCorrect: false },
-                                { id: "a8", content: "6", isCorrect: false }
-                            ]
-                        }
-                    ];
-                    
-                    setQuizData(mockQuizData);
-                    setQuestions(mockQuestions);
+                    if (response.data?.status === 'success' && response.data.data) {
+                        const quizDetail = response.data.data;
+                        
+                        // Map API response data to form data
+                        const formQuizData: QuizRequest = {
+                            title: quizDetail.title,
+                            description: quizDetail.description,
+                            categoryId: quizDetail.category.id,
+                            difficulty: quizDetail.difficulty as 'EASY' | 'MEDIUM' | 'HARD',
+                            isPublic: quizDetail.is_public,
+                        };
+                        
+                        // Map questions from API response to form questions
+                        const formQuestions: FormQuestion[] = quizDetail.questions.map((q, index) => ({
+                            id: q.id,
+                            quizId: quizDetail.id,
+                            content: q.content,
+                            imageUrl: q.image_url || undefined,
+                            timeLimit: q.time_limit,
+                            points: q.points,
+                            orderNumber: q.order_number,
+                            // In a real implementation, you would also fetch question options
+                            options: [] // This would be populated in a complete implementation
+                        }));
+                        
+                        setQuizData(formQuizData);
+                        setQuestions(formQuestions);
+                    } else {
+                        // If no real API data, use mock data for development
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        // Mock data for demo
+                        const mockQuizData: QuizRequest = {
+                            title: `Quiz #${id}`,
+                            description: "Sample quiz description for editing",
+                            categoryId: 2,
+                            difficulty: "MEDIUM",
+                            isPublic: true,
+                        };
+                        
+                        const mockQuestions: FormQuestion[] = [
+                            {
+                                id: 1,
+                                quizId: Number(id),
+                                content: "What is the capital of France?",
+                                timeLimit: 30,
+                                points: 10,
+                                orderNumber: 1,
+                                options: [
+                                    { content: "Paris", isCorrect: true },
+                                    { content: "London", isCorrect: false },
+                                    { content: "Berlin", isCorrect: false },
+                                    { content: "Madrid", isCorrect: false }
+                                ]
+                            },
+                            {
+                                id: 2,
+                                quizId: Number(id),
+                                content: "What is 2+2?",
+                                timeLimit: 15,
+                                points: 5,
+                                orderNumber: 2,
+                                options: [
+                                    { content: "3", isCorrect: false },
+                                    { content: "4", isCorrect: true },
+                                    { content: "5", isCorrect: false },
+                                    { content: "6", isCorrect: false }
+                                ]
+                            }
+                        ];
+                        
+                        setQuizData(mockQuizData);
+                        setQuestions(mockQuestions);
+                    }
                 } catch (error) {
                     console.error("Error fetching quiz:", error);
                     enqueueSnackbar("Failed to load quiz data", { variant: "error" });
@@ -110,16 +151,31 @@ export default function QuizForm() {
                 await handleQuizSubmit();
             } else {
                 // Cập nhật quiz hiện có
-                // Trong môi trường thực tế, gọi API update
-                // await axiosInstance.put(`/api/quizzes/${id}`, {
-                //     ...quizData,
-                //     questions
-                // });
-                
-                // Giả lập gọi API
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                enqueueSnackbar("Quiz updated successfully!", { variant: "success" });
-                router.push("/quizzes");
+                const formData = new FormData();
+                formData.append('title', quizData.title);
+                formData.append('description', quizData.description || '');
+                formData.append('categoryId', quizData.categoryId?.toString() || '');
+                formData.append('difficulty', quizData.difficulty);
+                formData.append('isPublic', quizData.isPublic.toString());
+
+                if (quizData.quizThumbnails instanceof File) {
+                    formData.append('thumbnailFile', quizData.quizThumbnails);
+                }
+
+                // Gọi API cập nhật quiz
+                const response = await axiosInstance.put<ApiResponse<QuizResponse>>(`/api/quizzes/${id}`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    }
+                });
+
+                // Xử lý kết quả
+                if (response.data.status === 'success') {
+                    enqueueSnackbar("Quiz updated successfully!", { variant: "success" });
+                    router.push("/quizzes");
+                } else {
+                    throw new Error(response.data.error?.message || 'Failed to update quiz');
+                }
             }
         } catch (error) {
             console.error("Error saving quiz:", error);
@@ -165,13 +221,20 @@ export default function QuizForm() {
             )}
 
             <Card title="Quiz Details" className="mb-6">
-                <QuizFormDetails quizData={quizData} onChange={handleQuizChange} />
+                <QuizFormDetails 
+                    quizData={quizData} 
+                    onChange={handleQuizChange} 
+                    onThumbnailChange={handleThumbnailChange}
+                />
             </Card>
 
             <Card
                 title="Questions"
                 extra={
-                    <Button type="primary" onClick={handleAddQuestion}>
+                    <Button 
+                        type="primary" 
+                        onClick={() => handleAddQuestion(Number(id) || 0)}
+                    >
                         Add Question
                     </Button>
                 }
@@ -179,6 +242,7 @@ export default function QuizForm() {
                 <QuestionList
                     questions={questions}
                     onChange={handleQuestionChange}
+                    onImageChange={handleQuestionImageChange}
                     onRemove={handleRemoveQuestion}
                 />
             </Card>

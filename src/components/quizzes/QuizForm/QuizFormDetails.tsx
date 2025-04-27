@@ -3,43 +3,57 @@ import { Form, Input, Select, Switch, Upload, Button } from 'antd';
 import { FiUpload } from 'react-icons/fi';
 import axiosInstance from '@/utils/axios';
 import { useEffect, useState } from 'react';
+import { QuizRequest, CategoryResponse, ApiResponse, CategoryListResponse } from '@/types/database';
 
 const { TextArea } = Input;
 const { Option } = Select;
 
 interface QuizFormDetailsProps {
-    quizData: {
-        title: string;
-        description: string;
-        categoryId: number | null;
-        difficulty: string;
-        isPublic: boolean;
-        thumbnailUrl?: string;
-    };
+    quizData: QuizRequest;
     onChange: (field: string, value: any) => void;
+    onThumbnailChange: (file: File | null) => void;
 }
 
-const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({ quizData, onChange }) => {
-    const [categories, setCategories] = useState<Array<{ id: number, name: string }>>([]);
+const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({ 
+    quizData, 
+    onChange, 
+    onThumbnailChange 
+}) => {
+    const [categories, setCategories] = useState<CategoryResponse[]>([]);
+    const [previewUrl, setPreviewUrl] = useState<string | undefined>(
+        typeof quizData.quizThumbnails === 'string' ? quizData.quizThumbnails : undefined
+    );
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                // Trong thực tế sẽ gọi API để lấy danh sách danh mục
-                // const response = await axiosInstance.get('/api/categories');
-                // setCategories(response.data.data);
-
-                // Dữ liệu giả lập cho demo
-                setCategories([
-                    { id: 1, name: 'Science' },
-                    { id: 2, name: 'History' },
-                    { id: 3, name: 'Mathematics' },
-                    { id: 4, name: 'Literature' },
-                    { id: 5, name: 'Geography' },
-                    { id: 6, name: 'Programming' },
-                ]);
+                // Call API to get categories list
+                const response = await axiosInstance.get<ApiResponse<CategoryListResponse>>('/api/categories');
+                
+                if (response.data?.status === 'success' && response.data.data?.categories) {
+                    setCategories(response.data.data.categories);
+                } else {
+                    // Fallback to mock data if API isn't available yet
+                    setCategories([
+                        { id: 1, name: 'Science', description: 'Science quizzes', icon_url: '/icons/science.png' },
+                        { id: 2, name: 'History', description: 'History quizzes', icon_url: '/icons/history.png' },
+                        { id: 3, name: 'Mathematics', description: 'Math quizzes', icon_url: '/icons/math.png' },
+                        { id: 4, name: 'Literature', description: 'Literature quizzes', icon_url: '/icons/literature.png' },
+                        { id: 5, name: 'Geography', description: 'Geography quizzes', icon_url: '/icons/geography.png' },
+                        { id: 6, name: 'Programming', description: 'Programming quizzes', icon_url: '/icons/programming.png' },
+                    ]);
+                }
             } catch (error) {
                 console.error('Failed to fetch categories:', error);
+                // Fallback to mock data if API call fails
+                setCategories([
+                    { id: 1, name: 'Science', description: 'Science quizzes', icon_url: '/icons/science.png' },
+                    { id: 2, name: 'History', description: 'History quizzes', icon_url: '/icons/history.png' },
+                    { id: 3, name: 'Mathematics', description: 'Math quizzes', icon_url: '/icons/math.png' },
+                    { id: 4, name: 'Literature', description: 'Literature quizzes', icon_url: '/icons/literature.png' },
+                    { id: 5, name: 'Geography', description: 'Geography quizzes', icon_url: '/icons/geography.png' },
+                    { id: 6, name: 'Programming', description: 'Programming quizzes', icon_url: '/icons/programming.png' },
+                ]);
             }
         };
 
@@ -83,30 +97,44 @@ const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({ quizData, onChange })
                         value={quizData.difficulty}
                         onChange={(value) => onChange('difficulty', value)}
                     >
-                        <Option value="easy">Easy</Option>
-                        <Option value="medium">Medium</Option>
-                        <Option value="hard">Hard</Option>
+                        <Option value="EASY">Easy</Option>
+                        <Option value="MEDIUM">Medium</Option>
+                        <Option value="HARD">Hard</Option>
                     </Select>
                 </Form.Item>
             </div>
 
             <Form.Item label="Thumbnail">
-                <Upload
-                    name="thumbnail"
-                    listType="picture"
-                    maxCount={1}
-                    // Trong thực tế sẽ cấu hình action để upload lên server
-                    beforeUpload={() => false}
-                    onChange={(info) => {
-                        if (info.file) {
-                            // Trong thực tế sẽ xử lý upload file và lấy URL
-                            // Giả lập thành công
-                            onChange('thumbnailUrl', URL.createObjectURL(info.file as any));
-                        }
-                    }}
-                >
-                    <Button icon={<FiUpload />}>Upload Thumbnail</Button>
-                </Upload>
+                <div className="space-y-2">
+                    {previewUrl && (
+                        <div className="mb-2">
+                            <img 
+                                src={previewUrl} 
+                                alt="Quiz thumbnail preview" 
+                                className="max-w-xs max-h-40 object-cover rounded"
+                            />
+                        </div>
+                    )}
+                    <Upload
+                        name="thumbnail"
+                        listType="picture"
+                        maxCount={1}
+                        showUploadList={false}
+                        beforeUpload={(file) => {
+                            // Handle file upload
+                            onThumbnailChange(file);
+                            
+                            // Create a preview URL
+                            const url = URL.createObjectURL(file);
+                            setPreviewUrl(url);
+                            
+                            // Prevent default upload behavior
+                            return false;
+                        }}
+                    >
+                        <Button icon={<FiUpload />}>Upload Thumbnail</Button>
+                    </Upload>
+                </div>
             </Form.Item>
 
             <Form.Item label="Visibility">
