@@ -7,7 +7,7 @@ export type Category = {
     quizCount: number;
     totalPlayCount: number;
     isActive: boolean;
-    createAt?: string;
+    createdAt?: string;
     updatedAt?: string;
 }
 

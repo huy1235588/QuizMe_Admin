@@ -47,3 +47,23 @@ a {
 .ant-table {
     transition: all 0.3s ease;
 }
+
+/* Add dark mode styling for modals */
+.dark .ant-modal-content,
+.dark .ant-modal-header {
+  background-color: #1f1f1f;
+  color: #e6e6e6;
+}
+
+.dark .ant-modal-title {
+  color: #e6e6e6;
+}
+
+.dark .ant-modal-confirm-title {
+  color: #e6e6e6;
+}
+
+.dark .ant-modal-confirm-content {
+  background-color: #1f1f1f;
+  color: #e6e6e6;
+}

@@ -27,7 +27,9 @@ import {
     FilePdfOutlined,
     BarChartOutlined,
     PieChartOutlined,
-    ReloadOutlined
+    ReloadOutlined,
+    CloseOutlined,
+    WarningOutlined
 } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { useSnackbar } from 'notistack';
@@ -83,6 +85,7 @@ export default function CategoriesPage() {
                 questionCount: 0 // Giá trị mặc định, có thể tính toán nếu cần
             }));
             setCategories(processedCategories);
+
         } catch (error) {
             console.error('Error fetching categories:', error);
             enqueueSnackbar('Failed to fetch categories', { variant: 'error' });
@@ -199,30 +202,65 @@ export default function CategoriesPage() {
     // Xử lý xóa danh mục
     const handleDeleteCategory = (record: CategoryWithUIData) => {
         confirm({
-            title: 'Are you sure you want to delete this category?',
-            icon: <ExclamationCircleOutlined />,
-            content: 'This action cannot be undone.',
-            okText: 'Yes',
+            title: <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span>Delete Category: <strong>{record.name}</strong></span>
+            </div>,
+            className: 'delete-confirmation-modal',
+            width: 480,
+            content: (
+                <div style={{ marginTop: '12px' }}>
+                    <div style={{ padding: '12px', background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: '4px', marginBottom: '16px' }}>
+                        <p style={{ color: '#d48806', marginBottom: '0' }}>
+                            <ExclamationCircleOutlined style={{ marginRight: '8px' }} />
+                            This action cannot be undone.
+                        </p>
+                    </div>
+
+                    <div style={{  padding: '12px', borderRadius: '4px' }}>
+                        <div style={{ marginBottom: '8px' }}>
+                            <strong>ID:</strong> {record.id}
+                        </div>
+                        <div style={{ marginBottom: '8px' }}>
+                            <strong>Description:</strong> {record.description}
+                        </div>
+                        <div style={{ display: 'flex', gap: '16px' }}>
+                            <div>
+                                <strong>Quizzes:</strong> {record.quizCount}
+                            </div>
+                            <div>
+                                <strong>Total Plays:</strong> {record.totalPlayCount}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ),
+            okText: 'Delete',
             okType: 'danger',
-            cancelText: 'No',
+            okButtonProps: {
+                icon: <DeleteOutlined />,
+                danger: true,
+            },
+            cancelText: 'Cancel',
+            cancelButtonProps: {
+                icon: <CloseOutlined />,
+            },
             onOk() {
-                deleteCategory(record.id);
+                return deleteCategory(record.id);
             }
         });
     };
 
-    // Hàm xóa danh mục
+    // Hàm xóa danh mục (updated to return a promise for loading state)
     const deleteCategory = async (id: number) => {
-        setLoading(true);
         try {
             await axiosInstance.delete(API_ENDPOINTS.CATEGORY(id));
             setCategories(categories.filter(cat => cat.id !== id));
             enqueueSnackbar('Category deleted successfully!', { variant: 'success' });
+            return true;
         } catch (error) {
             console.error('Error deleting category:', error);
             enqueueSnackbar('Failed to delete category', { variant: 'error' });
-        } finally {
-            setLoading(false);
+            return Promise.reject(error);
         }
     };
 
@@ -272,10 +310,10 @@ export default function CategoriesPage() {
         },
         {
             title: 'Created At',
-            dataIndex: 'createAt',
-            key: 'createAt',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
             sorter: (a: CategoryWithUIData, b: CategoryWithUIData) =>
-                new Date(a.createAt || '').getTime() - new Date(b.createAt || '').getTime(),
+                new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime(),
             render: (date: string) => date ? new Date(date).toLocaleDateString() : '-'
         },
         {
