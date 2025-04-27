@@ -4,6 +4,7 @@ import React from 'react';
 import { AuthProvider } from './AuthContext';
 import { ThemeProvider } from './ThemeContext';
 import { SnackbarProvider } from 'notistack';
+import '@ant-design/v5-patch-for-react-19';
 
 interface GlobalContextProviderProps {
     children: React.ReactNode;

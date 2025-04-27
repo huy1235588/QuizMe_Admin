@@ -114,13 +114,6 @@ export default function CategoryDetailPage() {
             setShowCropper(true);
         }
 
-        // // Tạo URL xem trước
-        // const reader = new FileReader();
-        // reader.onload = (e) => {
-        //     setIconPreview(e.target?.result as string);
-        // };
-        // reader.readAsDataURL(file);
-
         // Trả về false để ngăn tải lên tự động, chúng ta sẽ xử lý thủ công
         return false;
     };
@@ -211,24 +204,37 @@ export default function CategoryDetailPage() {
                 <ImageCropper
                     visible={showCropper}
                     imageSrc={URL.createObjectURL(selectedFile)}
+                    aspectRatio={1}
                     onCancel={() => {
                         setShowCropper(false);
                         setSelectedFile(null);
                     }}
                     onCrop={(blob) => {
+                        // Create a new File object from the cropped blob with RcFile properties
                         const file = new File([blob], selectedFile.name, {
-                            type: blob.type,
-                        });
+                            type: blob.type || 'image/png',
+                            lastModified: Date.now()
+                        }) as RcFile;
+                        
+                        // Add the required RcFile properties
+                        file.uid = `rc-upload-${Date.now()}`;
+                        
+                        // Update the fileList with the cropped image
+                        const objectUrl = URL.createObjectURL(blob);
                         setFileList([
                             {
-                                uid: '0',
+                                uid: file.uid,
                                 name: file.name,
                                 status: 'done',
                                 originFileObj: file,
-                                url: URL.createObjectURL(blob),
+                                url: objectUrl,
                             },
                         ]);
-                        setIconPreview(URL.createObjectURL(blob));
+                        
+                        // Set the preview image
+                        setIconPreview(objectUrl);
+                        
+                        // Reset cropper state
                         setShowCropper(false);
                         setSelectedFile(null);
                     }}
