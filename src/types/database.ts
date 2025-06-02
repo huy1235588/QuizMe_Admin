@@ -1,30 +1,132 @@
 // type cho phép định nghĩa các kiểu dữ liệu cho các đối tượng trong ứng dụng quiz
 
 //-------------------------------------------------------------------------
-// Entity Types - Kiểu dữ liệu cho các thực thể trong ứng dụng
+// Enum Types - Kiểu dữ liệu enum từ backend
 //-------------------------------------------------------------------------
-export type User = {
+export type Role = 'USER' | 'ADMIN';
+export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
+export type QuestionType = 'QUIZ' | 'TRUE_FALSE' | 'TYPE_ANSWER' | 'QUIZ_AUDIO' | 'QUIZ_VIDEO' | 'CHECKBOX' | 'POLL';
+
+//-------------------------------------------------------------------------
+// Request Types - Kiểu dữ liệu cho các yêu cầu từ client đến server
+//-------------------------------------------------------------------------
+
+export type LoginRequest = {
+    usernameOrEmail: string;
+    password: string;
+}
+
+export type RegisterRequest = {
+    username: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    fullName: string;
+}
+
+export type CategoryRequest = {
+    name: string;
+    description: string;
+    iconFile?: File;
+    isActive: boolean;
+}
+
+export type QuizRequest = {
+    title: string;
+    description: string;
+    thumbnailFile?: File;
+    categoryIds: number[];
+    difficulty: Difficulty;
+    isPublic: boolean;
+}
+
+export type QuestionRequest = {
+    quizId: number;
+    content: string;
+    imageFile?: File;
+    audioFile?: File;
+    timeLimit: number;
+    points: number;
+    orderNumber: number;
+    type: QuestionType;
+    options: QuestionOptionRequest[];
+}
+
+export type QuestionOptionRequest = {
+    content: string;
+    isCorrect: boolean;
+}
+
+export type RoomRequest = {
+    name: string;
+    quizId: number;
+    maxPlayers: number;
+    password?: string;
+    isPublic: boolean;
+}
+
+export type JoinRoomRequest = {
+    roomCode: string;
+    guestName?: string;
+    password?: string;
+}
+
+export type JoinRoomByIdRequest = {
+    guestName?: string;
+    password?: string;
+}
+
+export type ChatMessageRequest = {
+    roomId: number;
+    message: string;
+    guestName?: string;
+}
+
+export type UploadAvatarRequest = {
+    avatarFile: File;
+}
+
+export type TokenRequest = {
+    refreshToken: string;
+}
+
+export type QuizFilterParams = {
+    page?: number;
+    pageSize?: number;
+    category?: number;
+    difficulty?: Difficulty;
+    search?: string;
+    sort?: 'newest' | 'popular';
+    isPublic?: boolean;
+    tab?: 'newest' | 'popular';
+}
+
+//-------------------------------------------------------------------------
+// Response Types - Kiểu dữ liệu cho các phản hồi từ server về client
+//-------------------------------------------------------------------------
+
+export type AuthResponse = {
+    AccessToken: string;
+    AccessTokenExpiry: string;
+    RefreshToken: string;
+    RefreshTokenExpiry: string;
+    user: UserResponse;
+}
+
+export type UserResponse = {
     id: number;
     username: string;
     email: string;
     fullName: string;
     profileImage?: string;
     createdAt: string;
-    updatedAt: string;
-    lastLogin: string | null;
-    role: string;
-    active: boolean;
+    updatedAt?: string;
+    lastLogin?: string;
+    role: Role;
+    isActive: boolean;
 }
 
-export type Achievement = {
-    id: number;
-    title: string;
-    description: string;
-    icon_url: string;
-    achieved_at: string;
-}
-
-export type Category = {
+export type CategoryResponse = {
     id: number;
     name: string;
     description: string;
@@ -32,46 +134,162 @@ export type Category = {
     quizCount: number;
     totalPlayCount: number;
     isActive: boolean;
-    createdAt?: string;
+    createdAt: string;
     updatedAt?: string;
 }
 
-export type Quiz = {
+export type QuizResponse = {
     id: number;
     title: string;
     description: string;
     quizThumbnails?: string;
-    categoryId: number;
-    categoryName: string;
-    createName: string;
+    categoryIds: number[];
+    categoryNames: string[];
     creatorId: number;
-    difficulty: 'easy' | 'medium' | 'hard';
+    creatorName: string;
+    creatorAvatar?: string;
+    difficulty: Difficulty;
     isPublic: boolean;
     playCount: number;
     questionCount: number;
-    createAt?: string;
+    favoriteCount: number;
+    createdAt: string;
     updatedAt?: string;
 }
 
-export type Question = {
+export type QuestionResponse = {
     id: number;
     quizId: number;
+    quizTitle: string;
     content: string;
     imageUrl?: string;
+    audioUrl?: string;
     timeLimit: number;
     points: number;
     orderNumber: number;
+    type: QuestionType;
     createdAt: string;
-    updatedAt: string;
+    updatedAt?: string;
+    options?: QuestionOptionResponse[];
 }
 
-export type QuestionOption = {
+export type QuestionOptionResponse = {
     id: number;
-    questionId: number;
     content: string;
     isCorrect: boolean;
+}
+
+export type RoomResponse = {
+    id: number;
+    name: string;
+    code: string;
+    quiz: QuizResponse;
+    host: UserResponse;
+    hasPassword: boolean;
+    isPublic: boolean;
+    currentPlayerCount: number;
+    maxPlayers: number;
+    status: string; // RoomStatus as string
+    startTime?: string;
+    endTime?: string;
     createdAt: string;
-    updatedAt: string;
+    participants: ParticipantResponse[];
+}
+
+export type ParticipantResponse = {
+    id: number;
+    user?: UserResponse;
+    score: number;
+    isHost: boolean;
+    joinedAt: string;
+    isGuest: boolean;
+    guestName?: string;
+}
+
+export type ChatMessageResponse = {
+    id: number;
+    roomId: number;
+    user?: UserResponse;
+    isGuest: boolean;
+    guestName?: string;
+    message: string;
+    sentAt: string;
+}
+
+export type UserProfileResponse = {
+    id: number;
+    userId: number;
+    username: string; 
+    fullName: string;
+    profileImage?: string;
+    dateOfBirth?: string;
+    city?: string;
+    phoneNumber?: string;
+    totalScore: number;
+    quizzesPlayed: number;
+    quizzesCreated: number;
+    totalQuizPlays: number;
+}
+
+export type GameStatusResponse = {
+    gameActive: boolean;
+    currentQuestion?: any; // Detailed type could be specified later
+    remainingTime?: number;
+    leaderboard?: any; // Detailed type could be specified later
+    questionNumber?: number;
+    totalQuestions?: number;
+}
+
+export type AchievementResponse = {
+    id: number;
+    title: string;
+    description: string;
+    iconUrl: string;
+    achievedAt: string;
+}
+
+//-------------------------------------------------------------------------
+// Utility Types - Kiểu dữ liệu tiện ích cho các thao tác khác
+//-------------------------------------------------------------------------
+
+// API Common Response Types
+export type ApiResponse<T> = {
+    status: 'success' | 'error';
+    data?: T;
+    message?: string;
+}
+
+export type PageResponse<T> = {
+    content: T[];
+    pageNumber: number;
+    pageSize: number;
+    totalElements: number;
+    totalPages: number;
+    last: boolean;
+}
+
+//-------------------------------------------------------------------------
+// Alias Types - Tên ngắn gọn cho các Response Types (recommended)
+//-------------------------------------------------------------------------
+export type User = UserResponse;
+export type Category = CategoryResponse;
+export type Quiz = QuizResponse;
+export type Question = QuestionResponse;
+export type QuestionOption = QuestionOptionResponse;
+export type Room = RoomResponse;
+export type Participant = ParticipantResponse;
+export type ChatMessage = ChatMessageResponse;
+export type UserProfile = UserProfileResponse;
+export type GameStatus = GameStatusResponse;
+export type Achievement = AchievementResponse;
+
+// Legacy compatibility
+export type PaginatedResponse<T> = PageResponse<T>;
+
+// Form types (for local state management)
+export type FormQuestion = Partial<QuestionRequest> & {
+    id: number; // Temporary ID for form handling
+    options?: QuestionOptionRequest[];
 }
 
 export type Activity = {
@@ -82,178 +300,4 @@ export type Activity = {
     score: string;
     time: string;
     status: 'success' | 'processing' | 'error' | 'warning';
-}
-
-//-------------------------------------------------------------------------
-// Request Types - Kiểu dữ liệu cho các yêu cầu từ client đến server
-//-------------------------------------------------------------------------
-
-export type CategoryRequest = {
-    name: string;
-    description: string;
-    iconUrl?: string;
-    isActive: boolean;
-}
-
-export type QuizRequest = {
-    title: string;
-    description: string;
-    quizThumbnails?: string | File;
-    categoryId: number;
-    difficulty: 'EASY' | 'MEDIUM' | 'HARD';
-    isPublic: boolean;
-}
-
-export type QuizFilterParams = {
-    page?: number;
-    pageSize?: number;
-    category?: number;
-    difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
-    search?: string;
-    sort?: 'newest' | 'popular';
-    isPublic?: boolean;
-    tab?: 'newest' | 'popular';
-}
-
-export type QuestionRequest = {
-    quizId: number;
-    content: string;
-    imageUrl?: string | File;
-    timeLimit: number;
-    points: number;
-    orderNumber: number;
-    options: QuestionOptionRequest[];
-}
-
-export type QuestionOptionRequest = {
-    content: string;
-    isCorrect: boolean;
-}
-
-//-------------------------------------------------------------------------
-// Response Types - Kiểu dữ liệu cho các phản hồi từ server về client
-//-------------------------------------------------------------------------
-
-export type CategoryResponse = {
-    id: number;
-    name: string;
-    description: string;
-    icon_url: string;
-    quiz_count: number;
-    total_play_count: number;
-    is_active: boolean;
-    created_at?: string;
-    updated_at?: string;
-}
-
-export type CategoryListResponse = {
-    categories: CategoryResponse[];
-    pagination: {
-        total: number;
-        page: number;
-        limit: number;
-        pages: number;
-    }
-}
-
-export type QuizResponse = {
-    id: number;
-    title: string;
-    description: string;
-    quizThumbnails?: string;
-    categoryId: number;
-    categoryName: string;
-    creatorId: number;
-    creatorName: string;
-    difficulty: 'EASY' | 'MEDIUM' | 'HARD';
-    isPublic: boolean;
-    playCount: number;
-    questionCount: number;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export type QuizDetailResponse = {
-    id: number;
-    title: string;
-    description: string;
-    category: {
-        id: number;
-        name: string;
-    };
-    creator: {
-        id: number;
-        username: string;
-    };
-    difficulty: string;
-    is_public: boolean;
-    created_at: string;
-    updated_at: string;
-    questions: {
-        id: number;
-        content: string;
-        image_url: string | null;
-        time_limit: number;
-        points: number;
-        order_number: number;
-    }[];
-}
-
-export type QuizListResponse = {
-    content: QuizResponse[];
-    pageNumber: number;
-    pageSize: number;
-    totalElements: number;
-    totalPages: number;
-    last: boolean;
-}
-
-export type QuestionResponse = {
-    id: number;
-    quizId: number;
-    quizTitle: string;
-    content: string;
-    imageUrl: string | null;
-    timeLimit: number;
-    points: number;
-    orderNumber: number;
-    createdAt: string;
-    updatedAt: string;
-    options: QuestionOptionResponse[];
-}
-
-export type QuestionOptionResponse = {
-    id: number;
-    content: string;
-    isCorrect: boolean;
-}
-
-//-------------------------------------------------------------------------
-// Utility Types - Kiểu dữ liệu tiện ích cho các thao tác khác
-//-------------------------------------------------------------------------
-
-// Form types (for local state management)
-export type FormQuestion = Partial<QuestionRequest> & {
-    id: number; // Temporary ID for form handling
-    options?: QuestionOptionRequest[];
-}
-
-// API Common Response Types
-export type ApiResponse<T> = {
-    status: 'success' | 'error';
-    data?: T;
-    message?: string;
-    error?: {
-        code: string;
-        message: string;
-    };
-}
-
-export type PaginatedResponse<T> = {
-    content: T[];
-    pageNumber: number;
-    pageSize: number;
-    totalElements: number;
-    totalPages: number;
-    last: boolean;
 }
