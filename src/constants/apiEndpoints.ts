@@ -43,6 +43,7 @@ export const CATEGORY_ENDPOINTS = {
     GET_BY_ID: (id: number) => `/api/categories/${id}`,
     UPDATE: (id: number) => `/api/categories/${id}`,
     DELETE: (id: number) => `/api/categories/${id}`,
+    ACTIVE: '/api/categories/active',
 } as const;
 
 // Question Endpoints
