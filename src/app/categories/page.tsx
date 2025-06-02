@@ -36,8 +36,8 @@ import ReactECharts from 'echarts-for-react';
 import { useSnackbar } from 'notistack';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import axiosInstance from '@/utils/axios';
-import { Category } from '@/types/database';
+import { useCategories } from '@/hooks/useCategories';
+import { CategoryResponse } from '@/types/database';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -48,14 +48,8 @@ import 'swiper/css/autoplay';
 const { Title, Text } = Typography;
 const { confirm } = Modal;
 
-// Các endpoint API
-const API_ENDPOINTS = {
-    CATEGORIES: '/api/categories',
-    CATEGORY: (id: number) => `/api/categories/${id}`
-};
-
 // Định nghĩa interface cho dữ liệu danh mục với các trường bổ sung cho UI
-interface CategoryWithUIData extends Category {
+interface CategoryWithUIData extends CategoryResponse {
     image?: string; // Hình ảnh đại diện cho danh mục trong các thẻ nổi bật
     questionCount?: number; // Số lượng câu hỏi (tính toán từ các quiz)
 }
@@ -63,37 +57,38 @@ interface CategoryWithUIData extends Category {
 export default function CategoriesPage() {
     // Khởi tạo các state cho component
     const router = useRouter();
-    const [categories, setCategories] = useState<CategoryWithUIData[]>([]); // Danh sách các danh mục
-    const [searchText, setSearchText] = useState(''); // Từ khóa tìm kiếm
     const { enqueueSnackbar } = useSnackbar(); // Hook hiển thị thông báo
-    const [loading, setLoading] = useState(false); // Trạng thái đang tải
+
+    // Sử dụng custom hook để quản lý categories
+    const {
+        categories: categoriesData,
+        isLoading,
+        error,
+        fetchAllCategories,
+        deleteCategory
+    } = useCategories();
+
+    // Local states
+    const [searchText, setSearchText] = useState(''); // Từ khóa tìm kiếm
     const [chartView, setChartView] = useState<'bar' | 'pie'>('bar'); // Loại biểu đồ hiển thị
+
+    // Transform categories data to include UI fields
+    const categories: CategoryWithUIData[] = categoriesData.map((cat) => ({
+        ...cat,
+        questionCount: 0 // Giá trị mặc định, có thể tính toán nếu cần
+    }));
 
     // Lấy dữ liệu danh mục khi component được mount
     useEffect(() => {
-        fetchCategories();
+        fetchAllCategories();
     }, []);
 
-    // Hàm lấy dữ liệu danh mục từ API
-    const fetchCategories = async () => {
-        setLoading(true);
-        try {
-            const response = await axiosInstance.get(API_ENDPOINTS.CATEGORIES);
-            // Xử lý dữ liệu để thêm các trường UI
-            const processedCategories = response.data.data.map((cat: Category) => ({
-                ...cat,
-                status: cat.isActive ? 'active' : 'inactive', // Chuyển đổi isActive thành status
-                questionCount: 0 // Giá trị mặc định, có thể tính toán nếu cần
-            }));
-            setCategories(processedCategories);
-
-        } catch (error) {
-            console.error('Error fetching categories:', error);
-            enqueueSnackbar('Failed to fetch categories', { variant: 'error' });
-        } finally {
-            setLoading(false);
+    // Show error notification if any
+    useEffect(() => {
+        if (error) {
+            enqueueSnackbar(error, { variant: 'error' });
         }
-    };
+    }, [error, enqueueSnackbar]);
 
     // Tạo danh sách danh mục nổi bật với hình ảnh
     const featuredCategories = categories
@@ -217,7 +212,7 @@ export default function CategoriesPage() {
                         </p>
                     </div>
 
-                    <div style={{  padding: '12px', borderRadius: '4px' }}>
+                    <div style={{ padding: '12px', borderRadius: '4px' }}>
                         <div style={{ marginBottom: '8px' }}>
                             <strong>ID:</strong> {record.id}
                         </div>
@@ -246,16 +241,15 @@ export default function CategoriesPage() {
                 icon: <FiX />,
             },
             onOk() {
-                return deleteCategory(record.id);
+                return handleDeleteCategoryConfirm(record.id);
             }
         });
     };
 
-    // Hàm xóa danh mục (updated to return a promise for loading state)
-    const deleteCategory = async (id: number) => {
+    // Hàm xóa danh mục được confirm
+    const handleDeleteCategoryConfirm = async (id: number) => {
         try {
-            await axiosInstance.delete(API_ENDPOINTS.CATEGORY(id));
-            setCategories(categories.filter(cat => cat.id !== id));
+            await deleteCategory(id);
             enqueueSnackbar('Category deleted successfully!', { variant: 'success' });
             return true;
         } catch (error) {
@@ -272,7 +266,7 @@ export default function CategoriesPage() {
 
     // Xử lý làm mới dữ liệu
     const handleRefresh = () => {
-        fetchCategories();
+        fetchAllCategories();
     };
 
     // Cấu hình các cột trong bảng
@@ -374,7 +368,7 @@ export default function CategoriesPage() {
                     <Button
                         icon={<FiRefreshCw />}
                         onClick={handleRefresh}
-                        loading={loading}
+                        loading={isLoading}
                     >
                         Refresh
                     </Button>
@@ -508,7 +502,7 @@ export default function CategoriesPage() {
             <Card
                 title="All Categories"
                 className="mb-6"
-                loading={loading}
+                loading={isLoading}
                 extra={
                     <Space>
                         <Input
@@ -532,7 +526,7 @@ export default function CategoriesPage() {
                     dataSource={filteredCategories}
                     columns={columns}
                     rowKey="id"
-                    loading={loading}
+                    loading={isLoading}
                     pagination={{
                         pageSize: 5,
                         showSizeChanger: true,
