@@ -19,18 +19,13 @@ import { FiInbox } from 'react-icons/fi';
 import { useSnackbar } from 'notistack';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { RcFile } from 'antd/es/upload';
-import axiosInstance from '@/utils/axios';
+import { useCategory, useCategories } from '@/hooks/useCategories';
+import { CategoryRequest } from '@/types/database';
 import ImageCropper from '@/components/ImageCropper';
 
 const { Title } = Typography;
 const { TextArea } = Input;
 const { Dragger } = Upload;
-
-// Các điểm cuối API
-const API_ENDPOINTS = {
-    CATEGORIES: '/api/categories',
-    CATEGORY: (id: number) => `/api/categories/${id}`
-};
 
 export default function CategoryDetailPage() {
     // Khởi tạo hooks và states
@@ -39,37 +34,31 @@ export default function CategoryDetailPage() {
     const id = params.id === 'new' ? null : Number(params.id);
     const isNewCategory = id === null;
     const { enqueueSnackbar } = useSnackbar();
+
+    // Sử dụng custom hooks
+    const { createCategory, updateCategory } = useCategories();
+    const {
+        category,
+        isLoading: categoryLoading,
+        error: categoryError
+    } = useCategory(id);
+
+    // Local states
     const [form] = Form.useForm();
-    const [loading, setLoading] = useState(false);
-    const [uploadLoading, setUploadLoading] = useState(false);
+    const [submitLoading, setSubmitLoading] = useState(false);
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [iconPreview, setIconPreview] = useState<string>('');
-
     const [showCropper, setShowCropper] = useState(false);
-    const [selectedFile, setSelectedFile] = useState<RcFile | null>(null);
-
-    // Lấy dữ liệu danh mục khi chỉnh sửa danh mục hiện có
+    const [selectedFile, setSelectedFile] = useState<RcFile | null>(null);    // Set form data when category is loaded
     useEffect(() => {
-        if (!isNewCategory) {
-            fetchCategoryDetails();
-        }
-    }, [id]);
-
-    // Hàm để lấy chi tiết danh mục
-    const fetchCategoryDetails = async () => {
-        setLoading(true);
-        try {
-            const response = await axiosInstance.get(API_ENDPOINTS.CATEGORY(id as number));
-            const category = response.data.data;
-
-            // Thiết lập giá trị cho form
+        if (category && !isNewCategory) {
             form.setFieldsValue({
                 name: category.name,
                 description: category.description,
                 isActive: category.isActive
             });
 
-            // Thiết lập xem trước biểu tượng nếu có
+            // Set icon preview if available
             if (category.iconUrl) {
                 setIconPreview(category.iconUrl);
                 setFileList([
@@ -81,13 +70,15 @@ export default function CategoryDetailPage() {
                     },
                 ]);
             }
-        } catch (error) {
-            console.error('Error fetching category details:', error);
-            enqueueSnackbar('Failed to fetch category details', { variant: 'error' });
-        } finally {
-            setLoading(false);
         }
-    };
+    }, [category, isNewCategory, form]);
+
+    // Show error notification if any
+    useEffect(() => {
+        if (categoryError) {
+            enqueueSnackbar(categoryError, { variant: 'error' });
+        }
+    }, [categoryError, enqueueSnackbar]);
 
     // Cấu hình tải lên tệp hình ảnh
     const beforeUpload = (file: RcFile) => {
@@ -117,73 +108,49 @@ export default function CategoryDetailPage() {
         setFileList(newFileList);
     };
 
-    // Tạo FormData cho category
-    const createCategoryFormData = (values: any) => {
-        const formData = new FormData();
-        formData.append('name', values.name);
-        
-        if (values.description) {
-            formData.append('description', values.description);
-        }
-        
-        formData.append('isActive', values.isActive.toString());
-        
-        // Thêm tệp biểu tượng nếu có
+    // Tạo CategoryRequest từ form values
+    const createCategoryRequest = (values: any): CategoryRequest => {
+        const categoryRequest: CategoryRequest = {
+            name: values.name,
+            description: values.description || '',
+            isActive: values.isActive,
+        };
+
+        // Thêm file icon nếu có file mới
         if (fileList.length > 0 && fileList[0].originFileObj) {
-            formData.append('iconFile', fileList[0].originFileObj as RcFile);
+            categoryRequest.iconFile = fileList[0].originFileObj as File;
         }
-        
-        return formData;
+
+        return categoryRequest;
     };
 
     // Xử lý gửi biểu mẫu
     const handleSubmit = async (values: any) => {
-        setLoading(true);
+        setSubmitLoading(true);
         try {
-            let result;
-            
+            const categoryRequest = createCategoryRequest(values);
+
             if (isNewCategory) {
                 // Tạo danh mục mới
-                const formData = createCategoryFormData(values);
-                result = await axiosInstance.post(API_ENDPOINTS.CATEGORIES, formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                });
-                
+                await createCategory(categoryRequest);
                 enqueueSnackbar('Category created successfully!', { variant: 'success' });
             } else {
                 // Cập nhật danh mục hiện có
-                if (fileList.length > 0 && fileList[0].originFileObj) {
-                    // Cập nhật với icon mới (sử dụng FormData)
-                    const formData = createCategoryFormData(values);
-                    result = await axiosInstance.put(API_ENDPOINTS.CATEGORY(id as number), formData, {
-                        headers: { 'Content-Type': 'multipart/form-data' },
-                    });
-                } else {
-                    // Cập nhật không có icon mới (sử dụng JSON)
-                    const categoryData = {
-                        name: values.name,
-                        description: values.description,
-                        iconUrl: iconPreview,
-                        isActive: values.isActive,
-                    };
-                    
-                    result = await axiosInstance.put(API_ENDPOINTS.CATEGORY(id as number), categoryData);
-                }
-                
+                await updateCategory(id as number, categoryRequest);
                 enqueueSnackbar('Category updated successfully!', { variant: 'success' });
             }
 
             // Quay lại danh sách danh mục sau khi gửi thành công
             router.push('/categories');
-            
+
         } catch (error: any) {
             console.error('Error saving category:', error);
-            
-            // Xử lý thông báo lỗi cụ thể hơn
-            const errorMessage = error.response?.data?.message || 'Failed to save category';
+
+            // Error message will be handled by hook, but we can show additional feedback
+            const errorMessage = error.message || 'Failed to save category';
             enqueueSnackbar(errorMessage, { variant: 'error' });
         } finally {
-            setLoading(false);
+            setSubmitLoading(false);
         }
     };
 
@@ -211,10 +178,10 @@ export default function CategoryDetailPage() {
                             type: blob.type || 'image/png',
                             lastModified: Date.now()
                         }) as RcFile;
-                        
+
                         // Add the required RcFile properties
                         file.uid = `rc-upload-${Date.now()}`;
-                        
+
                         // Update the fileList with the cropped image
                         const objectUrl = URL.createObjectURL(blob);
                         setFileList([
@@ -226,33 +193,30 @@ export default function CategoryDetailPage() {
                                 url: objectUrl,
                             },
                         ]);
-                        
+
                         // Set the preview image
                         setIconPreview(objectUrl);
-                        
+
                         // Reset cropper state
                         setShowCropper(false);
                         setSelectedFile(null);
                     }}
                 />
             )}
-
             <Card
-                title={
-                    <div className="flex items-center">
-                        <Button
-                            icon={<FiArrowLeft />}
-                            onClick={handleCancel}
-                            style={{ marginRight: 16 }}
-                        />
-                        <Title level={4} style={{ margin: 0 }}>
-                            {isNewCategory ? 'Add New Category' : 'Edit Category'}
-                        </Title>
-                    </div>
-                }
-                loading={loading}
+                title={<div className="flex items-center">
+                    <Button
+                        icon={<FiArrowLeft />}
+                        onClick={handleCancel}
+                        style={{ marginRight: 16 }}
+                    />
+                    <Title level={4} style={{ margin: 0 }}>
+                        {isNewCategory ? 'Add New Category' : 'Edit Category'}
+                    </Title>
+                </div>}
+                loading={categoryLoading}
             >
-                <Spin spinning={loading || uploadLoading}>
+                <Spin spinning={categoryLoading || submitLoading}>
                     <Form
                         form={form}
                         layout="vertical"
@@ -371,12 +335,11 @@ export default function CategoryDetailPage() {
                                         className="px-6 hover:bg-gray-50 border border-gray-200"
                                     >
                                         Cancel
-                                    </Button>
-                                    <Button
+                                    </Button>                                    <Button
                                         type="primary"
                                         icon={<FiSave />}
                                         htmlType="submit"
-                                        loading={loading}
+                                        loading={submitLoading}
                                         className="px-6 flex items-center gap-1 bg-blue-500 hover:bg-blue-600 shadow-sm"
                                     >
                                         {isNewCategory ? 'Create Category' : 'Update Category'}
