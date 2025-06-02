@@ -1,8 +1,9 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import { API_BASE_URL, AUTH_ENDPOINTS } from '@/constants/apiEndpoints';
 
 // Tạo instance Axios với cấu hình mặc định
 const axiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
+    baseURL: API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -15,7 +16,11 @@ axiosInstance.interceptors.request.use(
         if (typeof window !== 'undefined') {
             const token = localStorage.getItem('accessToken');
             if (token) {
+                // Thêm token vào Authorization header (cho API calls)
                 config.headers.Authorization = `Bearer ${token}`;
+
+                // Thêm token vào custom header (cho middleware)
+                config.headers['x-access-token'] = token;
             }
         }
         return config;
@@ -45,7 +50,7 @@ axiosInstance.interceptors.response.use(
 
                 // Gọi API để làm mới token
                 const response = await axios.post(
-                    `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/auth/refresh-token`,
+                    `${API_BASE_URL}${AUTH_ENDPOINTS.REFRESH_TOKEN}`,
                     { refreshToken }
                 );
 

@@ -2,29 +2,32 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import axiosInstance from '@/utils/axios';
-import Cookies from 'js-cookie';
+import { authService, AuthResponse } from '@/services/authService';
+import { LoginRequest, RegisterRequest } from '@/types/database';
 
 interface User {
     id: number;
     username: string;
     email: string;
     fullName: string;
-    profileImage: string;
+    role: string;
+    isActive: boolean;
     createdAt: string;
     updatedAt: string;
-    lastLogin: string | null;
-    role: string;
-    active: boolean;
 }
 
 interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (usernameOrEmail: string, password: string) => Promise<{ success: boolean, message: string }>;
-    logout: () => void;
+    error: string | null;
+    login: (loginRequest: LoginRequest) => Promise<{ success: boolean, message: string }>;
+    register: (registerRequest: RegisterRequest) => Promise<{ success: boolean, message: string }>;
+    logout: () => Promise<void>;
+    refreshToken: () => Promise<void>;
+    clearError: () => void;
     getAccessToken: () => string | null;
+    getRefreshToken: () => string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,101 +63,160 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
-        // Check if user is already logged in
+        // Kiểm tra xem người dùng đã đăng nhập từ trước chưa
         const loadUser = () => {
-            const userStr = localStorage.getItem('user');
-            const accessToken = localStorage.getItem('accessToken') || Cookies.get('accessToken');
-
-            if (userStr && accessToken) {
-                const user = JSON.parse(userStr);
-                setUser(user);
-
-                // Set auth header for API requests
-                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            if (authService.isAuthenticated()) {
+                const accessToken = authService.getAccessToken();
+                if (accessToken) {
+                    // Có thể gọi API để lấy thông tin user hiện tại
+                    // Hoặc lưu user info trong localStorage và load lại
+                    const userStr = localStorage.getItem('user');
+                    if (userStr) {
+                        const userData = JSON.parse(userStr);
+                        setUser(userData);
+                    }
+                }
             }
-
             setIsLoading(false);
         };
 
         loadUser();
     }, []);
 
-    const login = async (usernameOrEmail: string, password: string): Promise<{ success: boolean, message: string }> => {
+    const clearError = () => {
+        setError(null);
+    }; const login = async (loginRequest: LoginRequest): Promise<{ success: boolean, message: string }> => {
+        setIsLoading(true);
+        setError(null);
+
         try {
-            const response = await axiosInstance.post('/api/auth/login', {
-                usernameOrEmail,
-                password
-            });
+            const response = await authService.login(loginRequest);
 
-            if (response.data.status === 'success') {
-                const { user, accessToken, refreshToken, accessTokenExpiry, refreshTokenExpiry } = response.data.data;
+            if (response.status === 'success') {
+                const userData = response.data.user;
+                setUser(userData);
 
-                // Tính toán thời gian hết hạn cho cookie (convert ISO string to Date object)
-                const accessExpiry = new Date(accessTokenExpiry);
-                const refreshExpiry = new Date(refreshTokenExpiry);
+                // Lưu thông tin người dùng vào localStorage
+                localStorage.setItem('user', JSON.stringify(userData));
 
-                // Store tokens in both localStorage and cookies
-                localStorage.setItem('accessToken', accessToken);
-                localStorage.setItem('refreshToken', refreshToken);
-                localStorage.setItem('accessTokenExpiry', accessTokenExpiry);
-                localStorage.setItem('refreshTokenExpiry', refreshTokenExpiry);
-                localStorage.setItem('user', JSON.stringify(user));
+                // Sync tokens to cookies để middleware có thể đọc
+                if (typeof window !== 'undefined') {
+                    const accessToken = authService.getAccessToken();
+                    const refreshToken = authService.getRefreshToken();
 
-                // Set cookies for server-side access
-                Cookies.set('accessToken', accessToken, { expires: accessExpiry, path: '/' });
-                Cookies.set('refreshToken', refreshToken, { expires: refreshExpiry, path: '/' });
+                    if (accessToken) {
+                        document.cookie = `accessToken=${accessToken}; path=/; max-age=86400; SameSite=Strict`;
+                    }
+                    if (refreshToken) {
+                        document.cookie = `refreshToken=${refreshToken}; path=/; max-age=604800; SameSite=Strict`;
+                    }
+                }
 
-                // Set auth header for API requests
-                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-
-                setUser(user);
-                return { success: true, message: response.data.message };
+                return { success: true, message: response.message };
             } else {
-                return { success: false, message: response.data.message || 'Login failed' };
+                setError(response.message);
+                return { success: false, message: response.message };
             }
-        } catch (error: any) {
-            console.error('Login error:', error);
-            return {
-                success: false,
-                message: error.response?.data?.message || 'An error occurred during login'
-            };
+        } catch (err: any) {
+            const errorMessage = err.message || 'Failed to login';
+            setError(errorMessage);
+            return { success: false, message: errorMessage };
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const logout = () => {
-        // Remove tokens and user info from localStorage
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('accessTokenExpiry');
-        localStorage.removeItem('refreshTokenExpiry');
-        localStorage.removeItem('user');
+    const register = async (registerRequest: RegisterRequest): Promise<{ success: boolean, message: string }> => {
+        setIsLoading(true);
+        setError(null);
 
-        // Remove tokens from cookies
-        Cookies.remove('accessToken', { path: '/' });
-        Cookies.remove('refreshToken', { path: '/' });
+        try {
+            const response = await authService.register(registerRequest);
 
-        // Remove auth header
-        delete axiosInstance.defaults.headers.common['Authorization'];
+            if (response.status === 'success') {
+                const userData = response.data.user;
+                setUser(userData);
 
-        setUser(null);
-        router.push('/login');
+                // Lưu thông tin người dùng vào localStorage
+                localStorage.setItem('user', JSON.stringify(userData));
+
+                return { success: true, message: response.message };
+            } else {
+                setError(response.message);
+                return { success: false, message: response.message };
+            }
+        } catch (err: any) {
+            const errorMessage = err.message || 'Failed to register';
+            setError(errorMessage);
+            return { success: false, message: errorMessage };
+        } finally {
+            setIsLoading(false);
+        }
+    }; const logout = async (): Promise<void> => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            await authService.logout();
+        } catch (err: any) {
+            // Ghi log lỗi nhưng vẫn tiếp tục quá trình đăng xuất
+            console.error('Error during logout:', err.message);
+        } finally {
+            // Xóa dữ liệu người dùng bất kể phản hồi API
+            setUser(null);
+            localStorage.removeItem('user');
+
+            // Clear cookies
+            if (typeof window !== 'undefined') {
+                document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            }
+
+            setIsLoading(false);
+            router.push('/login');
+        }
+    };
+
+    const refreshToken = async (): Promise<void> => {
+        try {
+            const response = await authService.refreshToken();
+            if (response.status === 'success') {
+                const userData = response.data.user;
+                setUser(userData);
+                localStorage.setItem('user', JSON.stringify(userData));
+            }
+        } catch (err: any) {
+            console.error('Error refreshing token:', err.message);
+            // Nếu refresh thất bại, đăng xuất người dùng
+            await logout();
+        }
     };
 
     const getAccessToken = (): string | null => {
-        return localStorage.getItem('accessToken') || Cookies.get('accessToken') || null;
+        return authService.getAccessToken();
     };
+
+    const getRefreshToken = (): string | null => {
+        return authService.getRefreshToken();
+    }
 
     return (
         <AuthContext.Provider value={{
             user,
             isAuthenticated: !!user,
             isLoading,
+            error,
             login,
+            register,
             logout,
-            getAccessToken
+            refreshToken,
+            clearError,
+            getAccessToken,
+            getRefreshToken
         }}>
             {children}
         </AuthContext.Provider>
