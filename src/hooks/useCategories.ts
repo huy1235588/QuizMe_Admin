@@ -1,184 +1,220 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { categoryService } from '@/services';
-import { CategoryResponse, CategoryRequest } from '@/types/database';
+import { CategoryResponse, CategoryRequest, ApiResponse } from '@/types/database';
 
-/**
- * Custom hook để quản lý categories
- */
-export const useCategories = () => {
+interface UseCategoriesReturn {
+    // State
+    categories: CategoryResponse[];
+    activeCategories: CategoryResponse[];
+    isLoading: boolean;
+    error: string | null;
+
+    // Methods
+    fetchAllCategories: () => Promise<CategoryResponse[] | null>;
+    fetchActiveCategories: () => Promise<CategoryResponse[] | null>;
+    createCategory: (categoryRequest: CategoryRequest) => Promise<CategoryResponse | null>;
+    updateCategory: (id: number, categoryRequest: CategoryRequest) => Promise<CategoryResponse | null>;
+    deleteCategory: (id: number) => Promise<boolean>;
+    clearError: () => void;
+}
+
+export const useCategories = (): UseCategoriesReturn => {
     const [categories, setCategories] = useState<CategoryResponse[]>([]);
     const [activeCategories, setActiveCategories] = useState<CategoryResponse[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    /**
-     * Lấy tất cả categories
-     */
-    const fetchAllCategories = async () => {
+    const clearError = useCallback(() => {
+        setError(null);
+    }, []); const fetchAllCategories = useCallback(async (): Promise<CategoryResponse[] | null> => {
+        setIsLoading(true);
+        setError(null);
+
         try {
-            setLoading(true);
-            setError(null);
             const response = await categoryService.getAllCategories();
-            if (response.success) {
+
+            if (response.status === 'success' && response.data) {
                 setCategories(response.data);
+                return response.data;
             } else {
                 setError(response.message || 'Failed to fetch categories');
+                return null;
             }
-        } catch (err) {
-            setError('Error fetching categories');
+        } catch (err: any) {
+            setError(err.message || 'Error fetching categories');
             console.error('Error fetching categories:', err);
+            return null;
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
-    };
+    }, []);
 
-    /**
-     * Lấy active categories
-     */
-    const fetchActiveCategories = async () => {
+    const fetchActiveCategories = useCallback(async (): Promise<CategoryResponse[] | null> => {
+        setIsLoading(true);
+        setError(null);
+
         try {
-            setLoading(true);
-            setError(null);
             const response = await categoryService.getActiveCategories();
-            if (response.success) {
+
+            if (response.status === 'success' && response.data) {
                 setActiveCategories(response.data);
+                return response.data;
             } else {
                 setError(response.message || 'Failed to fetch active categories');
+                return null;
             }
-        } catch (err) {
-            setError('Error fetching active categories');
+        } catch (err: any) {
+            setError(err.message || 'Error fetching active categories');
             console.error('Error fetching active categories:', err);
+            return null;
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
-    };
+    }, []);
 
-    /**
-     * Tạo category mới
-     */
-    const createCategory = async (categoryRequest: CategoryRequest) => {
+    const createCategory = useCallback(async (categoryRequest: CategoryRequest): Promise<CategoryResponse | null> => {
+        setIsLoading(true);
+        setError(null);
+
         try {
-            setLoading(true);
-            setError(null);
             const response = await categoryService.createCategory(categoryRequest);
-            if (response.success) {
+
+            if (response.status === 'success' && response.data) {
                 // Refresh categories list
                 await fetchAllCategories();
                 return response.data;
             } else {
                 setError(response.message || 'Failed to create category');
-                throw new Error(response.message || 'Failed to create category');
+                return null;
             }
-        } catch (err) {
-            setError('Error creating category');
+        } catch (err: any) {
+            setError(err.message || 'Error creating category');
             console.error('Error creating category:', err);
-            throw err;
+            return null;
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
-    };
+    }, [fetchAllCategories]);
 
-    /**
-     * Cập nhật category
-     */
-    const updateCategory = async (id: number, categoryRequest: CategoryRequest) => {
+    const updateCategory = useCallback(async (id: number, categoryRequest: CategoryRequest): Promise<CategoryResponse | null> => {
+        setIsLoading(true);
+        setError(null);
+
         try {
-            setLoading(true);
-            setError(null);
             const response = await categoryService.updateCategory(id, categoryRequest);
-            if (response.success) {
+
+            if (response.status === 'success' && response.data) {
                 // Refresh categories list
                 await fetchAllCategories();
                 return response.data;
             } else {
                 setError(response.message || 'Failed to update category');
-                throw new Error(response.message || 'Failed to update category');
+                return null;
             }
-        } catch (err) {
-            setError('Error updating category');
+        } catch (err: any) {
+            setError(err.message || 'Error updating category');
             console.error('Error updating category:', err);
-            throw err;
+            return null;
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
-    };
+    }, [fetchAllCategories]); const deleteCategory = useCallback(async (id: number): Promise<boolean> => {
+        setIsLoading(true);
+        setError(null);
 
-    /**
-     * Xóa category
-     */
-    const deleteCategory = async (id: number) => {
         try {
-            setLoading(true);
-            setError(null);
             const response = await categoryService.deleteCategory(id);
-            if (response.success) {
+
+            if (response.status === 'success') {
                 // Refresh categories list
                 await fetchAllCategories();
                 return true;
             } else {
                 setError(response.message || 'Failed to delete category');
-                throw new Error(response.message || 'Failed to delete category');
+                return false;
             }
-        } catch (err) {
-            setError('Error deleting category');
+        } catch (err: any) {
+            setError(err.message || 'Error deleting category');
             console.error('Error deleting category:', err);
-            throw err;
+            return false;
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
-    };
+    }, [fetchAllCategories]);
 
     return {
+        // State
         categories,
         activeCategories,
-        loading,
+        isLoading,
         error,
+
+        // Methods
         fetchAllCategories,
         fetchActiveCategories,
         createCategory,
         updateCategory,
         deleteCategory,
-        setError, // Để clear error từ component
+        clearError,
     };
 };
 
-/**
- * Custom hook để lấy một category cụ thể theo ID
- */
-export const useCategory = (id: number | null) => {
+interface UseCategoryReturn {
+    // State
+    category: CategoryResponse | null;
+    isLoading: boolean;
+    error: string | null;
+
+    // Methods
+    fetchCategory: (categoryId: number) => Promise<CategoryResponse | null>;
+    clearError: () => void;
+}
+
+export const useCategory = (id: number | null): UseCategoryReturn => {
     const [category, setCategory] = useState<CategoryResponse | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchCategory = async (categoryId: number) => {
+    const clearError = useCallback(() => {
+        setError(null);
+    }, []); const fetchCategory = useCallback(async (categoryId: number): Promise<CategoryResponse | null> => {
+        setIsLoading(true);
+        setError(null);
+
         try {
-            setLoading(true);
-            setError(null);
             const response = await categoryService.getCategoryById(categoryId);
-            if (response.success) {
+
+            if (response.status === 'success' && response.data) {
                 setCategory(response.data);
+                return response.data;
             } else {
                 setError(response.message || 'Failed to fetch category');
+                return null;
             }
-        } catch (err) {
-            setError('Error fetching category');
+        } catch (err: any) {
+            setError(err.message || 'Error fetching category');
             console.error('Error fetching category:', err);
+            return null;
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
-    };
-
+    }, []);// Auto-fetch when id changes
     useEffect(() => {
         if (id) {
             fetchCategory(id);
         }
-    }, [id]);
+    }, [id, fetchCategory]);
 
     return {
+        // State
         category,
-        loading,
+        isLoading,
         error,
+
+        // Methods
         fetchCategory,
-        setError,
+        clearError,
     };
 };
+
+export default useCategories;
