@@ -1,16 +1,15 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSnackbar } from 'notistack';
 import { useTheme } from '@/contexts/ThemeContext';
+import { QuizAPI } from '@/api/quizAPI';
 import {
     Quiz,
     Category,
     QuizResponse,
     CategoryResponse,
     QuizFilterParams,
-    QuizListResponse,
     ApiResponse,
-    PaginatedResponse,
-    CategoryListResponse
+    PageResponse
 } from '@/types/database';
 import axiosInstance from '@/utils/axios';
 
@@ -37,36 +36,13 @@ export const useQuizzes = () => {
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState<boolean>(false);  // Hiển thị modal xóa
     const [quizToDelete, setQuizToDelete] = useState<number | null>(null);  // ID quiz cần xóa
     const [trendingQuizzes, setTrendingQuizzes] = useState<QuizResponse[]>([]);  // Các quiz thịnh hành
-    const [showOnlyPublic, setShowOnlyPublic] = useState<boolean>(false);  // Chỉ hiển thị quiz công khai
-
-    // Tạo dữ liệu mẫu cho phát triển
-    const generateSampleQuizzes = useCallback((count: number): QuizResponse[] => {
-        const difficulties: ('EASY' | 'MEDIUM' | 'HARD')[] = ['EASY', 'MEDIUM', 'HARD'];
-        const categoryNames = ['Science', 'History', 'Mathematics', 'Literature', 'Geography', 'Programming'];
-
-        return Array.from({ length: count }, (_, i) => ({
-            id: i + 1,
-            title: `Sample Quiz ${i + 1}: ${['Introduction to', 'Advanced', 'Mastering', 'Exploring', 'Ultimate'][i % 5]} ${categoryNames[i % categoryNames.length]}`,
-            description: `This is a ${difficulties[i % 3].toLowerCase()} quiz about ${categoryNames[i % categoryNames.length].toLowerCase()}.`,
-            quizThumbnails: `https://placehold.co/600x400/${['3b82f6', '8b5cf6', 'ec4899', '22c55e', 'eab308', '8b5cf6'][i % 6]}/ffffff?text=${categoryNames[i % categoryNames.length]}`,
-            categoryId: (i % categoryNames.length) + 1,
-            categoryName: categoryNames[i % categoryNames.length],
-            creatorId: (i % 4) + 1,
-            creatorName: ['John Doe', 'Jane Smith', 'Alex Johnson', 'Emma Davis'][i % 4],
-            difficulty: difficulties[i % 3],
-            isPublic: i % 3 === 0,
-            playCount: Math.floor(Math.random() * 500) + 10,
-            questionCount: Math.floor(Math.random() * 30) + 5,
-            createdAt: new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toISOString(),
-            updatedAt: new Date(Date.now() - Math.floor(Math.random() * 1000000000)).toISOString()
-        }));
-    }, []);
+    const [showOnlyPublic, setShowOnlyPublic] = useState<boolean>(false);  // Chỉ hiển thị quiz công khai    // Tạo dữ liệu mẫu cho phát triển
 
     // Lấy danh sách quiz từ API
     const fetchQuizzes = useCallback(async () => {
         try {
-            setLoading(true);
-
+            setLoading(true);            
+            
             // Trích xuất tham số truy vấn để dễ đọc
             const queryParams: QuizFilterParams = {
                 page: currentPage,
@@ -79,34 +55,21 @@ export const useQuizzes = () => {
                 tab: activeTab !== 'all' ? (activeTab as 'newest' | 'popular') : undefined
             };
 
-            // Trong ứng dụng thực tế, gọi API với các tham số truy vấn
-            const response = await axiosInstance.get<ApiResponse<QuizListResponse>>('/api/quizzes', {
-                params: queryParams
-            });
+            // Sử dụng QuizAPI để lấy dữ liệu theo phân trang
+            const response = await QuizAPI.getPagedQuizzes(queryParams);
 
-            // Kiểm tra xem đã có dữ liệu thực tế chưa
-            if (response.data?.data?.content) {
-                const quizListResponse = response.data.data;
-                setQuizzes(quizListResponse.content);
-                setTotalQuizzes(quizListResponse.totalElements);
-                setTotalPages(quizListResponse.totalPages);
-            } else {
-                // Sử dụng dữ liệu mẫu cho quá trình phát triển
-                const sampleQuizzes = generateSampleQuizzes(100);
+            // Kiểm tra xem có dữ liệu thực tế không
+            if (response.status === 'success' && response.data?.content) {
+                const pageData = response.data;
+                setQuizzes(pageData.content);
+                setTotalQuizzes(pageData.totalElements);
+                setTotalPages(pageData.totalPages);
 
-                // Mô phỏng phân trang
-                const startIndex = currentPage * pageSize;
-                const endIndex = startIndex + pageSize;
-                const paginatedQuizzes = sampleQuizzes.slice(startIndex, endIndex);
-
-                setQuizzes(paginatedQuizzes);
-                setTotalQuizzes(sampleQuizzes.length);
-                setTotalPages(Math.ceil(sampleQuizzes.length / pageSize));
-
-                // Thiết lập một số quiz thịnh hành
-                setTrendingQuizzes(sampleQuizzes
-                    .sort((a, b) => b.playCount - a.playCount)
-                    .slice(0, 5));
+                // Lấy trending quizzes riêng biệt
+                const trendingResponse = await QuizAPI.getPopularQuizzes(0, 5);
+                if (trendingResponse.status === 'success' && trendingResponse.data?.content) {
+                    setTrendingQuizzes(trendingResponse.data.content);
+                }
             }
 
         } catch (err) {
@@ -117,7 +80,7 @@ export const useQuizzes = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, pageSize, selectedCategory, searchQuery, difficultyFilter, sortOrder, activeTab, showOnlyPublic, generateSampleQuizzes, enqueueSnackbar]);
+    }, [currentPage, pageSize, selectedCategory, searchQuery, difficultyFilter, sortOrder, activeTab, showOnlyPublic, enqueueSnackbar]);
 
     // Lấy danh sách danh mục từ API
     const fetchCategories = useCallback(async () => {
@@ -139,19 +102,23 @@ export const useQuizzes = () => {
     const handleDeleteQuiz = useCallback((quizId: number) => {
         setQuizToDelete(quizId);
         setIsDeleteModalVisible(true);
-    }, []);
-
+    }, []);    
+    
     // Xác nhận xóa quiz
     const confirmDeleteQuiz = useCallback(async () => {
         if (!quizToDelete) return;
 
         try {
-            // Gọi API để xóa quiz
-            await axiosInstance.delete<ApiResponse<null>>(`/api/quizzes/${quizToDelete}`);
+            // Sử dụng QuizAPI để xóa quiz
+            const response = await QuizAPI.deleteQuiz(quizToDelete);
 
-            // Cập nhật state để loại bỏ quiz đã xóa
-            setQuizzes(prevQuizzes => prevQuizzes.filter(quiz => quiz.id !== quizToDelete));
-            enqueueSnackbar('Quiz deleted successfully', { variant: 'success' });
+            if (response.status === 'success') {
+                // Cập nhật state để loại bỏ quiz đã xóa
+                setQuizzes(prevQuizzes => prevQuizzes.filter(quiz => quiz.id !== quizToDelete));
+                enqueueSnackbar('Quiz deleted successfully', { variant: 'success' });
+            } else {
+                throw new Error(response.message || 'Failed to delete quiz');
+            }
         } catch (err) {
             console.error('Error deleting quiz:', err);
             enqueueSnackbar('Failed to delete quiz', { variant: 'error' });
@@ -234,20 +201,104 @@ export const useQuizzes = () => {
     const handlePublicFilterChange = useCallback((checked: boolean) => {
         setShowOnlyPublic(checked);
         setCurrentPage(0);
-    }, []);
-
-    const handleCancelDelete = useCallback(() => {
+    }, []); const handleCancelDelete = useCallback(() => {
         setIsDeleteModalVisible(false);
         setQuizToDelete(null);
     }, []);
+
+    // Thêm các utility functions sử dụng QuizAPI
+    const refreshQuizzes = useCallback(async () => {
+        await fetchQuizzes();
+    }, [fetchQuizzes]);
+
+    const getQuizById = useCallback(async (id: number) => {
+        try {
+            const response = await QuizAPI.getQuizById(id);
+            return response;
+        } catch (error) {
+            console.error('Error fetching quiz by ID:', error);
+            enqueueSnackbar('Failed to load quiz details', { variant: 'error' });
+            throw error;
+        }
+    }, [enqueueSnackbar]);
+
+    const createQuiz = useCallback(async (quizData: any) => {
+        try {
+            const response = await QuizAPI.createQuizFromRequest(quizData);
+            if (response.status === 'success') {
+                enqueueSnackbar('Quiz created successfully', { variant: 'success' });
+                // Refresh the quiz list
+                await fetchQuizzes();
+                return response;
+            } else {
+                throw new Error(response.message || 'Failed to create quiz');
+            }
+        } catch (error) {
+            console.error('Error creating quiz:', error);
+            enqueueSnackbar('Failed to create quiz', { variant: 'error' });
+            throw error;
+        }
+    }, [enqueueSnackbar, fetchQuizzes]);
+
+    const updateQuiz = useCallback(async (id: number, quizData: any) => {
+        try {
+            const response = await QuizAPI.updateQuizFromRequest(id, quizData);
+            if (response.status === 'success') {
+                enqueueSnackbar('Quiz updated successfully', { variant: 'success' });
+                // Refresh the quiz list
+                await fetchQuizzes();
+                return response;
+            } else {
+                throw new Error(response.message || 'Failed to update quiz');
+            }
+        } catch (error) {
+            console.error('Error updating quiz:', error);
+            enqueueSnackbar('Failed to update quiz', { variant: 'error' });
+            throw error;
+        }
+    }, [enqueueSnackbar, fetchQuizzes]);
+
+    const toggleQuizPublicStatus = useCallback(async (id: number) => {
+        try {
+            const response = await QuizAPI.toggleQuizPublicStatus(id);
+            if (response.status === 'success') {
+                enqueueSnackbar('Quiz status updated successfully', { variant: 'success' });
+                // Refresh the quiz list
+                await fetchQuizzes();
+                return response;
+            } else {
+                throw new Error(response.message || 'Failed to update quiz status');
+            }
+        } catch (error) {
+            console.error('Error toggling quiz status:', error);
+            enqueueSnackbar('Failed to update quiz status', { variant: 'error' });
+            throw error;
+        }
+    }, [enqueueSnackbar, fetchQuizzes]);
+
+    const duplicateQuiz = useCallback(async (id: number, newTitle?: string) => {
+        try {
+            const response = await QuizAPI.duplicateQuiz(id, newTitle);
+            if (response.status === 'success') {
+                enqueueSnackbar('Quiz duplicated successfully', { variant: 'success' });
+                // Refresh the quiz list
+                await fetchQuizzes();
+                return response;
+            } else {
+                throw new Error(response.message || 'Failed to duplicate quiz');
+            }
+        } catch (error) {
+            console.error('Error duplicating quiz:', error);
+            enqueueSnackbar('Failed to duplicate quiz', { variant: 'error' });
+            throw error;
+        }
+    }, [enqueueSnackbar, fetchQuizzes]);
 
     // Lấy dữ liệu khi component được mount và khi bộ lọc thay đổi
     useEffect(() => {
         fetchQuizzes();
         fetchCategories();
-    }, [fetchQuizzes, fetchCategories]);
-
-    return {
+    }, [fetchQuizzes, fetchCategories]); return {
         // Dữ liệu
         quizzes,
         categories,
@@ -271,7 +322,7 @@ export const useQuizzes = () => {
         isDeleteModalVisible,
         quizToDelete,
 
-        // Các hàm xử lý
+        // Các hàm xử lý UI
         handleSearch,
         handleCategoryChange,
         handleDifficultyChange,
@@ -284,5 +335,13 @@ export const useQuizzes = () => {
         handleDeleteQuiz,
         confirmDeleteQuiz,
         handleCancelDelete,
+
+        // API utility functions
+        refreshQuizzes,
+        getQuizById,
+        createQuiz,
+        updateQuiz,
+        toggleQuizPublicStatus,
+        duplicateQuiz,
     };
 };

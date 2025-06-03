@@ -32,6 +32,9 @@ export const QUIZ_ENDPOINTS = {
     GET_BY_ID: (id: number) => `/api/quizzes/${id}`,
     UPDATE: (id: number) => `/api/quizzes/${id}`,
     DELETE: (id: number) => `/api/quizzes/${id}`,
+    PUBLIC: '/api/quizzes/public',
+    BY_DIFFICULTY: (difficulty: string) => `/api/quizzes/difficulty/${difficulty}`,
+    PAGED: '/api/quizzes/paged',
     PUBLISH: (id: number) => `/api/quizzes/${id}/publish`,
     UNPUBLISH: (id: number) => `/api/quizzes/${id}/unpublish`,
 } as const;
