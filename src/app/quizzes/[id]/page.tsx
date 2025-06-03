@@ -16,6 +16,7 @@ import {
     FormQuestion,
     QuestionOptionRequest
 } from '@/types/database';
+import { QuestionAPI } from '@/api/questionAPI';
 
 const { Title } = Typography;
 
@@ -54,8 +55,18 @@ export default function QuizForm() {
                     // Sử dụng QuizAPI để lấy dữ liệu quiz
                     const response = await QuizAPI.getQuizById(Number(id));
 
-                    if (response.status === 'success' && response.data) {
+                    // Lấy danh sách câu hỏi liên quan đến quiz
+                    const questionResponse = await QuestionAPI.getQuestionsByQuizId(Number(id));
+
+                    if (
+                        response.status === 'success' &&
+                        response.data &&
+                        questionResponse.status === 'success' &&
+                        questionResponse.data
+                    ) {
+                        // Lấy dữ liệu quiz từ response
                         const quiz = response.data;
+                        const questionsData = questionResponse.data;
 
                         // Map API response data to form data
                         const formQuizData: QuizRequest = {
@@ -69,8 +80,21 @@ export default function QuizForm() {
 
                         // Map questions từ API response (nếu có)
                         // Hiện tại chỉ set empty array vì chưa có API cho questions
-                        const formQuestions: FormQuestion[] = [];
+                        const formQuestions: FormQuestion[] = questionsData.map((q) => ({
+                            id: q.id,
+                            quizId: q.quizId,
+                            content: q.content,
+                            timeLimit: q.timeLimit,
+                            points: q.points,
+                            orderNumber: q.orderNumber,
+                            type: q.type,
+                            options: q.options?.map((opt) => ({
+                                content: opt.content,
+                                isCorrect: opt.isCorrect,
+                            })),
+                        }));
 
+                        // Cập nhật state với dữ liệu đã lấy
                         setQuizData(formQuizData);
                         setQuestions(formQuestions);
                     }
