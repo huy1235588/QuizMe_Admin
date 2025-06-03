@@ -101,6 +101,18 @@ export type QuizFilterParams = {
     tab?: 'newest' | 'popular';
 }
 
+export type QuestionFilterParams = {
+    page?: number;
+    pageSize?: number;
+    quizId?: number;
+    type?: QuestionType;
+    search?: string;
+    sort?: 'newest' | 'oldest' | 'points' | 'difficulty';
+    minPoints?: number;
+    maxPoints?: number;
+    timeLimit?: number;
+}
+
 //-------------------------------------------------------------------------
 // Response Types - Kiểu dữ liệu cho các phản hồi từ server về client
 //-------------------------------------------------------------------------

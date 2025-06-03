@@ -51,11 +51,20 @@ export const CATEGORY_ENDPOINTS = {
 
 // Question Endpoints
 export const QUESTION_ENDPOINTS = {
-    LIST: (quizId: number) => `/api/quizzes/${quizId}/questions`,
-    CREATE: (quizId: number) => `/api/quizzes/${quizId}/questions`,
-    GET_BY_ID: (quizId: number, questionId: number) => `/api/quizzes/${quizId}/questions/${questionId}`,
-    UPDATE: (quizId: number, questionId: number) => `/api/quizzes/${quizId}/questions/${questionId}`,
-    DELETE: (quizId: number, questionId: number) => `/api/quizzes/${quizId}/questions/${questionId}`,
+    LIST: '/api/questions', // GET all questions
+    CREATE: '/api/questions', // POST create single question
+    CREATE_BATCH: '/api/questions/batch', // POST create multiple questions
+    GET_BY_ID: (id: number) => `/api/questions/${id}`, // GET question by ID
+    GET_BY_QUIZ_ID: (quizId: number) => `/api/questions/quiz/${quizId}`, // GET questions by quiz ID
+    UPDATE: (id: number) => `/api/questions/${id}`, // PUT update question
+    DELETE: (id: number) => `/api/questions/${id}`, // DELETE question
+    SEARCH: '/api/questions/search', // GET questions with filters and pagination
+    IMPORT: '/api/questions/import', // POST import questions from file
+    EXPORT: '/api/questions/export', // GET export questions to file
+    BULK_DELETE: '/api/questions/bulk-delete', // DELETE multiple questions
+    BULK_UPDATE: '/api/questions/bulk-update', // PUT update multiple questions
+    COPY: (id: number) => `/api/questions/${id}/copy`, // POST copy question
+    REORDER: '/api/questions/reorder', // PUT reorder questions
 } as const;
 
 // Answer Endpoints
