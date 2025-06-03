@@ -2,16 +2,14 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSnackbar } from 'notistack';
 import { useTheme } from '@/contexts/ThemeContext';
 import { QuizAPI } from '@/api/quizAPI';
+import { categoryService } from '@/services';
 import {
     Quiz,
     Category,
-    QuizResponse,
-    CategoryResponse,
     QuizFilterParams,
     ApiResponse,
     PageResponse
 } from '@/types/database';
-import axiosInstance from '@/utils/axios';
 
 // Hook quản lý danh sách và trạng thái các bài quiz
 export const useQuizzes = () => {
@@ -20,8 +18,8 @@ export const useQuizzes = () => {
     const { enqueueSnackbar } = useSnackbar();
 
     // Quản lý state
-    const [quizzes, setQuizzes] = useState<QuizResponse[]>([]);  // Danh sách các quiz
-    const [categories, setCategories] = useState<CategoryResponse[]>([]);  // Danh sách các danh mục
+    const [quizzes, setQuizzes] = useState<Quiz[]>([]);  // Danh sách các quiz
+    const [categories, setCategories] = useState<Category[]>([]);  // Danh sách các danh mục
     const [loading, setLoading] = useState<boolean>(true);  // Trạng thái đang tải
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');  // Chế độ hiển thị: lưới hoặc danh sách
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);  // Danh mục được chọn
@@ -35,14 +33,14 @@ export const useQuizzes = () => {
     const [totalPages, setTotalPages] = useState<number>(1);  // Tổng số trang
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState<boolean>(false);  // Hiển thị modal xóa
     const [quizToDelete, setQuizToDelete] = useState<number | null>(null);  // ID quiz cần xóa
-    const [trendingQuizzes, setTrendingQuizzes] = useState<QuizResponse[]>([]);  // Các quiz thịnh hành
+    const [trendingQuizzes, setTrendingQuizzes] = useState<Quiz[]>([]);  // Các quiz thịnh hành
     const [showOnlyPublic, setShowOnlyPublic] = useState<boolean>(false);  // Chỉ hiển thị quiz công khai    // Tạo dữ liệu mẫu cho phát triển
 
     // Lấy danh sách quiz từ API
     const fetchQuizzes = useCallback(async () => {
         try {
-            setLoading(true);            
-            
+            setLoading(true);
+
             // Trích xuất tham số truy vấn để dễ đọc
             const queryParams: QuizFilterParams = {
                 page: currentPage,
@@ -80,15 +78,15 @@ export const useQuizzes = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, pageSize, selectedCategory, searchQuery, difficultyFilter, sortOrder, activeTab, showOnlyPublic, enqueueSnackbar]);
-
-    // Lấy danh sách danh mục từ API
+    }, [currentPage, pageSize, selectedCategory, searchQuery, difficultyFilter, sortOrder, activeTab, showOnlyPublic, enqueueSnackbar]);    // Lấy danh sách danh mục từ API
     const fetchCategories = useCallback(async () => {
         try {
-            const response = await axiosInstance.get<ApiResponse<CategoryResponse[]>>('/api/categories');
+            const response = await categoryService.getAllCategories();
 
-            if (response.data?.data) {
-                setCategories(response.data.data);
+            if (response.status === 'success' && response.data) {
+                setCategories(response.data);
+            } else {
+                throw new Error(response.message || 'Failed to load categories');
             }
 
         } catch (err) {
@@ -102,8 +100,8 @@ export const useQuizzes = () => {
     const handleDeleteQuiz = useCallback((quizId: number) => {
         setQuizToDelete(quizId);
         setIsDeleteModalVisible(true);
-    }, []);    
-    
+    }, []);
+
     // Xác nhận xóa quiz
     const confirmDeleteQuiz = useCallback(async () => {
         if (!quizToDelete) return;
