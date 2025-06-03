@@ -101,9 +101,35 @@ class QuizService {
 
             // Thêm các trường dữ liệu vào FormData
             formData.append('title', quizRequest.title);
-            formData.append('description', quizRequest.description);
+            formData.append('description', quizRequest.description || '');
             formData.append('difficulty', quizRequest.difficulty);
             formData.append('isPublic', quizRequest.isPublic.toString());
+
+            // Thêm các câu hỏi vào FormData
+            quizRequest.questions?.forEach((question, index) => {
+                formData.append(`questions[${index}].content`, question.content);
+                formData.append(`questions[${index}].timeLimit`, question.timeLimit.toString());
+                formData.append(`questions[${index}].points`, question.points.toString());
+                formData.append(`questions[${index}].orderNumber`, question.orderNumber?.toString() || '0');
+                formData.append(`questions[${index}].type`, question.type);
+
+                // Thêm file hình ảnh nếu có
+                if (question.imageFile) {
+                    formData.append(`questions[${index}].imageFile`, question.imageFile);
+                }
+
+                // Thêm các tùy chọn câu hỏi
+                question.options.forEach((option, optionIndex) => {
+                    formData.append(
+                        `questions[${index}].options[${optionIndex}].content`,
+                        option.content
+                    );
+                    formData.append(
+                        `questions[${index}].options[${optionIndex}].isCorrect`,
+                        option.isCorrect.toString()
+                    );
+                });
+            });
 
             // Thêm categoryIds
             quizRequest.categoryIds.forEach(categoryId => {
@@ -139,7 +165,7 @@ class QuizService {
 
             // Thêm các trường dữ liệu vào FormData
             formData.append('title', quizRequest.title);
-            formData.append('description', quizRequest.description);
+            formData.append('description', quizRequest.description || ''); // Có thể để trống nếu không có mô tả
             formData.append('difficulty', quizRequest.difficulty);
             formData.append('isPublic', quizRequest.isPublic.toString());
 

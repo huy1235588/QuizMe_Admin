@@ -33,11 +33,28 @@ export type CategoryRequest = {
 
 export type QuizRequest = {
     title: string;
-    description: string;
-    thumbnailFile?: File | string; // File or URL
+    description?: string;
+    thumbnailFile: File | string; // Có thể là File hoặc URL
     categoryIds: number[];
     difficulty: Difficulty;
     isPublic: boolean;
+    questions?: QuizQuestionRequest[];
+}
+
+export type QuizQuestionRequest = {
+    content: string;
+    imageFile?: File;
+    audioFile?: File;
+    timeLimit: number;
+    points: number;
+    orderNumber?: number;
+    type: QuestionType;
+    options: QuizQuestionOptionRequest[];
+}
+
+export type QuizQuestionOptionRequest = {
+    content: string;
+    isCorrect: boolean;
 }
 
 export type QuestionRequest = {
@@ -154,7 +171,7 @@ export type QuizResponse = {
     id: number;
     title: string;
     description: string;
-    quizThumbnails?: string;
+    quizThumbnails: string;
     categoryIds: number[];
     categoryNames: string[];
     creatorId: number;

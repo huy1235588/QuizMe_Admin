@@ -3,34 +3,34 @@ import { useSnackbar } from 'notistack';
 import { useRouter } from 'next/navigation';
 import { QuizAPI } from '@/api/quizAPI';
 import {
-    Quiz,
-    Question,
-    QuestionOption,
     QuizRequest,
-    QuizResponse,
-    QuestionRequest,
-    QuestionResponse,
     QuestionOptionRequest,
-    ApiResponse,
-    FormQuestion
+    QuizQuestionRequest,
+    QuizQuestionOptionRequest
 } from '@/types/database';
 
 export const useQuizForm = () => {
     const { enqueueSnackbar } = useSnackbar();
-    const router = useRouter();    // State quản lý dữ liệu form
+    const router = useRouter();
+
+    // State quản lý dữ liệu form
     const [quizData, setQuizData] = useState<QuizRequest>({
         title: '',
         description: '',
+        thumbnailFile: '', // Trường bắt buộc - mặc định là chuỗi rỗng
         categoryIds: [],
         difficulty: 'EASY',
         isPublic: false,
+        questions: [], // Trường tùy chọn cho câu hỏi
     });
 
-    const [questions, setQuestions] = useState<FormQuestion[]>([]);
     const [questionOptions, setQuestionOptions] = useState<QuestionOptionRequest[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [nextQuestionId, setNextQuestionId] = useState<number>(1);
+
+    // Thuộc tính tính toán cho câu hỏi từ quizData
+    const questions = quizData.questions || [];
 
     // Xử lý thay đổi thông tin cơ bản của quiz
     const handleQuizChange = useCallback((field: string, value: any) => {
@@ -38,13 +38,13 @@ export const useQuizForm = () => {
             ...prev,
             [field]: value
         }));
-    }, []);    
-    
+    }, []);
+
     // Xử lý thay đổi file thumbnail
     const handleThumbnailChange = useCallback((file: File | null) => {
         setQuizData(prev => ({
             ...prev,
-            thumbnailFile: file || undefined,
+            thumbnailFile: file || '', // Sử dụng chuỗi rỗng nếu file là null
         }));
     }, []);
 
@@ -57,56 +57,77 @@ export const useQuizForm = () => {
         }
 
         // Tạo câu hỏi mới với các giá trị mặc định
-        const newQuestion: FormQuestion = {
+        const newQuestion: QuizQuestionRequest & { id: number } = {
             id: nextQuestionId, // Sử dụng ID tạm cho quản lý form
-            quizId: quizId,
             content: '',
             timeLimit: 30,
             points: 10,
             orderNumber: questions.length + 1,
+            type: 'QUIZ',
             options: [],
         };
 
-        setQuestions(prev => [...prev, newQuestion]);
+        setQuizData(prev => ({
+            ...prev,
+            questions: [...(prev.questions || []), newQuestion]
+        }));
         setNextQuestionId(prev => prev + 1);
     }, [questions.length, nextQuestionId]);
 
     // Xử lý thay đổi nội dung câu hỏi
-    const handleQuestionChange = useCallback((questionId: number, data: Partial<FormQuestion>) => {
-        setQuestions(prev =>
-            prev.map(q => q.id === questionId ? { ...q, ...data } : q)
-        );
-    }, []);    
-    
+    const handleQuestionChange = useCallback((questionId: number, data: Partial<QuizQuestionRequest>) => {
+        setQuizData(prev => ({
+            ...prev,
+            questions: (prev.questions || []).map(q =>
+                (q as any).id === questionId ? { ...q, ...data } : q
+            )
+        }));
+    }, []);
+
     // Xử lý thay đổi file hình ảnh cho câu hỏi
     const handleQuestionImageChange = useCallback((questionId: number, file: File | null) => {
-        setQuestions(prev =>
-            prev.map(q => q.id === questionId ? {
-                ...q,
-                imageFile: file || undefined,
-            } : q)
-        );
+        setQuizData(prev => ({
+            ...prev,
+            questions: (prev.questions || []).map(q =>
+                (q as any).id === questionId ? {
+                    ...q,
+                    imageFile: file || undefined,
+                } : q
+            )
+        }));
     }, []);
 
     // Xóa câu hỏi
     const handleRemoveQuestion = useCallback((questionId: number) => {
-        setQuestions(prev => {
-            const filteredQuestions = prev.filter(q => q.id !== questionId);
+        setQuizData(prev => {
+            const filteredQuestions = (prev.questions || []).filter(q => (q as any).id !== questionId);
             // Cập nhật lại orderNumber cho các câu hỏi
-            return filteredQuestions.map((q, index) => ({
+            const reorderedQuestions = filteredQuestions.map((q, index) => ({
                 ...q,
                 orderNumber: index + 1
             }));
+
+            return {
+                ...prev,
+                questions: reorderedQuestions
+            };
         });
     }, []);
 
     // Xử lý submit form tạo quiz
     const handleQuizSubmit = useCallback(async () => {
-        // Validate form trước khi submit
+        // Kiểm tra tính hợp lệ của form trước khi submit
         if (!quizData.title.trim()) {
             setError('Quiz title is required');
             return;
-        } if (!quizData.categoryIds || quizData.categoryIds.length === 0) {
+        }
+
+        if (!quizData.thumbnailFile) {
+            setError('Quiz thumbnail is required');
+            return;
+        }
+
+        if (!quizData.categoryIds || quizData.categoryIds.length === 0) {
             setError('At least one category is required');
             return;
         }
@@ -128,13 +149,13 @@ export const useQuizForm = () => {
                 return;
             }
 
-            const hasCorrectAnswer = question.options.some(a => a.isCorrect);
+            const hasCorrectAnswer = question.options.some((a: QuizQuestionOptionRequest) => a.isCorrect);
             if (!hasCorrectAnswer) {
                 setError('Each question must have at least one correct answer');
                 return;
             }
 
-            const allAnswersHaveContent = question.options.every(a => a.content.trim());
+            const allAnswersHaveContent = question.options.every((a: QuizQuestionOptionRequest) => a.content.trim());
             if (!allAnswersHaveContent) {
                 setError('All answers must have content');
                 return;
@@ -142,21 +163,37 @@ export const useQuizForm = () => {
         }
 
         setError(null);
-        setIsLoading(true); try {
+        setIsLoading(true);
+
+        try {
+            // Làm sạch dữ liệu câu hỏi - xóa trường ID tạm thời
+            const cleanQuestions = questions.map(q => {
+                const { id, ...cleanQuestion } = q as any;
+                return {
+                    content: cleanQuestion.content || '',
+                    imageFile: cleanQuestion.imageFile,
+                    audioFile: cleanQuestion.audioFile,
+                    timeLimit: cleanQuestion.timeLimit || 30,
+                    points: cleanQuestion.points || 10,
+                    orderNumber: cleanQuestion.orderNumber || 1,
+                    type: cleanQuestion.type || 'QUIZ',
+                    options: cleanQuestion.options || []
+                } as QuizQuestionRequest;
+            });
+
+            const completeQuizData = {
+                ...quizData,
+                questions: cleanQuestions
+            };
+
             // Sử dụng QuizAPI để tạo quiz
-            const response = await QuizAPI.createQuizFromRequest(quizData);
+            const response = await QuizAPI.createQuizFromRequest(completeQuizData);
 
             if (response.status !== 'success' || !response.data) {
                 throw new Error(response.message || 'Failed to create quiz');
-            } const quizId = response.data.id;
+            }
 
-            // Note: In a real implementation, you would need to create a separate API
-            // for handling questions. For now, we'll skip the question creation
-            // and just show success message for the quiz creation.
-
-            // TODO: Implement question creation API calls when backend is ready
-            // This would involve calling something like:
-            // await QuestionAPI.createQuestion(quizId, questionData)
+            const quizId = response.data.id;
 
             enqueueSnackbar('Quiz created successfully!', { variant: 'success' });
             router.push('/quizzes');
@@ -167,7 +204,7 @@ export const useQuizForm = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [quizData, questions, questionOptions, enqueueSnackbar, router]);
+    }, [quizData, questions, enqueueSnackbar, router]);
 
     return {
         quizData,
@@ -175,8 +212,8 @@ export const useQuizForm = () => {
         isLoading,
         error,
         setQuizData,
-        setQuestions,
         setQuestionOptions,
+        setNextQuestionId,
         handleQuizChange,
         handleThumbnailChange,
         handleAddQuestion,

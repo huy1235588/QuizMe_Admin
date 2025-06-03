@@ -11,10 +11,7 @@ import { QuizAPI } from '@/api/quizAPI';
 import QuizFormDetails from '@/components/quizzes/QuizForm/QuizFormDetails';
 import QuestionList from '@/components/quizzes/QuizForm/QuestionList';
 import {
-    QuizResponse,
     QuizRequest,
-    FormQuestion,
-    QuestionOptionRequest
 } from '@/types/database';
 import { QuestionAPI } from '@/api/questionAPI';
 
@@ -30,15 +27,13 @@ export default function QuizForm() {
     const isNew = id === 'new';
 
     // State quản lý trạng thái loading khi fetch dữ liệu quiz
-    const [loading, setLoading] = useState(!isNew);
-
-    const {
+    const [loading, setLoading] = useState(!isNew); const {
         quizData,
         questions,
         isLoading,
         error,
         setQuizData,
-        setQuestions,
+        setNextQuestionId,
         handleQuizChange,
         handleThumbnailChange,
         handleAddQuestion,
@@ -46,7 +41,7 @@ export default function QuizForm() {
         handleQuestionImageChange,
         handleRemoveQuestion,
         handleQuizSubmit
-    } = useQuizForm();    // Fetch dữ liệu quiz khi chỉnh sửa
+    } = useQuizForm();// Fetch dữ liệu quiz khi chỉnh sửa
 
     useEffect(() => {
         if (!isNew) {
@@ -66,37 +61,32 @@ export default function QuizForm() {
                     ) {
                         // Lấy dữ liệu quiz từ response
                         const quiz = response.data;
-                        const questionsData = questionResponse.data;
-
-                        // Map API response data to form data
+                        const questionsData = questionResponse.data;                        // Map API response data to form data
                         const formQuizData: QuizRequest = {
                             title: quiz.title,
                             description: quiz.description,
                             categoryIds: quiz.categoryIds,
                             difficulty: quiz.difficulty,
                             isPublic: quiz.isPublic,
-                            thumbnailFile: quiz.quizThumbnails || undefined,
+                            thumbnailFile: quiz.quizThumbnails,
+                            questions: questionsData.map((q, index) => ({
+                                id: index + 1, // Add temporary ID for form management
+                                content: q.content,
+                                timeLimit: q.timeLimit,
+                                points: q.points,
+                                orderNumber: q.orderNumber,
+                                type: q.type,
+                                options: q.options?.map((opt) => ({
+                                    content: opt.content,
+                                    isCorrect: opt.isCorrect
+                                })) || []
+                            } as any))
                         };
-
-                        // Map questions từ API response (nếu có)
-                        // Hiện tại chỉ set empty array vì chưa có API cho questions
-                        const formQuestions: FormQuestion[] = questionsData.map((q) => ({
-                            id: q.id,
-                            quizId: q.quizId,
-                            content: q.content,
-                            timeLimit: q.timeLimit,
-                            points: q.points,
-                            orderNumber: q.orderNumber,
-                            type: q.type,
-                            options: q.options?.map((opt) => ({
-                                content: opt.content,
-                                isCorrect: opt.isCorrect,
-                            })),
-                        }));
 
                         // Cập nhật state với dữ liệu đã lấy
                         setQuizData(formQuizData);
-                        setQuestions(formQuestions);
+                        // Update next question ID based on loaded questions
+                        setNextQuestionId(questionsData.length + 1);
                     }
                 } catch (error) {
                     console.error("Error fetching quiz:", error);
@@ -108,7 +98,7 @@ export default function QuizForm() {
 
             fetchQuizData();
         }
-    }, [id, isNew, setQuizData, setQuestions, enqueueSnackbar]);
+    }, [id, isNew, setQuizData, setNextQuestionId, enqueueSnackbar]);
 
     // Xử lý submit form (tùy thuộc vào tạo mới hoặc chỉnh sửa)
     const handleSubmit = async () => {
