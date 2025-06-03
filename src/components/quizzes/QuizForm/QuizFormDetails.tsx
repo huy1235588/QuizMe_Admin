@@ -20,9 +20,7 @@ const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({
     onThumbnailChange
 }) => {
     const [categories, setCategories] = useState<Category[]>([]);
-    const [previewUrl, setPreviewUrl] = useState<string | undefined>(
-        typeof quizData.thumbnailFile === 'string' ? quizData.thumbnailFile : undefined
-    );
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -83,14 +81,12 @@ const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({
                         <Option value="HARD">Hard</Option>
                     </Select>
                 </Form.Item>
-            </div>
-
-            <Form.Item label="Thumbnail">
+            </div>            <Form.Item label="Thumbnail">
                 <div className="space-y-2">
-                    {quizData.thumbnailFile && (
+                    {(quizData.thumbnailFile || previewUrl) && (
                         <div className="mb-2">
                             <img
-                                src={quizData.thumbnailFile || previewUrl}
+                                src={previewUrl || (typeof quizData.thumbnailFile === 'string' ? quizData.thumbnailFile : undefined)}
                                 alt="Quiz thumbnail preview"
                                 className="max-w-xs max-h-40 object-cover rounded"
                             />

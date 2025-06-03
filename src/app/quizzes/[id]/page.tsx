@@ -138,7 +138,8 @@ export default function QuizForm() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Spin size="large" tip="Loading quiz data..." />
+                <Spin size="large" />
+                <div className="mt-4 text-gray-600">Loading quiz data...</div>
             </div>
         );
     }

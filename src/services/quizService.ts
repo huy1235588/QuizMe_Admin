@@ -149,7 +149,7 @@ class QuizService {
             });
 
             // Thêm file thumbnail nếu có
-            if (quizRequest.thumbnailFile) {
+            if (quizRequest.thumbnailFile && quizRequest.thumbnailFile instanceof File) {
                 formData.append('thumbnailFile', quizRequest.thumbnailFile);
             }
 

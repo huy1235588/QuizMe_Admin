@@ -79,14 +79,14 @@ const QuestionList: React.FC<QuestionListProps> = ({
         onChange(questionId, { options: updatedOptions });
     };
 
-    // Handle image upload
+    // Xử lý tải lên hình ảnh
     const handleImageUpload = (questionId: number, file: File) => {
         onImageChange(questionId, file);
     };
 
-    // Create items array for Collapse component
+    // Tạo mảng items cho component Collapse
     const collapseItems = questions.map((question, index) => {
-        // For new questions, initialize options array if it doesn't exist
+        // Đối với câu hỏi mới, khởi tạo mảng options nếu nó chưa tồn tại
         if (!question.options || question.options.length === 0) {
             question.options = [
                 { content: '', isCorrect: true },
