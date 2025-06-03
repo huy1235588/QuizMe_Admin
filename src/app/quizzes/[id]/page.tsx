@@ -46,6 +46,7 @@ export default function QuizForm() {
         handleRemoveQuestion,
         handleQuizSubmit
     } = useQuizForm();    // Fetch dữ liệu quiz khi chỉnh sửa
+
     useEffect(() => {
         if (!isNew) {
             const fetchQuizData = async () => {
@@ -63,6 +64,7 @@ export default function QuizForm() {
                             categoryIds: quiz.categoryIds,
                             difficulty: quiz.difficulty,
                             isPublic: quiz.isPublic,
+                            thumbnailFile: quiz.quizThumbnails || undefined,
                         };
 
                         // Map questions từ API response (nếu có)
@@ -82,7 +84,9 @@ export default function QuizForm() {
 
             fetchQuizData();
         }
-    }, [id, isNew, setQuizData, setQuestions, enqueueSnackbar]);    // Xử lý submit form (tùy thuộc vào tạo mới hoặc chỉnh sửa)
+    }, [id, isNew, setQuizData, setQuestions, enqueueSnackbar]);
+
+    // Xử lý submit form (tùy thuộc vào tạo mới hoặc chỉnh sửa)
     const handleSubmit = async () => {
         try {
             if (isNew) {

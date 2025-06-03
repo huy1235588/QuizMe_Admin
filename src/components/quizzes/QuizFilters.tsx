@@ -17,11 +17,11 @@ interface QuizFiltersProps {
     showOnlyPublic: boolean; // Hiển thị chỉ các quiz công khai
     selectedCategory: number | null; // Danh mục được chọn
     difficultyFilter: string | null; // Bộ lọc độ khó
-    sortOrder: string; // Thứ tự sắp xếp
+    sortOrder: 'newest' | 'popular'; // Thứ tự sắp xếp
     onSearch: (value: string) => void; // Hàm xử lý tìm kiếm
     onCategoryChange: (value: number | null) => void; // Hàm xử lý khi thay đổi danh mục
-    onDifficultyChange: (value: string | null) => void; // Hàm xử lý khi thay đổi độ khó
-    onSortChange: (value: string) => void; // Hàm xử lý khi thay đổi cách sắp xếp
+    onDifficultyChange: (value: 'EASY' | 'MEDIUM' | 'HARD' | null) => void; // Hàm xử lý khi thay đổi độ khó
+    onSortChange: (value: 'newest' | 'popular') => void; // Hàm xử lý khi thay đổi cách sắp xếp
     onTabChange: (key: string) => void; // Hàm xử lý khi chuyển tab
     onPublicFilterChange: (checked: boolean) => void; // Hàm xử lý khi thay đổi bộ lọc công khai
 }

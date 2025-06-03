@@ -86,15 +86,15 @@ const TrendingQuizzes: React.FC<TrendingQuizzesProps> = ({ quizzes, isDarkMode }
                                             {/* Tag hiển thị độ khó của quiz với màu khác nhau */}
                                             <Tag
                                                 color={
-                                                    quiz.difficulty === 'easy' ? 'success' :
-                                                        quiz.difficulty === 'medium' ? 'processing' : 'error'
+                                                    quiz.difficulty === 'EASY' ? 'success' :
+                                                        quiz.difficulty === 'MEDIUM' ? 'processing' : 'error'
                                                 }
                                                 className="opacity-90"
                                             >
                                                 {quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)}
                                             </Tag>
                                             {/* Tag hiển thị danh mục của quiz */}
-                                            <Tag color="blue" className="opacity-90">{quiz.categoryName}</Tag>
+                                            <Tag color="blue" className="opacity-90">{quiz.categoryNames}</Tag>
                                         </div>
                                     </div>
                                     {/* Hiển thị thứ hạng của quiz với màu khác nhau tùy vào top 3 */}

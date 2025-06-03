@@ -3,7 +3,7 @@ import { Form, Input, Select, Switch, Upload, Button } from 'antd';
 import { FiUpload } from 'react-icons/fi';
 import axiosInstance from '@/utils/axios';
 import { useEffect, useState } from 'react';
-import { QuizRequest, CategoryResponse, ApiResponse, CategoryListResponse } from '@/types/database';
+import { QuizRequest, ApiResponse, Category } from '@/types/database';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -14,46 +14,27 @@ interface QuizFormDetailsProps {
     onThumbnailChange: (file: File | null) => void;
 }
 
-const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({ 
-    quizData, 
-    onChange, 
-    onThumbnailChange 
+const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({
+    quizData,
+    onChange,
+    onThumbnailChange
 }) => {
-    const [categories, setCategories] = useState<CategoryResponse[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [previewUrl, setPreviewUrl] = useState<string | undefined>(
-        typeof quizData.quizThumbnails === 'string' ? quizData.quizThumbnails : undefined
+        typeof quizData.thumbnailFile === 'string' ? quizData.thumbnailFile : undefined
     );
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 // Call API to get categories list
-                const response = await axiosInstance.get<ApiResponse<CategoryListResponse>>('/api/categories');
-                
-                if (response.data?.status === 'success' && response.data.data?.categories) {
-                    setCategories(response.data.data.categories);
-                } else {
-                    // Fallback to mock data if API isn't available yet
-                    setCategories([
-                        { id: 1, name: 'Science', description: 'Science quizzes', icon_url: '/icons/science.png' },
-                        { id: 2, name: 'History', description: 'History quizzes', icon_url: '/icons/history.png' },
-                        { id: 3, name: 'Mathematics', description: 'Math quizzes', icon_url: '/icons/math.png' },
-                        { id: 4, name: 'Literature', description: 'Literature quizzes', icon_url: '/icons/literature.png' },
-                        { id: 5, name: 'Geography', description: 'Geography quizzes', icon_url: '/icons/geography.png' },
-                        { id: 6, name: 'Programming', description: 'Programming quizzes', icon_url: '/icons/programming.png' },
-                    ]);
+                const response = await axiosInstance.get<ApiResponse<Category[]>>('/api/categories');
+
+                if (response.data?.status === 'success' && response.data.data) {
+                    setCategories(response.data.data);
                 }
             } catch (error) {
                 console.error('Failed to fetch categories:', error);
-                // Fallback to mock data if API call fails
-                setCategories([
-                    { id: 1, name: 'Science', description: 'Science quizzes', icon_url: '/icons/science.png' },
-                    { id: 2, name: 'History', description: 'History quizzes', icon_url: '/icons/history.png' },
-                    { id: 3, name: 'Mathematics', description: 'Math quizzes', icon_url: '/icons/math.png' },
-                    { id: 4, name: 'Literature', description: 'Literature quizzes', icon_url: '/icons/literature.png' },
-                    { id: 5, name: 'Geography', description: 'Geography quizzes', icon_url: '/icons/geography.png' },
-                    { id: 6, name: 'Programming', description: 'Programming quizzes', icon_url: '/icons/programming.png' },
-                ]);
             }
         };
 
@@ -82,7 +63,7 @@ const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Form.Item label="Category" required>
                     <Select
-                        value={quizData.categoryId}
+                        value={quizData.categoryIds}
                         onChange={(value) => onChange('categoryId', value)}
                         placeholder="Select category"
                     >
@@ -106,11 +87,11 @@ const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({
 
             <Form.Item label="Thumbnail">
                 <div className="space-y-2">
-                    {previewUrl && (
+                    {quizData.thumbnailFile && (
                         <div className="mb-2">
-                            <img 
-                                src={previewUrl} 
-                                alt="Quiz thumbnail preview" 
+                            <img
+                                src={quizData.thumbnailFile || previewUrl}
+                                alt="Quiz thumbnail preview"
                                 className="max-w-xs max-h-40 object-cover rounded"
                             />
                         </div>
@@ -123,11 +104,11 @@ const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({
                         beforeUpload={(file) => {
                             // Handle file upload
                             onThumbnailChange(file);
-                            
+
                             // Create a preview URL
                             const url = URL.createObjectURL(file);
                             setPreviewUrl(url);
-                            
+
                             // Prevent default upload behavior
                             return false;
                         }}

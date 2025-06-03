@@ -12,11 +12,11 @@ interface QuestionListProps {
     onRemove: (questionId: number) => void;
 }
 
-const QuestionList: React.FC<QuestionListProps> = ({ 
-    questions, 
-    onChange, 
+const QuestionList: React.FC<QuestionListProps> = ({
+    questions,
+    onChange,
     onImageChange,
-    onRemove 
+    onRemove
 }) => {
     // Xử lý thay đổi đáp án
     const handleAnswerChange = (questionId: number, answerIndex: number, content: string) => {
@@ -141,11 +141,11 @@ const QuestionList: React.FC<QuestionListProps> = ({
 
                         <Form.Item label={<div className="flex items-center"><FiImage className="mr-1" /> Question Image</div>}>
                             <div className="space-y-2">
-                                {typeof question.imageUrl === 'string' && question.imageUrl && (
+                                {typeof question.imageFile === 'string' && question.imageFile && (
                                     <div className="mb-2">
-                                        <img 
-                                            src={question.imageUrl} 
-                                            alt="Question preview" 
+                                        <img
+                                            src={question.imageFile}
+                                            alt="Question preview"
                                             className="max-w-xs max-h-40 object-cover rounded"
                                         />
                                     </div>
@@ -159,7 +159,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                                     }}
                                 >
                                     <Button icon={<FiUpload />}>
-                                        {question.imageUrl ? 'Change Image' : 'Upload Image'}
+                                        {question.imageFile ? 'Change Image' : 'Upload Image'}
                                     </Button>
                                 </Upload>
                             </div>
@@ -193,7 +193,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                                             onChange={(e) => handleAnswerChange(question.id, ansIndex, e.target.value)}
                                             className="flex-grow"
                                         />
-                                        {question.options.length > 2 && (
+                                        {question.options && question.options.length > 2 && (
                                             <Button
                                                 danger
                                                 icon={<FiTrash />}

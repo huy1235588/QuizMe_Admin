@@ -34,7 +34,7 @@ export type CategoryRequest = {
 export type QuizRequest = {
     title: string;
     description: string;
-    thumbnailFile?: File;
+    thumbnailFile?: File | string; // File or URL
     categoryIds: number[];
     difficulty: Difficulty;
     isPublic: boolean;
