@@ -90,9 +90,20 @@ const QuizCard = memo(({ quiz, onDelete, isDarkMode }: QuizCardProps) => {
                         </Tag>
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent py-2 px-4">
-                        {/* Hiển thị tags thay vì title */}
                         <div className="flex flex-wrap gap-1">
-                            <Tag color="blue">{quiz.categoryNames}</Tag>
+                            {/* Hiển thị danh sách danh mục của quiz (tối đa 2 mục) */}
+                            {quiz.categoryNames.slice(0, 2).map((category, index) => (
+                                <Tag key={index} color="blue" className="text-xs">
+                                    {category}
+                                </Tag>
+                            ))}
+                            {quiz.categoryNames.length > 2 && (
+                                <Tag color="blue" className="text-xs">
+                                    +{quiz.categoryNames.length - 2}
+                                </Tag>
+                            )}
+
+                            {/* Hiển thị độ khó của quiz */}
                             <Tag color={getDifficultyColor(quiz.difficulty)}>
                                 {quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)}
                             </Tag>
