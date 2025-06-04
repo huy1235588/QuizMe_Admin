@@ -3,6 +3,7 @@ import React from 'react';
 import { Input, Select, Tabs, Typography, Card, Switch } from 'antd';
 import { FiSearch } from 'react-icons/fi';
 import { Category } from '@/types/database';
+import { useTranslations } from 'next-intl';
 
 // Khởi tạo các component từ thư viện Ant Design
 const { Search } = Input;
@@ -43,9 +44,11 @@ const QuizFilters: React.FC<QuizFiltersProps> = ({
     onTabChange,
     onPublicFilterChange,
 }) => {
+    const t = useTranslations('quizzes');
+
     return (
         <Card
-            title={<span className="font-bold">All Quizzes</span>}
+            title={<span className="font-bold">{t('allQuizzes')}</span>}
             variant='outlined'
             className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
         >
@@ -54,7 +57,7 @@ const QuizFilters: React.FC<QuizFiltersProps> = ({
                 {/* Ô tìm kiếm */}
                 <div className="flex-grow">
                     <Search
-                        placeholder="Search quizzes..."
+                        placeholder={t('searchQuizzesPlaceholder')}
                         allowClear
                         enterButton={<FiSearch />}
                         size="large"
@@ -65,42 +68,44 @@ const QuizFilters: React.FC<QuizFiltersProps> = ({
                 <div className="flex gap-2 flex-wrap">
                     {/* Bộ lọc theo danh mục */}
                     <Select
-                        placeholder="Category"
+                        placeholder={t('categoryPlaceholder')}
                         className="min-w-[120px]"
                         allowClear
                         value={selectedCategory === null ? 'all' : selectedCategory}
                         onChange={(value) => onCategoryChange(value === 'all' ? null : value as number)}
                         options={[
-                            { value: 'all', label: 'All Categories' },
+                            { value: 'all', label: t('allCategories') },
                             ...categories.map(cat => ({ value: cat.id, label: cat.name }))
                         ]}
                     />
+
                     {/* Bộ lọc theo độ khó */}
                     <Select
-                        placeholder="Difficulty"
+                        placeholder={t('difficultyPlaceholder')}
                         className="min-w-[120px]"
                         allowClear
                         value={difficultyFilter === null ? 'all' : difficultyFilter}
                         onChange={(value) => onDifficultyChange(value === 'all' ? null : value as 'EASY' | 'MEDIUM' | 'HARD')}
                         options={[
-                            { value: 'all', label: 'All Difficulties' },
-                            { value: 'easy', label: 'Easy' },
-                            { value: 'medium', label: 'Medium' },
-                            { value: 'hard', label: 'Hard' }
+                            { value: 'all', label: t('allDifficulties') },
+                            { value: 'easy', label: t('easyDifficulty') },
+                            { value: 'medium', label: t('mediumDifficulty') },
+                            { value: 'hard', label: t('hardDifficulty') }
                         ]}
                     />
+
                     {/* Bộ lọc sắp xếp */}
                     <Select
-                        placeholder="Sort By"
+                        placeholder={t('sortByPlaceholder')}
                         className="min-w-[120px]"
                         value={sortOrder}
                         onChange={onSortChange}
                         options={[
-                            { value: 'newest', label: 'Newest' },
-                            { value: 'oldest', label: 'Oldest' },
-                            { value: 'mostPlayed', label: 'Most Played' },
-                            { value: 'alphAsc', label: 'A-Z' },
-                            { value: 'alphDesc', label: 'Z-A' }
+                            { value: 'newest', label: t('sortNewest') },
+                            { value: 'oldest', label: t('sortOldest') },
+                            { value: 'mostPlayed', label: t('sortMostPlayed') },
+                            { value: 'alphAsc', label: t('sortAlphaAsc') },
+                            { value: 'alphDesc', label: t('sortAlphaDesc') }
                         ]}
                     />
                 </div>
@@ -108,14 +113,14 @@ const QuizFilters: React.FC<QuizFiltersProps> = ({
 
             {/* Phần tabs */}
             <div className="mb-4">
-                <Tabs 
-                    activeKey={activeTab} 
+                <Tabs
+                    activeKey={activeTab}
                     onChange={onTabChange}
                     items={[
-                        { key: 'all', label: 'All Quizzes' }, // Tất cả các quiz
-                        { key: 'my', label: 'My Quizzes' },   // Quiz của tôi
-                        { key: 'favorites', label: 'Favorites' }, // Quiz yêu thích
-                        { key: 'recent', label: 'Recently Viewed' } // Quiz đã xem gần đây
+                        { key: 'all', label: t('allQuizzes') }, // Tất cả các quiz
+                        { key: 'my', label: t('myQuizzes') },   // Quiz của tôi
+                        { key: 'favorites', label: t('favoriteQuizzes') }, // Quiz yêu thích
+                        { key: 'recent', label: t('recentlyViewedQuizzes') } // Quiz đã xem gần đây
                     ]}
                 />
             </div>
@@ -124,11 +129,11 @@ const QuizFilters: React.FC<QuizFiltersProps> = ({
             <div className="flex justify-between items-center mb-4">
                 {/* Hiển thị số lượng quiz tìm thấy */}
                 <Text className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>
-                    {totalQuizzes} quizzes found
+                    {totalQuizzes} {t('quizzesFound')}
                 </Text>
                 {/* Công tắc chỉ hiển thị quiz công khai */}
                 <div className="flex items-center">
-                    <span className="mr-2">Public Only</span>
+                    <span className="mr-2">{t('publicOnly')}</span>
                     <Switch
                         checked={showOnlyPublic}
                         onChange={onPublicFilterChange}

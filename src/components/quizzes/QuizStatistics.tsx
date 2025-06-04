@@ -6,6 +6,7 @@ import { BsCalendarDate, BsGraphUp } from 'react-icons/bs';
 import ReactECharts from 'echarts-for-react';
 import { HiOutlineChartPie } from 'react-icons/hi';
 import { Category } from '@/types/database';
+import { useTranslations } from 'next-intl';
 
 const { Text } = Typography;
 
@@ -26,19 +27,17 @@ interface QuizStatisticsProps {
 
 // Các hàm tiện ích để tạo class name
 const getCardClass = (color: string, isDarkMode: boolean) => {
-    return `stat-card bg-gradient-to-br ${
-        isDarkMode 
-            ? `from-${color}-900/40 to-${color}-800/20 border-${color}-700/50` 
-            : `from-${color}-50 to-${color}-100 border-${color}-200`
-    } border overflow-hidden rounded-lg hover:shadow-lg transition-all duration-300`;
+    return `h-full stat-card bg-gradient-to-br ${isDarkMode
+        ? `from-${color}-900/40 to-${color}-800/20 border-${color}-700/50`
+        : `from-${color}-50 to-${color}-100 border-${color}-200`
+        } border overflow-hidden rounded-lg hover:shadow-lg transition-all duration-300`;
 };
 
 const getIconClass = (color: string, isDarkMode: boolean) => {
-    return `flex items-center justify-center w-12 h-12 rounded-full mr-4 ${
-        isDarkMode 
-            ? `text-${color}-300` 
-            : `text-${color}-600`
-    }`;
+    return `flex items-center justify-center w-12 h-12 rounded-full mr-4 ${isDarkMode
+        ? `text-${color}-300`
+        : `text-${color}-600`
+        }`;
 };
 
 // Component thẻ thống kê để tái sử dụng
@@ -51,12 +50,12 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ icon, value, label, color, isDarkMode }) => {
-    const IconComponent = React.cloneElement(icon as React.ReactElement<{className?: string}>, { className: "text-xl" });
-    const BigIconComponent = React.cloneElement(icon as React.ReactElement<{className?: string}>, { className: "text-7xl" });
-    
+    const IconComponent = React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "text-xl" });
+    const BigIconComponent = React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: "text-7xl" });
+
     return (
         <Card className={getCardClass(color, isDarkMode)}>
-            <div className="flex items-center gap-4">
+            <div className="flex h-full items-center gap-4">
                 <div className={getIconClass(color, isDarkMode)}>
                     {IconComponent}
                 </div>
@@ -81,12 +80,14 @@ const QuizStatistics: React.FC<QuizStatisticsProps> = ({
     categories,
     difficultyDistribution,
 }) => {
-    // Cấu hình biểu đồ được ghi nhớ (memoized) để tối ưu hiệu suất
+    const t = useTranslations('quizzes');
+
+    // Cấu hình biểu đồ được ghi nhớ (memoized) để tối ưu hiệu suất    
     // Biểu đồ phân bố danh mục
     const quizCategoryDistributionOptions = useMemo(() => ({
         tooltip: {
             trigger: 'item',
-            formatter: '{b}: {c} quizzes ({d}%)'
+            formatter: `{b}: {c} ${t('quizCategoriesTooltip')} ({d}%)`
         },
         legend: {
             orient: 'vertical',
@@ -98,7 +99,7 @@ const QuizStatistics: React.FC<QuizStatisticsProps> = ({
         },
         series: [
             {
-                name: 'Quiz Categories',
+                name: t('quizCategories'),
                 type: 'pie',
                 radius: ['40%', '70%'],
                 avoidLabelOverlap: false,
@@ -136,7 +137,7 @@ const QuizStatistics: React.FC<QuizStatisticsProps> = ({
     const quizDifficultyDistributionOptions = useMemo(() => ({
         tooltip: {
             trigger: 'item',
-            formatter: '{b}: {c} quizzes ({d}%)'
+            formatter: `{b}: {c} ${t('quizCategoriesTooltip')} ({d}%)`
         },
         legend: {
             bottom: '0',
@@ -147,7 +148,7 @@ const QuizStatistics: React.FC<QuizStatisticsProps> = ({
         },
         series: [
             {
-                name: 'Quiz Difficulty',
+                name: t('quizDifficulty'),
                 type: 'pie',
                 radius: '70%',
                 itemStyle: {
@@ -156,9 +157,9 @@ const QuizStatistics: React.FC<QuizStatisticsProps> = ({
                     borderWidth: 2
                 },
                 data: [
-                    { value: difficultyDistribution.easy, name: 'Easy', itemStyle: { color: isDarkMode ? '#86efac' : '#22c55e' } },
-                    { value: difficultyDistribution.medium, name: 'Medium', itemStyle: { color: isDarkMode ? '#93c5fd' : '#3b82f6' } },
-                    { value: difficultyDistribution.hard, name: 'Hard', itemStyle: { color: isDarkMode ? '#fda4af' : '#ef4444' } }
+                    { value: difficultyDistribution.easy, name: t('easyDifficulty'), itemStyle: { color: isDarkMode ? '#86efac' : '#22c55e' } },
+                    { value: difficultyDistribution.medium, name: t('mediumDifficulty'), itemStyle: { color: isDarkMode ? '#93c5fd' : '#3b82f6' } },
+                    { value: difficultyDistribution.hard, name: t('hardDifficulty'), itemStyle: { color: isDarkMode ? '#fda4af' : '#ef4444' } }
                 ],
                 emphasis: {
                     itemStyle: {
@@ -180,25 +181,25 @@ const QuizStatistics: React.FC<QuizStatisticsProps> = ({
         {
             icon: <FiHelpCircle />,
             value: totalQuizzes,
-            label: 'Total Quizzes',
+            label: t('totalQuizzesCard'),
             color: 'blue'
         },
         {
             icon: <FiCheckCircle />,
             value: publishedQuizzes,
-            label: 'Published Quizzes',
+            label: t('publishedQuizzesCard'),
             color: 'green'
         },
         {
             icon: <BsCalendarDate />,
             value: recentQuizzes,
-            label: 'Created in 30 Days',
+            label: t('recentQuizzesCard'),
             color: 'orange'
         },
         {
             icon: <BsGraphUp />,
             value: totalPlays,
-            label: 'Total Plays',
+            label: t('totalPlaysCard'),
             color: 'purple'
         }
     ];
@@ -224,7 +225,7 @@ const QuizStatistics: React.FC<QuizStatisticsProps> = ({
             <Row gutter={[16, 16]} className="mt-4">
                 <Col xs={24} md={12}>
                     <Card
-                        title={<span className="font-bold flex items-center gap-2"><HiOutlineChartPie /> Quiz Categories</span>}
+                        title={<span className="font-bold flex items-center gap-2"><HiOutlineChartPie /> {t('quizCategoriesTitle')}</span>}
                         variant='outlined'
                         className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
                     >
@@ -236,7 +237,7 @@ const QuizStatistics: React.FC<QuizStatisticsProps> = ({
                 </Col>
                 <Col xs={24} md={12}>
                     <Card
-                        title={<span className="font-bold flex items-center gap-2"><FiBarChart2 className="mr-2" /> Quiz Difficulty</span>}
+                        title={<span className="font-bold flex items-center gap-2"><FiBarChart2 className="mr-2" /> {t('quizDifficultyTitle')}</span>}
                         variant='outlined'
                         className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
                     >

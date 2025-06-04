@@ -6,6 +6,7 @@ import { HiOutlineStar } from 'react-icons/hi';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { Quiz } from '@/types/database';
+import { useTranslations } from 'next-intl';
 
 // Import Swiper styles
 // Import các styles của Swiper
@@ -23,6 +24,8 @@ interface TrendingQuizzesProps {
 
 // Component hiển thị danh sách các bài quiz đang thịnh hành
 const TrendingQuizzes: React.FC<TrendingQuizzesProps> = ({ quizzes, isDarkMode }) => {
+    const t = useTranslations('quizzes');
+
     // Nếu không có dữ liệu quiz hoặc mảng rỗng thì không hiển thị gì
     if (!quizzes || quizzes.length === 0) {
         return null;
@@ -31,12 +34,12 @@ const TrendingQuizzes: React.FC<TrendingQuizzesProps> = ({ quizzes, isDarkMode }
     return (
         <Card
             // Tiêu đề card với biểu tượng ngôi sao
-            title={<span className="font-bold flex items-center"><HiOutlineStar className="mr-2 text-amber-500" /> Trending Quizzes</span>}
+            title={<span className="font-bold flex items-center"><HiOutlineStar className="mr-2 text-amber-500" /> {t('trendingQuizzes')}</span>}
             variant='outlined'
             // Style cho card dựa vào chế độ tối/sáng
             className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : ''} overflow-hidden`}
             // Nút xem tất cả ở góc phải
-            extra={<Button type="link" icon={<FiEye className="mr-1" />}>View All</Button>}
+            extra={<Button type="link" icon={<FiEye className="mr-1" />}>{t('viewAll')}</Button>}
         >
             {/* Swiper component để hiển thị quiz dạng carousel */}
             <Swiper
@@ -91,7 +94,7 @@ const TrendingQuizzes: React.FC<TrendingQuizzesProps> = ({ quizzes, isDarkMode }
                                                 }
                                                 className="opacity-90"
                                             >
-                                                {quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)}
+                                                {t(quiz.difficulty.toLowerCase() + 'Difficulty')}
                                             </Tag>
                                             {/* Tag hiển thị danh mục của quiz */}
                                             <Tag color="blue" className="opacity-90">{quiz.categoryNames}</Tag>

@@ -7,6 +7,7 @@ import { IoShareSocialOutline } from 'react-icons/io5';
 import { useSnackbar } from 'notistack';
 import { Quiz } from '@/types/database';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 const { Text } = Typography;
 
@@ -19,9 +20,9 @@ interface QuizCardProps {
 
 // Hàm xác định màu sắc dựa trên độ khó của quiz
 const getDifficultyColor = (difficulty: string) => {
-    return difficulty === 'easy'
+    return difficulty === 'EASY'
         ? 'success'
-        : difficulty === 'medium'
+        : difficulty === 'MEDIUM'
             ? 'processing'
             : 'error';
 };
@@ -31,37 +32,39 @@ const QuizCard = memo(({ quiz, onDelete, isDarkMode }: QuizCardProps) => {
     // Hook để hiển thị thông báo
     const { enqueueSnackbar } = useSnackbar();
     const router = useRouter();
+    const t = useTranslations('quizzes');
+    const c = useTranslations('common');
 
     // Tạo menu cho dropdown với các tùy chọn
     const getQuizMenu = () => ({
         items: [
             {
                 key: '1',
-                label: 'View Quiz',      // Xem quiz
+                label: c('view'),      // Xem quiz
                 icon: <FiEye />,
                 onClick: () => enqueueSnackbar('View Quiz Feature Coming Soon', { variant: 'info' })
             },
             {
                 key: '2',
-                label: 'Edit Quiz',      // Chỉnh sửa quiz
+                label: c('edit'),      // Chỉnh sửa quiz
                 icon: <FiEdit />,
                 onClick: () => router.push(`/quizzes/${quiz.id}`)  // Cập nhật để chuyển đến trang edit
             },
             {
                 key: '3',
-                label: 'Duplicate Quiz', // Nhân bản quiz
+                label: t('duplicateQuiz'), // Nhân bản quiz
                 icon: <FiCopy />,
                 onClick: () => enqueueSnackbar('Duplicate Quiz Feature Coming Soon', { variant: 'info' })
             },
             {
                 key: '4',
-                label: 'Share Quiz',     // Chia sẻ quiz
+                label: t('shareQuiz'),     // Chia sẻ quiz
                 icon: <IoShareSocialOutline />,
                 onClick: () => enqueueSnackbar('Share Quiz Feature Coming Soon', { variant: 'info' })
             },
             {
                 key: '5',
-                label: 'Delete Quiz',    // Xóa quiz
+                label: t('deleteQuiz'),    // Xóa quiz
                 icon: <FiTrash2 />,
                 danger: true,
                 onClick: () => onDelete(quiz.id)
@@ -80,13 +83,13 @@ const QuizCard = memo(({ quiz, onDelete, isDarkMode }: QuizCardProps) => {
                     <img
                         alt={quiz.title}
                         // Sử dụng hình ảnh từ URL hoặc tạo hình placeholder với màu tương ứng với độ khó
-                        src={quiz.quizThumbnails || `https://placehold.co/600x400/${['3b82f6', '8b5cf6', 'ec4899'][['easy', 'medium', 'hard'].indexOf(quiz.difficulty)]}/ffffff?text=${quiz.title}`}
+                        src={quiz.quizThumbnails || `https://placehold.co/600x400/${['3b82f6', '8b5cf6', 'ec4899'][['EASY', 'MEDIUM', 'HARD'].indexOf(quiz.difficulty)]}/ffffff?text=${quiz.title}`}
                         className="object-cover h-full w-full"
                     />
                     <div className="absolute top-2 right-2">
                         {/* Hiển thị trạng thái công khai/riêng tư của quiz */}
                         <Tag color={quiz.isPublic ? 'success' : 'default'}>
-                            {quiz.isPublic ? 'Public' : 'Private'}
+                            {quiz.isPublic ? t('statusPublic') : t('statusPrivate')}
                         </Tag>
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent py-2 px-4">
@@ -105,7 +108,11 @@ const QuizCard = memo(({ quiz, onDelete, isDarkMode }: QuizCardProps) => {
 
                             {/* Hiển thị độ khó của quiz */}
                             <Tag color={getDifficultyColor(quiz.difficulty)}>
-                                {quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)}
+                                {quiz.difficulty === 'EASY'
+                                    ? t('easyDifficulty')
+                                    : quiz.difficulty === 'MEDIUM'
+                                        ? t('mediumDifficulty')
+                                        : t('hardDifficulty')}
                             </Tag>
                         </div>
                     </div>
@@ -113,10 +120,10 @@ const QuizCard = memo(({ quiz, onDelete, isDarkMode }: QuizCardProps) => {
             }
             // Các nút tương tác chính ở phía dưới thẻ
             actions={[
-                <Tooltip title="View Quiz" key="view">
+                <Tooltip title={c('view')} key="view">
                     <Button type="text" icon={<FiEye />} />
                 </Tooltip>,
-                <Tooltip title="Edit Quiz" key="edit">
+                <Tooltip title={c('edit')} key="edit">
                     <Button
                         type="text"
                         icon={<FiEdit />}
@@ -142,10 +149,10 @@ const QuizCard = memo(({ quiz, onDelete, isDarkMode }: QuizCardProps) => {
                 {/* Thông tin thống kê: số câu hỏi và số lần chơi */}
                 <div className="mt-auto pt-2 flex justify-between items-center text-xs border-t border-gray-200 dark:border-gray-700">
                     <span className="flex items-center">
-                        <FiFileText className="mr-1" /> {quiz.questionCount} questions
+                        <FiFileText className="mr-1" /> {quiz.questionCount} {t('columnQuestions').toLowerCase()}
                     </span>
                     <span className="flex items-center">
-                        <FiUsers className="mr-1" /> {quiz.playCount} plays
+                        <FiUsers className="mr-1" /> {quiz.playCount} {t('columnPlayCount').toLowerCase()}
                     </span>
                 </div>
             </div>

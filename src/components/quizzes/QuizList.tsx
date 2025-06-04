@@ -3,6 +3,7 @@ import { Card, Button, Table, Empty, Spin, Tooltip } from 'antd';
 import { FiGrid, FiList } from 'react-icons/fi';
 import { Quiz } from '@/types/database';
 import QuizCard from './QuizCard';
+import { useTranslations } from 'next-intl';
 
 // Interface định nghĩa các props cần thiết cho component QuizList
 interface QuizListProps {
@@ -32,10 +33,12 @@ const QuizList: React.FC<QuizListProps> = ({
     onPageChange,
     onPageSizeChange,
 }) => {
+    const t = useTranslations('quizzes');
+
     // Cấu hình các cột cho chế độ hiển thị dạng bảng
     const quizColumns = [
         {
-            title: 'Title',
+            title: t('columnTitle'),
             dataIndex: 'title',
             key: 'title',
             render: (text: string, record: Quiz) => (
@@ -54,16 +57,15 @@ const QuizList: React.FC<QuizListProps> = ({
                     </div>
                 </div>
             ),
-        },
-        {
-            title: 'Category',
+        }, {
+            title: t('columnCategory'),
             dataIndex: 'categoryName',
             key: 'categoryName',
             // Hiển thị danh mục với màu nền xanh
             render: (text: string) => <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">{text}</span>,
         },
         {
-            title: 'Difficulty',
+            title: t('columnDifficulty'),
             dataIndex: 'difficulty',
             key: 'difficulty',
             // Hiển thị độ khó với màu khác nhau tùy theo mức độ
@@ -72,32 +74,31 @@ const QuizList: React.FC<QuizListProps> = ({
                     easy: 'bg-green-100 text-green-800',
                     medium: 'bg-blue-100 text-blue-800',
                     hard: 'bg-red-100 text-red-800'
-                };
-                return (
+                }; return (
                     <span className={`${colors[text as keyof typeof colors]} text-xs font-medium px-2.5 py-0.5 rounded`}>
-                        {text.charAt(0).toUpperCase() + text.slice(1)}
+                        {t(`${text}Difficulty`)}
                     </span>
                 );
             },
         },
         {
-            title: 'Questions',
+            title: t('columnQuestions'),
             dataIndex: 'questionCount',
             key: 'questionCount',
         },
         {
-            title: 'Play Count',
+            title: t('columnPlayCount'),
             dataIndex: 'playCount',
             key: 'playCount',
         },
         {
-            title: 'Status',
+            title: t('columnStatus'),
             dataIndex: 'isPublic',
             key: 'isPublic',
             // Hiển thị trạng thái công khai hoặc riêng tư
             render: (isPublic: boolean) => (
                 <span className={`${isPublic ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'} text-xs font-medium px-2.5 py-0.5 rounded`}>
-                    {isPublic ? 'Public' : 'Private'}
+                    {isPublic ? t('statusPublic') : t('statusPrivate')}
                 </span>
             ),
         }
@@ -105,13 +106,13 @@ const QuizList: React.FC<QuizListProps> = ({
 
     return (
         <Card
-            title={<span className="font-bold">Quiz List</span>}
+            title={<span className="font-bold">{t('quizList')}</span>}
             variant='outlined'
             className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
             extra={
                 // Nút chuyển đổi giữa chế độ lưới và danh sách
                 <div className="flex items-center space-x-2">
-                    <Tooltip title="Grid View">
+                    <Tooltip title={t('gridView')}>
                         <Button
                             type={viewMode === 'grid' ? 'primary' : 'default'}
                             icon={<FiGrid />}
@@ -119,7 +120,7 @@ const QuizList: React.FC<QuizListProps> = ({
                             className={viewMode === 'grid' && isDarkMode ? 'bg-blue-600 hover:bg-blue-500' : ''}
                         />
                     </Tooltip>
-                    <Tooltip title="List View">
+                    <Tooltip title={t('listView')}>
                         <Button
                             type={viewMode === 'list' ? 'primary' : 'default'}
                             icon={<FiList />}
@@ -137,7 +138,7 @@ const QuizList: React.FC<QuizListProps> = ({
                 </div>
             ) : quizzes.length === 0 ? (
                 // Hiển thị khi không có dữ liệu
-                <Empty description="No quizzes found" />
+                <Empty description={t('noQuizzesFound')} />
             ) : viewMode === 'grid' ? (
                 // Hiển thị dạng lưới với các card
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
@@ -161,7 +162,7 @@ const QuizList: React.FC<QuizListProps> = ({
                         showSizeChanger: true,
                         onShowSizeChange: onPageSizeChange,
                         pageSizeOptions: ['12', '24', '36', '48'],
-                        showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+                        showTotal: (total, range) => `${range[0]}-${range[1]} ${t('ofItems').replace('{total}', total.toString())}`,
                     }}
                 />
             )}
