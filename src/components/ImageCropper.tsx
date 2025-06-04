@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import Cropper, { Area, CropperProps } from 'react-easy-crop';
 import { Modal, Slider, Button, Row, Col, Typography, Space } from 'antd';
 import { FiZoomIn, FiZoomOut, FiRotateCcw, FiRotateCw } from 'react-icons/fi';
+import { useTranslations } from 'next-intl';
 
 const { Title } = Typography;
 
@@ -17,15 +18,15 @@ interface ImageCropperProps {
  * Creates a cropped image based on the crop area
  */
 const createCroppedImage = async (
-    imageSrc: string, 
-    pixelCrop: Area, 
+    imageSrc: string,
+    pixelCrop: Area,
     rotation = 0,
     flipHorizontal = false,
     flipVertical = false
 ): Promise<Blob> => {
     const image = new Image();
     image.src = imageSrc;
-    
+
     // Wait for image to load
     await new Promise<void>((resolve) => {
         image.onload = () => resolve();
@@ -33,7 +34,7 @@ const createCroppedImage = async (
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    
+
     if (!ctx) {
         throw new Error('Could not get canvas context');
     }
@@ -41,17 +42,17 @@ const createCroppedImage = async (
     // Set canvas dimensions to match the cropped size
     const maxSize = Math.max(image.width, image.height);
     const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
-    
+
     // Set dimensions to handle rotation properly
     canvas.width = pixelCrop.width;
     canvas.height = pixelCrop.height;
-    
+
     // Move the canvas origin to the center
     ctx.translate(canvas.width / 2, canvas.height / 2);
     ctx.rotate((rotation * Math.PI) / 180);
     ctx.scale(flipHorizontal ? -1 : 1, flipVertical ? -1 : 1);
     ctx.translate(-canvas.width / 2, -canvas.height / 2);
-    
+
     // Draw the image at the calculated positions
     ctx.drawImage(
         image,
@@ -64,7 +65,7 @@ const createCroppedImage = async (
         pixelCrop.width,
         pixelCrop.height
     );
-    
+
     // Convert canvas to blob
     return new Promise((resolve) => {
         canvas.toBlob((blob) => {
@@ -76,13 +77,16 @@ const createCroppedImage = async (
     });
 };
 
-export default function ImageCropper({ 
-    visible, 
-    imageSrc, 
-    onCancel, 
+export default function ImageCropper({
+    visible,
+    imageSrc,
+    onCancel,
     onCrop,
     aspectRatio = 1
 }: ImageCropperProps) {
+    const t = useTranslations('imageCropper');
+    const tCommon = useTranslations('common');
+
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
     const [rotation, setRotation] = useState(0);
@@ -97,7 +101,7 @@ export default function ImageCropper({
     // Process and complete crop action
     const handleCropImage = useCallback(async () => {
         if (!croppedAreaPixels) return;
-        
+
         try {
             setIsProcessing(true);
             const croppedImage = await createCroppedImage(
@@ -116,35 +120,33 @@ export default function ImageCropper({
     // Zoom handlers
     const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 3));
     const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 1));
-    
+
     // Rotation handlers
     const handleRotateLeft = () => setRotation(prev => prev - 90);
-    const handleRotateRight = () => setRotation(prev => prev + 90);
-
-    return (
+    const handleRotateRight = () => setRotation(prev => prev + 90); return (
         <Modal
-            title={<Title level={4}>Adjust and Crop Image</Title>}
+            title={<Title level={4}>{t('title')}</Title>}
             open={visible}
             onCancel={onCancel}
             width={700}
             centered
             footer={[
                 <Button key="cancel" onClick={onCancel}>
-                    Cancel
+                    {tCommon('cancel')}
                 </Button>,
-                <Button 
-                    key="crop" 
-                    type="primary" 
-                    onClick={handleCropImage} 
+                <Button
+                    key="crop"
+                    type="primary"
+                    onClick={handleCropImage}
                     loading={isProcessing}
                 >
-                    Crop Image
+                    {t('cropImage')}
                 </Button>
             ]}
         >
-            <div style={{ 
-                position: 'relative', 
-                height: 400, 
+            <div style={{
+                position: 'relative',
+                height: 400,
                 background: '#333',
                 borderRadius: '8px',
                 overflow: 'hidden',
@@ -162,10 +164,9 @@ export default function ImageCropper({
                     objectFit="contain"
                 />
             </div>
-            
             <Row gutter={[16, 16]} align="middle">
                 <Col span={4}>
-                    <Typography.Text strong>Zoom:</Typography.Text>
+                    <Typography.Text strong>{t('zoom')}:</Typography.Text>
                 </Col>
                 <Col span={16}>
                     <Slider
@@ -179,37 +180,36 @@ export default function ImageCropper({
                 </Col>
                 <Col span={4}>
                     <Space.Compact block style={{ width: '100%' }}>
-                        <Button 
-                            icon={<FiZoomOut />} 
+                        <Button
+                            icon={<FiZoomOut />}
                             onClick={handleZoomOut}
                             disabled={zoom <= 1}
                         />
-                        <Button 
-                            icon={<FiZoomIn />} 
+                        <Button
+                            icon={<FiZoomIn />}
                             onClick={handleZoomIn}
                             disabled={zoom >= 3}
                         />
                     </Space.Compact>
                 </Col>
             </Row>
-            
             <Row style={{ marginTop: '12px' }}>
                 <Col span={24}>
                     <div style={{ textAlign: 'center' }}>
                         <Space.Compact block style={{ width: '100%' }}>
-                            <Button 
-                                icon={<FiRotateCcw />} 
+                            <Button
+                                icon={<FiRotateCcw />}
                                 onClick={handleRotateLeft}
-                                title="Rotate 90° left"
+                                title={t('rotateLeftTooltip')}
                             >
-                                Rotate Left
+                                {t('rotateLeft')}
                             </Button>
-                            <Button 
-                                icon={<FiRotateCw />} 
+                            <Button
+                                icon={<FiRotateCw />}
                                 onClick={handleRotateRight}
-                                title="Rotate 90° right"
+                                title={t('rotateRightTooltip')}
                             >
-                                Rotate Right
+                                {t('rotateRight')}
                             </Button>
                         </Space.Compact>
                     </div>

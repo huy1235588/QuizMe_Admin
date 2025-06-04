@@ -9,10 +9,14 @@ import { FiUser, FiLock } from 'react-icons/fi';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useSnackbar } from 'notistack';
 import { LoginRequest } from '@/types/database';
+import { useTranslations } from 'next-intl';
 
 const { Title, Text } = Typography;
 
 function LoginPageContent() {
+    const t = useTranslations('auth');
+    const tCommon = useTranslations('common');
+
     const router = useRouter();
     const { login, isAuthenticated, isLoading: authLoading, error: authError, clearError } = useAuth();
     const { theme: currentTheme } = useTheme();
@@ -37,10 +41,9 @@ function LoginPageContent() {
         // Clear errors khi component mount
         clearError();
         setLocalError('');
-
         // Hiển thị thông báo nếu người dùng bị redirect đến trang đăng nhập
         if (searchParams.get('from')) {
-            enqueueSnackbar('Please login to continue', { variant: 'info' });
+            enqueueSnackbar(t('loginContinue'), { variant: 'info' });
         }
     }, [searchParams, enqueueSnackbar, clearError]);
 
@@ -58,7 +61,7 @@ function LoginPageContent() {
         try {
             // Validate input
             if (!values.usernameOrEmail?.trim() || !values.password?.trim()) {
-                setLocalError('Please fill in all required fields');
+                setLocalError(t('fillAllFields'));
                 return;
             }
 
@@ -69,10 +72,8 @@ function LoginPageContent() {
             };
 
             // Gọi hàm đăng nhập từ context
-            const result = await login(loginRequest);
-
-            if (result.success) {
-                enqueueSnackbar('Login successful! Redirecting...', { variant: 'success' });
+            const result = await login(loginRequest); if (result.success) {
+                enqueueSnackbar(t('loginSuccess'), { variant: 'success' });
 
                 // Reset form
                 form.resetFields();
@@ -81,22 +82,20 @@ function LoginPageContent() {
                 router.push(redirectPath);
 
             } else {
-                setLocalError(result.message || 'Login failed');
-                enqueueSnackbar('Login failed', { variant: 'error' });
+                setLocalError(result.message || t('loginFailed'));
+                enqueueSnackbar(t('loginFailed'), { variant: 'error' });
             }
         } catch (err: any) {
-            const errorMessage = err?.message || 'An unexpected error occurred during login';
+            const errorMessage = err?.message || t('unexpectedError');
             setLocalError(errorMessage);
-            enqueueSnackbar('Login error', { variant: 'error' });
+            enqueueSnackbar(t('loginError'), { variant: 'error' });
             console.error('Login error:', err);
         } finally {
             setIsSubmitting(false);
         }
-    };
-
-    const onFinishFailed = (errorInfo: any) => {
+    }; const onFinishFailed = (errorInfo: any) => {
         console.log('Failed:', errorInfo);
-        enqueueSnackbar('Please check your input', { variant: 'warning' });
+        enqueueSnackbar(t('checkInput'), { variant: 'warning' });
     };
 
     // Hiển thị loading khi đang check authentication
@@ -105,7 +104,7 @@ function LoginPageContent() {
             <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
                 <Card className="w-full max-w-md shadow-lg" style={{ borderRadius: 12 }}>
                     <div className="text-center py-8">
-                        <Title level={4}>Loading...</Title>
+                        <Title level={4}>{tCommon('loading')}</Title>
                     </div>
                 </Card>
             </div>
@@ -137,18 +136,17 @@ function LoginPageContent() {
                         />
                     </div>
                     <Title level={2} className="!mt-0">
-                        QuizMe Admin Login
+                        {t('loginTitle')}
                     </Title>
                     <Text type="secondary">
-                        Enter your login credentials to continue managing the system
+                        {t('loginSubtitle')}
                     </Text>
                 </div>
 
                 <Divider />
-
                 {displayError && (
                     <Alert
-                        message="Login Error"
+                        message={t('loginErrorTitle')}
                         description={displayError}
                         type="error"
                         showIcon
@@ -175,29 +173,28 @@ function LoginPageContent() {
                     <Form.Item
                         name="usernameOrEmail"
                         rules={[
-                            { required: true, message: 'Please enter your username or email!' },
-                            { min: 2, message: 'Username or email must be at least 2 characters!' }
+                            { required: true, message: t('enterUsername') },
+                            { min: 2, message: t('usernameMinLength') }
                         ]}
                     >
                         <Input
                             prefix={<FiUser className="site-form-item-icon mr-2" />}
-                            placeholder="Username or Email"
+                            placeholder={t('usernamePlaceholder')}
                             autoComplete="username"
                             onChange={handleInputChange}
                             disabled={isSubmitting}
                         />
                     </Form.Item>
-
                     <Form.Item
                         name="password"
                         rules={[
-                            { required: true, message: 'Please enter your password!' },
-                            { min: 2, message: 'Password must be at least 2 characters!' }
+                            { required: true, message: t('enterPassword') },
+                            { min: 2, message: t('passwordMinLength') }
                         ]}
                     >
                         <Input.Password
                             prefix={<FiLock className="site-form-item-icon mr-2" />}
-                            placeholder="Password"
+                            placeholder={t('passwordPlaceholder')}
                             autoComplete="current-password"
                             onChange={handleInputChange}
                             disabled={isSubmitting}
@@ -214,16 +211,14 @@ function LoginPageContent() {
                             style={{ height: 45 }}
                             className="mt-2"
                         >
-                            {isSubmitting ? 'Logging in...' : 'Login'}
+                            {isSubmitting ? t('loggingIn') : t('loginButton')}
                         </Button>
                     </Form.Item>
-                </Form>
-
-                <div className="text-center mt-4">
+                </Form>                <div className="text-center mt-4">
                     <Text type="secondary" className="text-sm">
-                        Don't have an account? Contact your administrator
+                        {t('noAccount')}
                     </Text>
-                </div>            </Card>
+                </div></Card>
         </div>
     );
 }
@@ -232,12 +227,13 @@ function LoginPageContent() {
 function LoginPageLoading() {
     const { theme: currentTheme } = useTheme();
     const isDarkMode = currentTheme === 'dark';
+    const tCommon = useTranslations('common');
 
     return (
         <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
             <Card className="w-full max-w-md shadow-lg" style={{ borderRadius: 12 }}>
                 <div className="text-center py-8">
-                    <Title level={4}>Loading...</Title>
+                    <Title level={4}>{tCommon('loading')}</Title>
                 </div>
             </Card>
         </div>

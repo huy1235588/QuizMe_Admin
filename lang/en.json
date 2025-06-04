@@ -38,10 +38,27 @@
     "auth": {
         "username": "Username",
         "password": "Password",
+        "usernameOrEmail": "Username or Email",
         "loginTitle": "Login to QuizMe Admin",
+        "loginSubtitle": "Enter your login credentials to continue managing the system",
         "loginButton": "Login",
+        "loggingIn": "Logging in...",
         "loginError": "Login failed. Please check your credentials.",
-        "logoutSuccess": "Logged out successfully"
+        "loginErrorTitle": "Login Error",
+        "logoutSuccess": "Logged out successfully",
+        "loginSuccess": "Login successful! Redirecting...",
+        "loginFailed": "Login failed",
+        "loginContinue": "Please login to continue",
+        "fillAllFields": "Please fill in all required fields",
+        "checkInput": "Please check your input",
+        "unexpectedError": "An unexpected error occurred during login",
+        "enterUsername": "Please enter your username or email!",
+        "enterPassword": "Please enter your password!",
+        "usernameMinLength": "Username or email must be at least 2 characters!",
+        "passwordMinLength": "Password must be at least 2 characters!",
+        "usernamePlaceholder": "Username or Email",
+        "passwordPlaceholder": "Password",
+        "noAccount": "Don't have an account? Contact your administrator"
     },
     "dashboard": {
         "title": "Dashboard Overview",
@@ -264,10 +281,19 @@
         "switchLanguage": "Switch Language",
         "english": "English",
         "vietnamese": "Vietnamese"
-    },
-    "ui": {
+    },    "ui": {
         "switchToLightMode": "Switch to light mode",
         "switchToDarkMode": "Switch to dark mode",
         "copyright": "QuizMe Admin ©{year} Created by Le Thien Huy"
+    },
+    "imageCropper": {
+        "title": "Adjust and Crop Image",
+        "cancel": "Cancel",
+        "cropImage": "Crop Image",
+        "zoom": "Zoom",
+        "rotateLeft": "Rotate Left",
+        "rotateRight": "Rotate Right",
+        "rotateLeftTooltip": "Rotate 90° left",
+        "rotateRightTooltip": "Rotate 90° right"
     }
 }

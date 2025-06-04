@@ -34,14 +34,30 @@
         "addCategory": "Thêm danh mục",
         "allQuestions": "Tất cả câu hỏi",
         "addQuestion": "Thêm câu hỏi"
-    },
-    "auth": {
+    },    "auth": {
         "username": "Tên đăng nhập",
         "password": "Mật khẩu",
+        "usernameOrEmail": "Tên đăng nhập hoặc Email",
         "loginTitle": "Đăng nhập QuizMe Admin",
+        "loginSubtitle": "Nhập thông tin đăng nhập để tiếp tục quản lý hệ thống",
         "loginButton": "Đăng nhập",
+        "loggingIn": "Đang đăng nhập...",
         "loginError": "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.",
-        "logoutSuccess": "Đăng xuất thành công"
+        "loginErrorTitle": "Lỗi đăng nhập",
+        "logoutSuccess": "Đăng xuất thành công",
+        "loginSuccess": "Đăng nhập thành công! Đang chuyển hướng...",
+        "loginFailed": "Đăng nhập thất bại",
+        "loginContinue": "Vui lòng đăng nhập để tiếp tục",
+        "fillAllFields": "Vui lòng điền vào tất cả các trường bắt buộc",
+        "checkInput": "Vui lòng kiểm tra thông tin nhập",
+        "unexpectedError": "Đã xảy ra lỗi không mong muốn trong quá trình đăng nhập",
+        "enterUsername": "Vui lòng nhập tên đăng nhập hoặc email!",
+        "enterPassword": "Vui lòng nhập mật khẩu!",
+        "usernameMinLength": "Tên đăng nhập hoặc email phải có ít nhất 2 ký tự!",
+        "passwordMinLength": "Mật khẩu phải có ít nhất 2 ký tự!",
+        "usernamePlaceholder": "Tên đăng nhập hoặc Email",
+        "passwordPlaceholder": "Mật khẩu",
+        "noAccount": "Không có tài khoản? Liên hệ với quản trị viên"
     },
     "dashboard": {
         "title": "Tổng quan bảng điều khiển",
@@ -264,10 +280,19 @@
         "switchLanguage": "Chuyển đổi ngôn ngữ",
         "english": "Tiếng Anh",
         "vietnamese": "Tiếng Việt"
-    },
-    "ui": {
+    },    "ui": {
         "switchToLightMode": "Chuyển sang chế độ sáng",
         "switchToDarkMode": "Chuyển sang chế độ tối",
         "copyright": "QuizMe Admin ©{year} Được tạo bởi Lê Thiện Huy"
+    },
+    "imageCropper": {
+        "title": "Điều chỉnh và cắt ảnh",
+        "cancel": "Hủy",
+        "cropImage": "Cắt ảnh",
+        "zoom": "Thu phóng",
+        "rotateLeft": "Xoay trái",
+        "rotateRight": "Xoay phải",
+        "rotateLeftTooltip": "Xoay 90° sang trái",
+        "rotateRightTooltip": "Xoay 90° sang phải"
     }
 }
