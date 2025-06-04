@@ -28,6 +28,7 @@ import {
 import { useTheme } from '@/contexts/ThemeContext';
 import { Category, Quiz, Activity, Question } from '@/types/database';
 import axiosInstance from '@/utils/axios';
+import { useTranslations } from 'next-intl';
 
 const { Title } = Typography;
 
@@ -41,6 +42,8 @@ type StatItem = {
 export default function Dashboard() {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
+    const t = useTranslations('dashboard');
+    const tc = useTranslations('common');
 
     const [topCategories, setTopCategories] = useState<Category[]>([]);
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
@@ -53,25 +56,25 @@ export default function Dashboard() {
     // Dữ liệu mẫu cho thống kê
     const stats: StatItem[] = [
         {
-            title: 'Total Users',
+            title: t('totalUsers'),
             value: userCount,
             icon: <FiUsers />,
             color: 'blue'
         },
         {
-            title: 'Total Quizzes',
+            title: t('totalQuizzes'),
             value: quizzes.length,
             icon: <FiHelpCircle />,
             color: 'green'
         },
         {
-            title: 'Total Questions',
+            title: t('totalQuestions'),
             value: quizzes.reduce((sum, q) => sum + (q.questionCount || 0), 0),
             icon: <FiFileText />,
             color: 'purple'
         },
         {
-            title: 'Active Categories',
+            title: t('totalCategories'),
             value: topCategories.length,
             icon: <FiFolder />,
             color: 'orange'
@@ -138,20 +141,11 @@ export default function Dashboard() {
         }
     };
 
-    // Dữ liệu mẫu cho hoạt động người dùng gần đây
-    const recentActivities: Activity[] = [
-        { id: 1, user: 'John Doe', action: 'Completed', quiz: 'JavaScript Fundamentals', score: '18/20', time: '2 hours ago', status: 'success' },
-        { id: 2, user: 'Sarah Kim', action: 'Started', quiz: 'React Advanced', score: 'In progress', time: '3 hours ago', status: 'processing' },
-        { id: 3, user: 'Mike Johnson', action: 'Failed', quiz: 'Data Science Basics', score: '8/15', time: '5 hours ago', status: 'error' },
-        { id: 4, user: 'Emily Davis', action: 'Completed', quiz: 'English Grammar', score: '27/30', time: '1 day ago', status: 'success' },
-        { id: 5, user: 'Alex Wilson', action: 'Abandoned', quiz: 'World History', score: '10/40', time: '2 days ago', status: 'warning' },
-    ];
-
     // Phân phối độ khó của quiz cho biểu đồ tròn
     const [difficultyData, setDifficultyData] = useState([
-        { name: 'Easy', value: 0 },
-        { name: 'Medium', value: 0 },
-        { name: 'Hard', value: 0 },
+        { name: t('easy'), value: 0 },
+        { name: t('medium'), value: 0 },
+        { name: t('hard'), value: 0 },
     ]);
 
     // Fetch data độ khó
@@ -163,11 +157,20 @@ export default function Dashboard() {
                     axiosInstance.get<{ data: Quiz[] }>(`/api/quizzes/difficulty/${level.toUpperCase()}`)
                 )
             );
-            setDifficultyData(
-                responses.map((res, idx) => ({
-                    name: levels[idx].charAt(0).toUpperCase() + levels[idx].slice(1),
+            setDifficultyData(responses.map((res, idx) => {
+                const level = levels[idx];
+                let translatedLevel;
+                switch (level) {
+                    case 'easy': translatedLevel = t('easy'); break;
+                    case 'medium': translatedLevel = t('medium'); break;
+                    case 'hard': translatedLevel = t('hard'); break;
+                    default: translatedLevel = level.charAt(0).toUpperCase() + level.slice(1);
+                }
+                return {
+                    name: translatedLevel,
                     value: res.data.data.length,
-                }))
+                };
+            })
             );
         } catch (err) {
             console.error('Error fetching difficulty data:', err);
@@ -183,14 +186,14 @@ export default function Dashboard() {
         legend: {
             orient: 'horizontal',
             top: 'top',
-            data: ['Easy', 'Medium', 'Hard'],
+            data: [t('easy'), t('medium'), t('hard')],
             textStyle: {
                 color: isDarkMode ? '#cccccc' : '#333333'
             }
         },
         series: [
             {
-                name: 'Difficulty',
+                name: t('difficulty'),
                 type: 'pie',
                 radius: ['50%', '70%'],
                 avoidLabelOverlap: false,
@@ -213,7 +216,11 @@ export default function Dashboard() {
                 labelLine: {
                     show: false
                 },
-                data: difficultyData,
+                data: [
+                    { name: t('easy'), value: difficultyData[0].value },
+                    { name: t('medium'), value: difficultyData[1].value },
+                    { name: t('hard'), value: difficultyData[2].value }
+                ],
                 color: [
                     isDarkMode ? '#6EE7B7' : '#3f8600', // Dễ - Xanh lá
                     isDarkMode ? '#93C5FD' : '#1890ff', // Trung bình - Xanh dương
@@ -237,19 +244,19 @@ export default function Dashboard() {
     // Cấu hình cột cho bảng quiz và danh mục
     const quizColumns = [
         {
-            title: 'Title',
+            title: t('quizTitle'),
             dataIndex: 'title',
             key: 'title',
             render: (text: string) => <a href="#">{text}</a>,
         },
         {
-            title: 'Category',
+            title: t('category'),
             dataIndex: 'categoryName',
             key: 'category_name',
             render: (text: string) => <Tag color="blue">{text}</Tag>,
         },
         {
-            title: 'Difficulty',
+            title: t('difficulty'),
             dataIndex: 'difficulty',
             key: 'difficulty',
             render: (difficulty: string) => (
@@ -259,22 +266,22 @@ export default function Dashboard() {
             ),
         },
         {
-            title: 'Questions',
+            title: t('questions'),
             dataIndex: 'questionCount',
             key: 'question_count',
         },
         {
-            title: 'Play Count',
+            title: t('playCount'),
             dataIndex: 'playCount',
             key: 'play_count',
         },
         {
-            title: 'Status',
+            title: t('status'),
             dataIndex: 'is_public',
             key: 'is_public',
             render: (isPublic: boolean) => (
                 <Tag color={isPublic ? 'success' : 'default'}>
-                    {isPublic ? 'Public' : 'Private'}
+                    {isPublic ? t('public') : t('private')}
                 </Tag>
             ),
         },
@@ -283,23 +290,23 @@ export default function Dashboard() {
     // Cấu hình cột cho bảng danh mục
     const categoryColumns = [
         {
-            title: 'Category Name',
+            title: t('categoryName'),
             dataIndex: 'name',
             key: 'name',
             render: (text: string) => <a href="#">{text}</a>,
         },
         {
-            title: 'Quiz Count',
+            title: t('quizCount'),
             dataIndex: 'quizCount',
             key: 'quiz_count',
         },
         {
-            title: 'Total Plays',
+            title: t('totalPlays'),
             dataIndex: 'totalPlayCount',
             key: 'total_play_count',
         },
         {
-            title: 'Popularity',
+            title: t('popularity'),
             key: 'popularity',
             render: (_: any, record: Category) => (
                 <Progress
@@ -331,17 +338,17 @@ export default function Dashboard() {
     const totalPlayCount = quizzes.reduce((sum, q) => sum + (q.playCount || 0), 0);
     // Tính toán số câu hỏi trung bình trên quiz
     const avgQuestionsPerQuiz = quizzes.length > 0
-      ? Math.round(quizzes.reduce((sum, q) => sum + (q.questionCount || 0), 0) / quizzes.length)
-      : 0;
-  
+        ? Math.round(quizzes.reduce((sum, q) => sum + (q.questionCount || 0), 0) / quizzes.length)
+        : 0;
+
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center mb-6 py-3">
-                <Title level={4} className="m-0">Dashboard Overview</Title>
+            <div className="flex justify-between items-center mb-2 py-3">
+                <Title level={4} className="m-0">{t('title')}</Title>
                 <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     <FiClock className="mr-1 inline-block" />
-                    Last updated: April 23, 2025
+                    {t('lastUpdated')}: April 23, 2025
                 </div>
             </div>
 
@@ -351,7 +358,7 @@ export default function Dashboard() {
                     <Col xs={24} sm={12} lg={6} key={index}>
                         <Card
                             variant='borderless'
-                            className={`hover:shadow-md transition-shadow ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
+                            className={`h-full hover:shadow-md transition-shadow ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
                         >
                             <div className="flex items-center">
                                 <div className={`flex items-center justify-center w-12 h-12 rounded-lg mr-4 ${isDarkMode
@@ -373,52 +380,52 @@ export default function Dashboard() {
 
             {/* Phân phối Quiz & Danh mục hàng đầu */}
             <Row gutter={[16, 16]}>
-                <Col xs={24} lg={12}>
-                    <Card
-                        title={<span className="font-bold">Quiz Distribution by Difficulty</span>}
-                        variant='borderless'
-                        className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
-                    >
-                        <div className="flex justify-center" style={{ height: 240 }}>
-                            <ReactECharts
-                                option={pieChartOption}
-                                style={{ height: '100%', width: '100%' }}
-                            />
-                        </div>
+                <Col xs={24} lg={12}>                    <Card
+                    title={<span className="font-bold">{t('quizDistribution')}</span>}
+                    variant='borderless'
+                    className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
+                >
+                    <div className="flex justify-center" style={{ height: 240 }}>
+                        <ReactECharts
+                            option={pieChartOption}
+                            style={{ height: '100%', width: '100%' }}
+                        />
+                    </div>
 
-                        <div className="grid grid-cols-3 gap-4 mt-4">
-                            <Card className={`text-center ${isDarkMode ? 'bg-green-900/20' : 'bg-green-50'}`}>
-                                <Statistic
-                                    title="Easy"
-                                    value={difficultyData[0].value}
-                                    valueStyle={{ color: isDarkMode ? '#6EE7B7' : '#3f8600' }}
-                                />
-                            </Card>
-                            <Card className={`text-center ${isDarkMode ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
-                                <Statistic
-                                    title="Medium"
-                                    value={difficultyData[1].value}
-                                    valueStyle={{ color: isDarkMode ? '#93C5FD' : '#1890ff' }}
-                                />
-                            </Card>
-                            <Card className={`text-center ${isDarkMode ? 'bg-red-900/20' : 'bg-red-50'}`}>
-                                <Statistic
-                                    title="Hard"
-                                    value={difficultyData[2].value}
-                                    valueStyle={{ color: isDarkMode ? '#FCA5A5' : '#cf1322' }}
-                                />
-                            </Card>
-                        </div>
-                    </Card>
+                    <div className="grid grid-cols-3 gap-4 mt-4">
+                        <Card className={`text-center ${isDarkMode ? 'bg-green-900/20' : 'bg-green-50'}`}>
+                            <Statistic
+                                title={t('easy')}
+                                value={difficultyData[0].value}
+                                valueStyle={{ color: isDarkMode ? '#6EE7B7' : '#3f8600' }}
+                            />
+                        </Card>
+                        <Card className={`text-center ${isDarkMode ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
+                            <Statistic
+                                title={t('medium')}
+                                value={difficultyData[1].value}
+                                valueStyle={{ color: isDarkMode ? '#93C5FD' : '#1890ff' }}
+                            />
+                        </Card>
+                        <Card className={`text-center ${isDarkMode ? 'bg-red-900/20' : 'bg-red-50'}`}>
+                            <Statistic
+                                title={t('hard')}
+                                value={difficultyData[2].value}
+                                valueStyle={{ color: isDarkMode ? '#FCA5A5' : '#cf1322' }}
+                            />
+                        </Card>
+                    </div>
+                </Card>
                 </Col>
                 <Col xs={24} lg={12}>
                     <Card
-                        title={<span className="font-bold">Top Categories</span>}
+                        title={<span className="font-bold">{t('topCategories')}</span>}
                         variant='borderless'
                         className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
                         loading={loading}
                     >
-                        {error && <div className="text-red-500 mb-4">{error}</div>}
+                        {error && <div className="text-red-500 mb-4">{tc('errors.general')}</div>}
+                        {loading && <div className="text-center my-4">{tc('loading')}</div>}
                         <Table
                             dataSource={topCategories}
                             columns={categoryColumns}
@@ -430,14 +437,14 @@ export default function Dashboard() {
                 </Col>
             </Row>
 
-            {/* Quiz gần đây & Hoạt động */}
+            {/* Quiz gần đây */}
             <Row gutter={[16, 16]}>
-                <Col xs={24} lg={16}>
+                <Col xs={24} lg={24}>
                     <Card
-                        title={<span className="font-bold">Recent Quizzes</span>}
+                        title={<span className="font-bold">{t('recentQuizzes')}</span>}
                         variant='borderless'
                         className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
-                        extra={<a href="#">View All</a>}
+                        extra={<a href="#">{t('viewAll')}</a>}
                     >
                         <Table
                             dataSource={quizzes}
@@ -449,51 +456,11 @@ export default function Dashboard() {
                         />
                     </Card>
                 </Col>
-                <Col xs={24} lg={8}>
-                    <Card
-                        title={<span className="font-bold">Recent User Activities</span>}
-                        variant='borderless'
-                        className={`h-full ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}
-                        extra={<a href="#">View All</a>}
-                    >
-                        <List
-                            itemLayout="horizontal"
-                            dataSource={recentActivities}
-                            renderItem={(item) => (
-                                <List.Item>
-                                    <List.Item.Meta
-                                        avatar={<Avatar icon={<FiUser />} />}
-                                        title={<span>{item.user}</span>}
-                                        description={
-                                            <div>
-                                                <Tag
-                                                    color={
-                                                        item.status === 'success' ? 'success' :
-                                                            item.status === 'processing' ? 'processing' :
-                                                                item.status === 'error' ? 'error' :
-                                                                    'warning'
-                                                    }
-                                                >
-                                                    {item.action}
-                                                </Tag>
-                                                <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'} style={{ marginLeft: '4px' }}>{item.quiz}</span>
-                                                <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'} mt-1`}>
-                                                    <span className="mr-3">{item.score}</span>
-                                                    <span>{item.time}</span>
-                                                </div>
-                                            </div>
-                                        }
-                                    />
-                                </List.Item>
-                            )}
-                        />
-                    </Card>
-                </Col>
             </Row>
 
             {/* Trạng thái hoàn thành Quiz */}
             <Card
-                title={<span className="font-bold"><FiBarChart2 className="inline-block mr-2" />Quiz Engagement Overview</span>}
+                title={<span className="font-bold"><FiBarChart2 className="inline-block mr-2" />{t('quizEngagement')}</span>}
                 variant='borderless'
                 className={isDarkMode ? 'bg-gray-800 border-gray-700' : ''}
             >
@@ -502,9 +469,8 @@ export default function Dashboard() {
                         <Card
                             variant='borderless'
                             className={`text-center ${isDarkMode ? 'bg-green-900/20' : 'bg-green-50'}`}
-                        >
-                            <Statistic
-                                title="Completed Attempts"
+                        >                                <Statistic
+                                title={t('completedAttempts')}
                                 value={1532}
                                 valueStyle={{ color: isDarkMode ? '#6EE7B7' : '#3f8600' }}
                                 prefix={<FiCheckCircle />}
@@ -515,9 +481,8 @@ export default function Dashboard() {
                         <Card
                             variant='borderless'
                             className={`text-center ${isDarkMode ? 'bg-blue-900/20' : 'bg-blue-50'}`}
-                        >
-                            <Statistic
-                                title="Total Play Count"
+                        >                                <Statistic
+                                title={t('totalPlayCount')}
                                 value={totalPlayCount}
                                 valueStyle={{ color: isDarkMode ? '#93C5FD' : '#1890ff' }}
                                 prefix={<FiTrendingUp />}
@@ -528,9 +493,8 @@ export default function Dashboard() {
                         <Card
                             variant='borderless'
                             className={`text-center ${isDarkMode ? 'bg-amber-900/20' : 'bg-amber-50'}`}
-                        >
-                            <Statistic
-                                title="Average Questions Per Quiz"
+                        >                                <Statistic
+                                title={t('averageQuestionsPerQuiz')}
                                 value={avgQuestionsPerQuiz}
                                 valueStyle={{ color: isDarkMode ? '#FCD34D' : '#d48806' }}
                                 prefix={<FiFileText />}
