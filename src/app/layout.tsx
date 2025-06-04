@@ -3,6 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { GlobalContextProvider } from "@/contexts/GlobalContext";
 import DashboardShell from "@/components/DashboardShell";
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { cookies } from 'next/headers';
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -19,21 +22,27 @@ export const metadata: Metadata = {
     description: "Admin panel for QuizMe application",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const cookieStore = await cookies();
+    const locale = cookieStore.get('locale')?.value || 'en';
+    const messages = await getMessages();
+
     return (
-        <html lang="en">
+        <html lang={locale}>
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-                <GlobalContextProvider>
-                    <DashboardShell>
-                        {children}
-                    </DashboardShell>
-                </GlobalContextProvider>
+                <NextIntlClientProvider messages={messages} locale={locale}>
+                    <GlobalContextProvider>
+                        <DashboardShell>
+                            {children}
+                        </DashboardShell>
+                    </GlobalContextProvider>
+                </NextIntlClientProvider>
             </body>
         </html>
     );
