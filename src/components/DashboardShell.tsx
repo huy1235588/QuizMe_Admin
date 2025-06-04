@@ -24,6 +24,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Footer } from 'antd/es/layout/layout';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useTranslations } from 'next-intl';
 
 const { Header, Sider, Content } = Layout;
 
@@ -33,11 +35,13 @@ export default function DashboardShell({
     children: React.ReactNode;
 }>) {
     const [collapsed, setCollapsed] = useState(false);
-    const { theme: currentTheme, toggleTheme } = useTheme();
-    const { user, isAuthenticated, isLoading, logout } = useAuth();
+    const { theme: currentTheme, toggleTheme } = useTheme(); const { user, isAuthenticated, isLoading, logout } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const isDarkMode = currentTheme === 'dark';
+    const t = useTranslations('navigation');
+    const tCommon = useTranslations('common');
+    const tUI = useTranslations('ui');
 
     // Chuyển hướng đến trang đăng nhập nếu chưa xác thực và không phải đang ở trang đăng nhập
     useEffect(() => {
@@ -131,67 +135,62 @@ export default function DashboardShell({
                     <Menu
                         mode="inline"
                         selectedKeys={getSelectedKeys()}
-                        defaultOpenKeys={collapsed ? [] : getOpenKeys()}
-                        items={[
+                        defaultOpenKeys={collapsed ? [] : getOpenKeys()} items={[
                             {
                                 key: 'dashboard',
                                 icon: <FiHome />,
-                                label: 'Dashboard',
+                                label: t('dashboard'),
                                 onClick: () => router.push('/dashboard')
                             },
                             {
                                 key: 'quizzes',
                                 icon: <FiHelpCircle />,
-                                label: 'Quizzes',
-                                children: [
-                                    {
-                                        key: 'quizzes-list',
-                                        icon: <FiList />,
-                                        label: 'All Quizzes',
-                                        onClick: () => router.push('/quizzes')
-                                    },
-                                    {
-                                        key: 'quizzes-add',
-                                        icon: <FiPlus />,
-                                        label: 'Add Quiz',
-                                        onClick: () => router.push('/quizzes/new')
-                                    }
+                                label: t('quizzes'),
+                                children: [{
+                                    key: 'quizzes-list',
+                                    icon: <FiList />,
+                                    label: t('allQuizzes'),
+                                    onClick: () => router.push('/quizzes')
+                                },
+                                {
+                                    key: 'quizzes-add',
+                                    icon: <FiPlus />,
+                                    label: t('addQuiz'),
+                                    onClick: () => router.push('/quizzes/new')
+                                }
                                 ]
-                            },
-                            {
+                            }, {
                                 key: 'categories',
                                 icon: <FiFolder />,
-                                label: 'Categories',
-                                children: [
-                                    {
-                                        key: 'categories-list',
-                                        icon: <FiList />,
-                                        label: 'All Categories',
-                                        onClick: () => router.push('/categories')
-                                    },
-                                    {
-                                        key: 'categories-add',
-                                        icon: <FiPlus />,
-                                        label: 'Add Category',
-                                        onClick: () => router.push('/categories/new')
-                                    }
+                                label: t('categories'),
+                                children: [{
+                                    key: 'categories-list',
+                                    icon: <FiList />,
+                                    label: t('allCategories'),
+                                    onClick: () => router.push('/categories')
+                                },
+                                {
+                                    key: 'categories-add',
+                                    icon: <FiPlus />,
+                                    label: t('addCategory'),
+                                    onClick: () => router.push('/categories/new')
+                                }
                                 ]
-                            },
-                            {
+                            }, {
                                 key: 'questions',
                                 icon: <FiFileText />,
-                                label: 'Questions',
+                                label: t('questions'),
                                 children: [
                                     {
                                         key: 'questions-list',
                                         icon: <FiList />,
-                                        label: 'All Questions',
+                                        label: t('allQuestions'),
                                         onClick: () => router.push('/questions')
                                     },
                                     {
                                         key: 'questions-add',
                                         icon: <FiPlus />,
-                                        label: 'Add Question',
+                                        label: t('addQuestion'),
                                         onClick: () => router.push('/questions/new')
                                     }
                                 ]
@@ -199,13 +198,13 @@ export default function DashboardShell({
                             {
                                 key: 'users',
                                 icon: <FiUsers />,
-                                label: 'Users',
+                                label: t('users'),
                                 onClick: () => router.push('/users')
                             },
                             {
                                 key: 'settings',
                                 icon: <FiSettings />,
-                                label: 'Settings',
+                                label: t('settings'),
                                 onClick: () => router.push('/settings')
                             },
                         ]}
@@ -215,14 +214,13 @@ export default function DashboardShell({
                         <Menu
                             mode="inline"
                             className="border-t border-gray-200"
-                            items={[
-                                {
-                                    key: 'logout',
-                                    icon: <FiLogOut />,
-                                    label: 'Logout',
-                                    danger: true,
-                                    onClick: handleLogout,
-                                },
+                            items={[{
+                                key: 'logout',
+                                icon: <FiLogOut />,
+                                label: t('logout'),
+                                danger: true,
+                                onClick: handleLogout,
+                            },
                             ]}
                         />
                     </div>
@@ -248,12 +246,13 @@ export default function DashboardShell({
                         />
                         <div className="flex-grow flex justify-end items-center pr-6">
                             <div className="flex items-center gap-4">
+                                <LanguageSwitcher />
                                 <Button
                                     type="text"
                                     shape="circle"
                                     icon={isDarkMode ? <FiMoon /> : <FiSun />}
                                     onClick={toggleTheme}
-                                    title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                                    title={isDarkMode ? tUI('switchToLightMode') : tUI('switchToDarkMode')}
                                     className="flex items-center justify-center"
                                 />
                                 <Button type="text" shape="circle" icon={<FiSettings />} />
@@ -280,7 +279,7 @@ export default function DashboardShell({
                             textAlign: 'center',
                         }}
                     >
-                        QuizMe Admin ©{new Date().getFullYear()} Created by Le Thien Huy
+                        {tUI('copyright', { year: new Date().getFullYear() })}
                     </Footer>
                 </Layout>
             </Layout>

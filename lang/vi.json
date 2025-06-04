@@ -1,0 +1,123 @@
+{
+    "common": {
+        "loading": "Đang tải...",
+        "save": "Lưu",
+        "cancel": "Hủy",
+        "delete": "Xóa",
+        "edit": "Chỉnh sửa",
+        "add": "Thêm",
+        "search": "Tìm kiếm",
+        "filter": "Lọc",
+        "actions": "Hành động",
+        "yes": "Có",
+        "no": "Không",
+        "confirm": "Xác nhận",
+        "back": "Quay lại",
+        "next": "Tiếp theo",
+        "previous": "Trước đó",
+        "submit": "Gửi",
+        "close": "Đóng"
+    },
+    "navigation": {
+        "dashboard": "Bảng điều khiển",
+        "quizzes": "Bài kiểm tra",
+        "categories": "Danh mục",
+        "logout": "Đăng xuất",
+        "login": "Đăng nhập",
+        "questions": "Câu hỏi",
+        "users": "Người dùng",
+        "settings": "Cài đặt",
+        "allQuizzes": "Tất cả bài kiểm tra",
+        "addQuiz": "Thêm bài kiểm tra",
+        "allCategories": "Tất cả danh mục",
+        "addCategory": "Thêm danh mục",
+        "allQuestions": "Tất cả câu hỏi",
+        "addQuestion": "Thêm câu hỏi"
+    },
+    "auth": {
+        "username": "Tên đăng nhập",
+        "password": "Mật khẩu",
+        "loginTitle": "Đăng nhập QuizMe Admin",
+        "loginButton": "Đăng nhập",
+        "loginError": "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.",
+        "logoutSuccess": "Đăng xuất thành công"
+    },
+    "dashboard": {
+        "title": "Bảng điều khiển",
+        "totalQuizzes": "Tổng số bài kiểm tra",
+        "totalCategories": "Tổng số danh mục",
+        "totalQuestions": "Tổng số câu hỏi",
+        "recentActivity": "Hoạt động gần đây"
+    },
+    "quizzes": {
+        "title": "Bài kiểm tra",
+        "addQuiz": "Thêm bài kiểm tra",
+        "editQuiz": "Chỉnh sửa bài kiểm tra",
+        "deleteQuiz": "Xóa bài kiểm tra",
+        "quizName": "Tên bài kiểm tra",
+        "quizDescription": "Mô tả bài kiểm tra",
+        "category": "Danh mục",
+        "difficulty": "Độ khó",
+        "status": "Trạng thái",
+        "createdAt": "Ngày tạo",
+        "updatedAt": "Ngày cập nhật",
+        "questions": "Câu hỏi",
+        "noQuizzes": "Không tìm thấy bài kiểm tra nào",
+        "deleteConfirm": "Bạn có chắc chắn muốn xóa bài kiểm tra này?",
+        "searchPlaceholder": "Tìm kiếm bài kiểm tra...",
+        "filterByCategory": "Lọc theo danh mục",
+        "filterByStatus": "Lọc theo trạng thái",
+        "active": "Hoạt động",
+        "inactive": "Không hoạt động",
+        "easy": "Dễ",
+        "medium": "Trung bình",
+        "hard": "Khó"
+    },
+    "categories": {
+        "title": "Danh mục",
+        "addCategory": "Thêm danh mục",
+        "editCategory": "Chỉnh sửa danh mục",
+        "deleteCategory": "Xóa danh mục",
+        "categoryName": "Tên danh mục",
+        "categoryDescription": "Mô tả danh mục",
+        "noCategories": "Không tìm thấy danh mục nào",
+        "deleteConfirm": "Bạn có chắc chắn muốn xóa danh mục này?"
+    },
+    "questions": {
+        "title": "Câu hỏi",
+        "addQuestion": "Thêm câu hỏi",
+        "editQuestion": "Chỉnh sửa câu hỏi",
+        "deleteQuestion": "Xóa câu hỏi",
+        "questionText": "Nội dung câu hỏi",
+        "questionType": "Loại câu hỏi",
+        "options": "Lựa chọn",
+        "correctAnswer": "Đáp án đúng",
+        "explanation": "Giải thích",
+        "multipleChoice": "Trắc nghiệm",
+        "trueFalse": "Đúng/Sai",
+        "shortAnswer": "Câu trả lời ngắn"
+    },
+    "errors": {
+        "general": "Đã xảy ra lỗi. Vui lòng thử lại.",
+        "network": "Lỗi mạng. Vui lòng kiểm tra kết nối.",
+        "unauthorized": "Bạn không có quyền thực hiện hành động này.",
+        "notFound": "Không tìm thấy tài nguyên được yêu cầu.",
+        "validationError": "Vui lòng kiểm tra dữ liệu nhập và thử lại."
+    },
+    "success": {
+        "saved": "Lưu thành công",
+        "deleted": "Xóa thành công",
+        "updated": "Cập nhật thành công",
+        "created": "Tạo thành công"
+    },
+    "language": {
+        "switchLanguage": "Chuyển đổi ngôn ngữ",
+        "english": "Tiếng Anh",
+        "vietnamese": "Tiếng Việt"
+    },
+    "ui": {
+        "switchToLightMode": "Chuyển sang chế độ sáng",
+        "switchToDarkMode": "Chuyển sang chế độ tối",
+        "copyright": "QuizMe Admin ©{year} Được tạo bởi Lê Thiện Huy"
+    }
+}
