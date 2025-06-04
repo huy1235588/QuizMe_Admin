@@ -44,6 +44,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/autoplay';
+import { useTranslations } from 'next-intl';
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
@@ -55,6 +56,9 @@ interface CategoryWithUIData extends CategoryResponse {
 }
 
 export default function CategoriesPage() {
+    const t = useTranslations('categories');
+    const tCommon = useTranslations('common');
+
     // Khởi tạo các state cho component
     const router = useRouter();
     const { enqueueSnackbar } = useSnackbar(); // Hook hiển thị thông báo
@@ -109,7 +113,7 @@ export default function CategoriesPage() {
     const getBarChartOptions = () => {
         return {
             title: {
-                text: 'Quiz Count by Category',
+                text: t('quizCountByCategory'),
                 left: 'center'
             },
             tooltip: {
@@ -137,7 +141,7 @@ export default function CategoriesPage() {
             },
             series: [
                 {
-                    name: 'Quiz Count',
+                    name: t('quizCount'),
                     type: 'bar',
                     data: categories.map(cat => cat.quizCount),
                     itemStyle: {
@@ -152,7 +156,7 @@ export default function CategoriesPage() {
     const getPieChartOptions = () => {
         return {
             title: {
-                text: 'Quiz Distribution by Category',
+                text: t('quizDistributionByCategory'),
                 left: 'center'
             },
             tooltip: {
@@ -166,7 +170,7 @@ export default function CategoriesPage() {
             },
             series: [
                 {
-                    name: 'Quiz Count',
+                    name: t('quizCount'),
                     type: 'pie',
                     radius: '55%',
                     center: ['50%', '60%'],
@@ -199,7 +203,7 @@ export default function CategoriesPage() {
     const handleDeleteCategory = (record: CategoryWithUIData) => {
         confirm({
             title: <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span>Delete Category: <strong>{record.name}</strong></span>
+                <span>{t('deleteConfirmTitle', { name: record.name })}</span>
             </div>,
             className: 'delete-confirmation-modal',
             width: 480,
@@ -208,35 +212,35 @@ export default function CategoriesPage() {
                     <div style={{ padding: '12px', background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: '4px', marginBottom: '16px' }}>
                         <p style={{ color: '#d48806', marginBottom: '0' }}>
                             <FaExclamationCircle style={{ marginRight: '8px' }} />
-                            This action cannot be undone.
+                            {t('deleteWarning')}
                         </p>
                     </div>
 
                     <div style={{ padding: '12px', borderRadius: '4px' }}>
                         <div style={{ marginBottom: '8px' }}>
-                            <strong>ID:</strong> {record.id}
+                            <strong>{t('id')}:</strong> {record.id}
                         </div>
                         <div style={{ marginBottom: '8px' }}>
-                            <strong>Description:</strong> {record.description}
+                            <strong>{t('description')}:</strong> {record.description}
                         </div>
                         <div style={{ display: 'flex', gap: '16px' }}>
                             <div>
-                                <strong>Quizzes:</strong> {record.quizCount}
+                                <strong>{t('quizzes')}:</strong> {record.quizCount}
                             </div>
                             <div>
-                                <strong>Total Plays:</strong> {record.totalPlayCount}
+                                <strong>{t('totalPlays')}:</strong> {record.totalPlayCount}
                             </div>
                         </div>
                     </div>
                 </div>
             ),
-            okText: 'Delete',
+            okText: tCommon('delete'),
             okType: 'danger',
             okButtonProps: {
                 icon: <FiTrash2 />,
                 danger: true,
             },
-            cancelText: 'Cancel',
+            cancelText: tCommon('cancel'),
             cancelButtonProps: {
                 icon: <FiX />,
             },
@@ -250,11 +254,11 @@ export default function CategoriesPage() {
     const handleDeleteCategoryConfirm = async (id: number) => {
         try {
             await deleteCategory(id);
-            enqueueSnackbar('Category deleted successfully!', { variant: 'success' });
+            enqueueSnackbar(t('categoryDeletedSuccess'), { variant: 'success' });
             return true;
         } catch (error) {
             console.error('Error deleting category:', error);
-            enqueueSnackbar('Failed to delete category', { variant: 'error' });
+            enqueueSnackbar(t('categoryDeleteFailed'), { variant: 'error' });
             return Promise.reject(error);
         }
     };
@@ -272,13 +276,13 @@ export default function CategoriesPage() {
     // Cấu hình các cột trong bảng
     const columns = [
         {
-            title: 'ID',
+            title: t('id'),
             dataIndex: 'id',
             key: 'id',
             sorter: (a: CategoryWithUIData, b: CategoryWithUIData) => a.id - b.id,
         },
         {
-            title: 'Name',
+            title: t('name'),
             dataIndex: 'name',
             key: 'name',
             sorter: (a: CategoryWithUIData, b: CategoryWithUIData) => a.name.localeCompare(b.name),
@@ -287,24 +291,24 @@ export default function CategoriesPage() {
             )
         },
         {
-            title: 'Description',
+            title: t('description'),
             dataIndex: 'description',
             key: 'description',
         },
         {
-            title: 'Quizzes',
+            title: t('quizzes'),
             dataIndex: 'quizCount',
             key: 'quizCount',
             sorter: (a: CategoryWithUIData, b: CategoryWithUIData) => a.quizCount - b.quizCount,
         },
         {
-            title: 'Total Plays',
+            title: t('totalPlays'),
             dataIndex: 'totalPlayCount',
             key: 'totalPlayCount',
             sorter: (a: CategoryWithUIData, b: CategoryWithUIData) => a.totalPlayCount - b.totalPlayCount,
         },
         {
-            title: 'Created At',
+            title: t('createdAt'),
             dataIndex: 'createdAt',
             key: 'createdAt',
             sorter: (a: CategoryWithUIData, b: CategoryWithUIData) =>
@@ -312,33 +316,33 @@ export default function CategoriesPage() {
             render: (date: string) => date ? new Date(date).toLocaleDateString() : '-'
         },
         {
-            title: 'Status',
+            title: t('status'),
             dataIndex: 'isActive',
             key: 'isActive',
             render: (isActive: boolean) => (
                 <Tag color={isActive ? 'green' : 'red'}>
-                    {isActive ? 'ACTIVE' : 'INACTIVE'}
+                    {isActive ? t('active') : t('inactive')}
                 </Tag>
             ),
             filters: [
-                { text: 'Active', value: true },
-                { text: 'Inactive', value: false },
+                { text: t('active'), value: true },
+                { text: t('inactive'), value: false },
             ],
             onFilter: (value: any, record: CategoryWithUIData) => record.isActive === value,
         },
         {
-            title: 'Actions',
+            title: t('actions'),
             key: 'actions',
             render: (text: string, record: CategoryWithUIData) => (
                 <Space size="small">
-                    <Tooltip title="Edit">
+                    <Tooltip title={tCommon('edit')}>
                         <Button
                             icon={<FiEdit />}
                             size="small"
                             onClick={() => handleEditCategory(record)}
                         />
                     </Tooltip>
-                    <Tooltip title="Delete">
+                    <Tooltip title={tCommon('delete')}>
                         <Button
                             icon={<FiTrash2 />}
                             size="small"
@@ -356,21 +360,21 @@ export default function CategoriesPage() {
         <div className="categories-page">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
-                <Title level={2} className="m-0">Categories Management</Title>
+                <Title level={2} className="m-0">{t('management')}</Title>
                 <Space>
                     <Button
                         type="primary"
                         icon={<FiPlus />}
                         onClick={handleAddCategory}
                     >
-                        Add Category
+                        {t('addCategory')}
                     </Button>
                     <Button
                         icon={<FiRefreshCw />}
                         onClick={handleRefresh}
                         loading={isLoading}
                     >
-                        Refresh
+                        {t('refresh')}
                     </Button>
                 </Space>
             </div>
@@ -381,36 +385,36 @@ export default function CategoriesPage() {
                     <Col xs={24} sm={12} md={6}>
                         <Card className="h-full">
                             <Statistic
-                                title="Total Categories"
+                                title={t('totalCategories')}
                                 value={categories.length}
-                                prefix={<Tag color="blue" className="mr-2">All</Tag>}
+                                prefix={<Tag color="blue" className="mr-2">{t('all')}</Tag>}
                             />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} md={6}>
                         <Card className="h-full">
                             <Statistic
-                                title="Active Categories"
+                                title={t('activeCategories')}
                                 value={categories.filter(cat => cat.isActive).length}
-                                prefix={<Tag color="green" className="mr-2">Active</Tag>}
+                                prefix={<Tag color="green" className="mr-2">{t('active')}</Tag>}
                             />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} md={6}>
                         <Card className="h-full">
                             <Statistic
-                                title="Total Quizzes"
+                                title={t('totalQuizzes')}
                                 value={categories.reduce((sum, cat) => sum + cat.quizCount, 0)}
-                                prefix={<Tag color="orange" className="mr-2">Quizzes</Tag>}
+                                prefix={<Tag color="orange" className="mr-2">{t('quizzes')}</Tag>}
                             />
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} md={6}>
                         <Card className="h-full">
                             <Statistic
-                                title="Total Plays"
+                                title={t('totalPlays')}
                                 value={categories.reduce((sum, cat) => sum + cat.totalPlayCount, 0)}
-                                prefix={<Tag color="purple" className="mr-2">Plays</Tag>}
+                                prefix={<Tag color="purple" className="mr-2">{t('plays')}</Tag>}
                             />
                         </Card>
                     </Col>
@@ -418,7 +422,7 @@ export default function CategoriesPage() {
             </div>
 
             {/* Slider các danh mục nổi bật */}
-            <Card className="mb-6" title="Featured Categories">
+            <Card className="mb-6" title={t('featuredCategories')}>
                 <Swiper
                     modules={[Navigation, Pagination, Autoplay]}
                     spaceBetween={20}
@@ -454,8 +458,8 @@ export default function CategoriesPage() {
                                         <div>
                                             <p className="text-gray-500">{category.description}</p>
                                             <div className="flex justify-between mt-2">
-                                                <Tag color="blue">{category.quizCount} Quizzes</Tag>
-                                                <Tag color="blue">{category.totalPlayCount} Plays</Tag>
+                                                <Tag color="blue">{category.quizCount} {t('quizzes')}</Tag>
+                                                <Tag color="blue">{category.totalPlayCount} {t('plays')}</Tag>
                                             </div>
                                         </div>
                                     }
@@ -469,7 +473,7 @@ export default function CategoriesPage() {
             {/* Charts Section */}
             <Card
                 className="mb-6"
-                title="Category Analytics"
+                title={t('categoryAnalytics')}
                 extra={
                     <Space>
                         <Button
@@ -477,14 +481,14 @@ export default function CategoriesPage() {
                             icon={<FaChartBar />}
                             onClick={() => setChartView('bar')}
                         >
-                            Bar Chart
+                            {t('barChart')}
                         </Button>
                         <Button
                             type={chartView === 'pie' ? 'primary' : 'default'}
                             icon={<FaChartPie />}
                             onClick={() => setChartView('pie')}
                         >
-                            Pie Chart
+                            {t('pieChart')}
                         </Button>
                     </Space>
                 }
@@ -500,23 +504,23 @@ export default function CategoriesPage() {
 
             {/* Main Table */}
             <Card
-                title="All Categories"
+                title={t('allCategories')}
                 className="mb-6"
                 loading={isLoading}
                 extra={
                     <Space>
                         <Input
-                            placeholder="Search categories"
+                            placeholder={t('searchCategories')}
                             prefix={<FiSearch />}
                             onChange={handleSearchChange}
                             value={searchText}
                             allowClear
                             className="w-60"
                         />
-                        <Tooltip title="Export to Excel">
+                        <Tooltip title={t('exportToExcel')}>
                             <Button icon={<FaFileCsv />} />
                         </Tooltip>
-                        <Tooltip title="Export to PDF">
+                        <Tooltip title={t('exportToPdf')}>
                             <Button icon={<FaFilePdf />} />
                         </Tooltip>
                     </Space>
@@ -530,7 +534,7 @@ export default function CategoriesPage() {
                     pagination={{
                         pageSize: 5,
                         showSizeChanger: true,
-                        showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
+                        showTotal: (total, range) => `${range[0]}-${range[1]} ${t('ofItems', { total: total.toString() })}`
                     }}
                 />
             </Card>

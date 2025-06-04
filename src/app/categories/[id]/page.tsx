@@ -22,12 +22,16 @@ import { RcFile } from 'antd/es/upload';
 import { useCategory, useCategories } from '@/hooks/useCategories';
 import { CategoryRequest } from '@/types/database';
 import ImageCropper from '@/components/ImageCropper';
+import { useTranslations } from 'next-intl';
 
 const { Title } = Typography;
 const { TextArea } = Input;
 const { Dragger } = Upload;
 
 export default function CategoryDetailPage() {
+    const t = useTranslations('categories');
+    const tCommon = useTranslations('common');
+
     // Khởi tạo hooks và states
     const router = useRouter();
     const params = useParams();
@@ -78,19 +82,17 @@ export default function CategoryDetailPage() {
         if (categoryError) {
             enqueueSnackbar(categoryError, { variant: 'error' });
         }
-    }, [categoryError, enqueueSnackbar]);
-
-    // Cấu hình tải lên tệp hình ảnh
+    }, [categoryError, enqueueSnackbar]);    // Cấu hình tải lên tệp hình ảnh
     const beforeUpload = (file: RcFile) => {
         const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/gif';
         if (!isJpgOrPng) {
-            message.error('You can only upload JPG/PNG/GIF file!');
+            message.error(t('uploadFileTypeError'));
             return false;
         }
 
         const isLt2M = file.size / 1024 / 1024 < 2;
         if (!isLt2M) {
-            message.error('Image must be smaller than 2MB!');
+            message.error(t('uploadFileSizeError'));
             return false;
         }
 
@@ -128,16 +130,14 @@ export default function CategoryDetailPage() {
     const handleSubmit = async (values: any) => {
         setSubmitLoading(true);
         try {
-            const categoryRequest = createCategoryRequest(values);
-
-            if (isNewCategory) {
+            const categoryRequest = createCategoryRequest(values);            if (isNewCategory) {
                 // Tạo danh mục mới
                 await createCategory(categoryRequest);
-                enqueueSnackbar('Category created successfully!', { variant: 'success' });
+                enqueueSnackbar(t('categoryCreatedSuccess'), { variant: 'success' });
             } else {
                 // Cập nhật danh mục hiện có
                 await updateCategory(id as number, categoryRequest);
-                enqueueSnackbar('Category updated successfully!', { variant: 'success' });
+                enqueueSnackbar(t('categoryUpdatedSuccess'), { variant: 'success' });
             }
 
             // Quay lại danh sách danh mục sau khi gửi thành công
@@ -147,7 +147,7 @@ export default function CategoryDetailPage() {
             console.error('Error saving category:', error);
 
             // Error message will be handled by hook, but we can show additional feedback
-            const errorMessage = error.message || 'Failed to save category';
+            const errorMessage = error.message || (isNewCategory ? t('categoryCreateFailed') : t('categoryUpdateFailed'));
             enqueueSnackbar(errorMessage, { variant: 'error' });
         } finally {
             setSubmitLoading(false);
@@ -209,9 +209,8 @@ export default function CategoryDetailPage() {
                         icon={<FiArrowLeft />}
                         onClick={handleCancel}
                         style={{ marginRight: 16 }}
-                    />
-                    <Title level={4} style={{ margin: 0 }}>
-                        {isNewCategory ? 'Add New Category' : 'Edit Category'}
+                    />                    <Title level={4} style={{ margin: 0 }}>
+                        {isNewCategory ? t('addNewCategory') : t('editCategory')}
                     </Title>
                 </div>}
                 loading={categoryLoading}
@@ -226,42 +225,41 @@ export default function CategoryDetailPage() {
                             description: '',
                             isActive: true
                         }}
-                    >
-                        {/* Trường tên */}
+                    >                        {/* Trường tên */}
                         <Form.Item
                             name="name"
-                            label="Category Name"
+                            label={t('categoryName')}
                             rules={[
                                 {
                                     required: true,
-                                    message: 'Please enter the category name'
+                                    message: t('categoryNameRequired')
                                 },
                                 {
                                     min: 2,
-                                    message: 'Category name must be at least 2 characters'
+                                    message: t('categoryNameMinLength')
                                 },
                                 {
                                     max: 100,
-                                    message: 'Category name cannot exceed 100 characters'
+                                    message: t('categoryNameMaxLength')
                                 }
                             ]}
                         >
-                            <Input placeholder="Enter category name" />
+                            <Input placeholder={t('enterCategoryName')} />
                         </Form.Item>
 
                         {/* Trường mô tả */}
                         <Form.Item
                             name="description"
-                            label="Description"
+                            label={t('description')}
                             rules={[
                                 {
                                     max: 200,
-                                    message: 'Description cannot exceed 200 characters'
+                                    message: t('descriptionMaxLength')
                                 }
                             ]}
                         >
                             <TextArea
-                                placeholder="Enter category description"
+                                placeholder={t('enterCategoryDescription')}
                                 rows={4}
                                 showCount
                                 maxLength={200}
@@ -270,8 +268,8 @@ export default function CategoryDetailPage() {
 
                         {/* Trường tải lên biểu tượng */}
                         <Form.Item
-                            label="Category Icon"
-                            tooltip="Upload an image to represent this category (JPG, PNG, GIF, max 2MB)"
+                            label={t('categoryIcon')}
+                            tooltip={t('uploadIconTooltip')}
                         >
                             <Dragger
                                 name="iconFile"
@@ -293,19 +291,19 @@ export default function CategoryDetailPage() {
                                 <p className="ant-upload-drag-icon">
                                     <FiInbox />
                                 </p>
-                                <p className="ant-upload-text">Click or drag icon file to this area to upload</p>
+                                <p className="ant-upload-text">{t('clickOrDragIcon')}</p>
                                 <p className="ant-upload-hint">
-                                    Recommended size: 128x128 pixels. Supports JPG, PNG, GIF
+                                    {t('recommendedSize')}
                                 </p>
                             </Dragger>
 
                             {iconPreview && (
                                 <div className="mt-4">
-                                    <p>Preview:</p>
+                                    <p>{t('preview')}:</p>
                                     <div className="w-32 h-32 border border-gray-200 rounded overflow-hidden mt-2">
                                         <img
                                             src={iconPreview}
-                                            alt="Category icon preview"
+                                            alt={t('categoryIconPreview')}
                                             className="w-full h-full object-contain"
                                         />
                                     </div>
@@ -316,17 +314,15 @@ export default function CategoryDetailPage() {
                         {/* Chuyển đổi trạng thái hoạt động */}
                         <Form.Item
                             name="isActive"
-                            label="Status"
+                            label={t('status')}
                             valuePropName="checked"
                         >
                             <Switch
-                                checkedChildren="Active"
-                                unCheckedChildren="Inactive"
+                                checkedChildren={t('active')}
+                                unCheckedChildren={t('inactive')}
                                 defaultChecked
                             />
-                        </Form.Item>
-
-                        {/* Các hành động của biểu mẫu */}
+                        </Form.Item>                        {/* Các hành động của biểu mẫu */}
                         <Form.Item>
                             <div className="flex justify-end pt-4">
                                 <Space size="middle">
@@ -334,15 +330,16 @@ export default function CategoryDetailPage() {
                                         onClick={handleCancel}
                                         className="px-6 hover:bg-gray-50 border border-gray-200"
                                     >
-                                        Cancel
-                                    </Button>                                    <Button
+                                        {tCommon('cancel')}
+                                    </Button>
+                                    <Button
                                         type="primary"
                                         icon={<FiSave />}
                                         htmlType="submit"
                                         loading={submitLoading}
                                         className="px-6 flex items-center gap-1 bg-blue-500 hover:bg-blue-600 shadow-sm"
                                     >
-                                        {isNewCategory ? 'Create Category' : 'Update Category'}
+                                        {isNewCategory ? t('createCategory') : t('updateCategory')}
                                     </Button>
                                 </Space>
                             </div>
