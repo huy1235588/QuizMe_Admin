@@ -81,7 +81,7 @@ const QuizFilters: React.FC<QuizFiltersProps> = ({
                         className="min-w-[120px]"
                         allowClear
                         value={difficultyFilter === null ? 'all' : difficultyFilter}
-                        onChange={(value) => onDifficultyChange(value === 'all' ? null : value as string)}
+                        onChange={(value) => onDifficultyChange(value === 'all' ? null : value as 'EASY' | 'MEDIUM' | 'HARD')}
                         options={[
                             { value: 'all', label: 'All Difficulties' },
                             { value: 'easy', label: 'Easy' },

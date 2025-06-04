@@ -140,7 +140,7 @@ export class QuizAPI {
         categoryIds: number[],
         difficulty: Difficulty,
         isPublic: boolean = true,
-        thumbnailFile?: File
+        thumbnailFile: File | string // Có thể là File hoặc URL
     ) {
         const quizRequest: QuizRequest = {
             title,
@@ -171,7 +171,7 @@ export class QuizAPI {
         categoryIds: number[],
         difficulty: Difficulty,
         isPublic: boolean,
-        thumbnailFile?: File
+        thumbnailFile: File | string // Có thể là File hoặc URL
     ) {
         const quizRequest: QuizRequest = {
             title,
@@ -214,7 +214,7 @@ export class QuizAPI {
             categoryIds: updates.categoryIds || currentQuiz.categoryIds,
             difficulty: updates.difficulty || currentQuiz.difficulty,
             isPublic: updates.isPublic !== undefined ? updates.isPublic : currentQuiz.isPublic,
-            thumbnailFile: updates.thumbnailFile
+            thumbnailFile: updates.thumbnailFile || currentQuiz.quizThumbnails
         };
 
         return await quizService.updateQuiz(id, quizRequest);
@@ -290,7 +290,8 @@ export class QuizAPI {
             description: newDescription || originalQuiz.description,
             categoryIds: originalQuiz.categoryIds,
             difficulty: originalQuiz.difficulty,
-            isPublic: false // Mặc định set là private cho bản sao
+            isPublic: false, // Mặc định set là private cho bản sao
+            thumbnailFile: originalQuiz.quizThumbnails // Giữ nguyên thumbnail
         };
 
         return await quizService.createQuiz(duplicateRequest);

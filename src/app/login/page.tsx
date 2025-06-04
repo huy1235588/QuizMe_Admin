@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,7 +12,7 @@ import { LoginRequest } from '@/types/database';
 
 const { Title, Text } = Typography;
 
-export default function LoginPage() {
+function LoginPageContent() {
     const router = useRouter();
     const { login, isAuthenticated, isLoading: authLoading, error: authError, clearError } = useAuth();
     const { theme: currentTheme } = useTheme();
@@ -31,7 +31,7 @@ export default function LoginPage() {
         if (isAuthenticated && !authLoading) {
             router.push(redirectPath);
         }
-    }, [isAuthenticated, authLoading, router, redirectPath]);
+    }, []);
 
     useEffect(() => {
         // Clear errors khi component mount
@@ -78,9 +78,8 @@ export default function LoginPage() {
                 form.resetFields();
 
                 // Redirect với delay nhỏ để user thấy thông báo success
-                setTimeout(() => {
-                    router.push(redirectPath);
-                }, 500);
+                router.push(redirectPath);
+
             } else {
                 setLocalError(result.message || 'Login failed');
                 enqueueSnackbar('Login failed', { variant: 'error' });
@@ -224,8 +223,31 @@ export default function LoginPage() {
                     <Text type="secondary" className="text-sm">
                         Don't have an account? Contact your administrator
                     </Text>
+                </div>            </Card>
+        </div>
+    );
+}
+
+// Loading component for Suspense fallback
+function LoginPageLoading() {
+    const { theme: currentTheme } = useTheme();
+    const isDarkMode = currentTheme === 'dark';
+
+    return (
+        <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+            <Card className="w-full max-w-md shadow-lg" style={{ borderRadius: 12 }}>
+                <div className="text-center py-8">
+                    <Title level={4}>Loading...</Title>
                 </div>
             </Card>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<LoginPageLoading />}>
+            <LoginPageContent />
+        </Suspense>
     );
 }

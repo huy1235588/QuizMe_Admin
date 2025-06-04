@@ -92,7 +92,7 @@ const QuizCard = memo(({ quiz, onDelete, isDarkMode }: QuizCardProps) => {
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent py-2 px-4">
                         {/* Hiển thị tags thay vì title */}
                         <div className="flex flex-wrap gap-1">
-                            <Tag color="blue">{quiz.categoryName}</Tag>
+                            <Tag color="blue">{quiz.categoryNames}</Tag>
                             <Tag color={getDifficultyColor(quiz.difficulty)}>
                                 {quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)}
                             </Tag>
