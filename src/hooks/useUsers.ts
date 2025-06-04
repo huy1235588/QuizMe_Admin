@@ -247,11 +247,11 @@ export const useUsers = () => {
     const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
-            
+
             // Lấy top users từ API
             const topUsersData = await UserAPI.getTopUsers();
             setTopUsers(topUsersData);
-            
+
             // Mock thêm dữ liệu cho development
             const mockUsers: UserResponse[] = [
                 ...topUsersData,
@@ -289,10 +289,10 @@ export const useUsers = () => {
                     isActive: true
                 }
             ];
-            
+
             setUsers(mockUsers);
             setTotalUsers(mockUsers.length);
-            
+
         } catch (error) {
             console.error('Error fetching users:', error);
             enqueueSnackbar('Failed to load users', { variant: 'error' });
@@ -381,8 +381,8 @@ export const useUsers = () => {
     }, []);
 
     const handleSelectUser = useCallback((userId: number) => {
-        setSelectedUsers(prev => 
-            prev.includes(userId) 
+        setSelectedUsers(prev =>
+            prev.includes(userId)
                 ? prev.filter(id => id !== userId)
                 : [...prev, userId]
         );
@@ -394,8 +394,8 @@ export const useUsers = () => {
 
     const handleBulkAction = useCallback(async (action: 'activate' | 'deactivate' | 'delete') => {
         try {
-            enqueueSnackbar(`${action} action performed on ${selectedUsers.length} users`, { 
-                variant: 'success' 
+            enqueueSnackbar(`${action} action performed on ${selectedUsers.length} users`, {
+                variant: 'success'
             });
             setSelectedUsers([]);
             await fetchUsers();
@@ -427,14 +427,14 @@ export const useUsers = () => {
         pageSize,
         selectedUsers,
         viewMode,
-        
+
         // Filters
         searchQuery,
         roleFilter,
         statusFilter,
         sortBy,
         sortOrder,
-        
+
         // Actions
         handleSearch,
         handleRoleFilter,
@@ -447,7 +447,7 @@ export const useUsers = () => {
         handleBulkAction,
         toggleViewMode,
         fetchUsers,
-        
+
         // Utilities
         isDarkMode
     };
