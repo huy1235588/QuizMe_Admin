@@ -168,14 +168,12 @@ export default function QuizForm() {
                     onChange={handleQuizChange}
                     onThumbnailChange={handleThumbnailChange}
                 />
-            </Card>
-
-            <Card
+            </Card>            <Card
                 title="Questions"
                 extra={
                     <Button
                         type="primary"
-                        onClick={() => handleAddQuestion(Number(id) || 0)}
+                        onClick={() => handleAddQuestion()}
                     >
                         Add Question
                     </Button>

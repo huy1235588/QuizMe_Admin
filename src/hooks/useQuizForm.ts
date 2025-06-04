@@ -27,10 +27,8 @@ export const useQuizForm = () => {
     const [questionOptions, setQuestionOptions] = useState<QuestionOptionRequest[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [nextQuestionId, setNextQuestionId] = useState<number>(1);
-
-    // Thuộc tính tính toán cho câu hỏi từ quizData
-    const questions = quizData.questions || [];
+    const [nextQuestionId, setNextQuestionId] = useState<number>(1);    // Thuộc tính tính toán cho câu hỏi từ quizData
+    const questions = (quizData.questions || []) as (QuizQuestionRequest & { id: number })[];
 
     // Xử lý thay đổi thông tin cơ bản của quiz
     const handleQuizChange = useCallback((field: string, value: any) => {
@@ -46,16 +44,8 @@ export const useQuizForm = () => {
             ...prev,
             thumbnailFile: file || '', // Sử dụng chuỗi rỗng nếu file là null
         }));
-    }, []);
-
-    // Thêm câu hỏi mới
-    const handleAddQuestion = useCallback((quizId: number) => {
-        // Kiểm tra xem quizId có hợp lệ không
-        if (!quizId) {
-            setError('Invalid quiz ID');
-            return;
-        }
-
+    }, []);    // Thêm câu hỏi mới
+    const handleAddQuestion = useCallback(() => {
         // Tạo câu hỏi mới với các giá trị mặc định
         const newQuestion: QuizQuestionRequest & { id: number } = {
             id: nextQuestionId, // Sử dụng ID tạm cho quản lý form
