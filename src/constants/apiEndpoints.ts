@@ -23,6 +23,13 @@ export const USER_ENDPOINTS = {
     UPDATE_PROFILE: '/api/users/profile',
     CHANGE_PASSWORD: '/api/users/change-password',
     UPLOAD_AVATAR: '/api/users/avatar',
+    // New endpoints from UserController
+    GET_BY_ID: (id: number) => `/api/users/${id}`,
+    TOP_USERS: '/api/users/top',
+    USER_COUNT: '/api/users/count',
+    PROFILE_BY_ID: (id: number) => `/api/users/profile/${id}`,
+    AVATAR_UPLOAD: '/api/users/avatar/upload',
+    AVATAR_REMOVE: '/api/users/avatar',
 } as const;
 
 // Quiz Endpoints
