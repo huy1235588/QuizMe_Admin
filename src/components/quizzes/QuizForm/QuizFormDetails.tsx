@@ -3,6 +3,7 @@ import { Form, Input, Select, Switch, Upload, Button } from 'antd';
 import { FiUpload } from 'react-icons/fi';
 import axiosInstance from '@/utils/axios';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { QuizRequest, ApiResponse, Category } from '@/types/database';
 
 const { TextArea } = Input;
@@ -21,6 +22,8 @@ const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({
 }) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    const t = useTranslations('quizzes');
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -41,30 +44,29 @@ const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({
 
     return (
         <Form layout="vertical">
-            <Form.Item label="Quiz Title" required>
+            <Form.Item label={t('quizTitle')} required>
                 <Input
                     value={quizData.title}
                     onChange={(e) => onChange('title', e.target.value)}
-                    placeholder="Enter quiz title"
+                    placeholder={t('quizTitlePlaceholder')}
                 />
             </Form.Item>
 
-            <Form.Item label="Description">
+            <Form.Item label={t('description')}>
                 <TextArea
                     value={quizData.description}
                     onChange={(e) => onChange('description', e.target.value)}
-                    placeholder="Enter quiz description"
+                    placeholder={t('descriptionPlaceholder')}
                     rows={4}
                 />
             </Form.Item>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Form.Item label="Category" required>
+                <Form.Item label={t('category')} required>
                     <Select
                         value={quizData.categoryIds}
                         onChange={(value) => onChange('categoryIds', value)}
                         mode="multiple"
-                        placeholder="Select category"
+                        placeholder={t('selectCategoryPlaceholder')}
                     >
                         {categories.map(category => (
                             <Option key={category.id} value={category.id}>{category.name}</Option>
@@ -72,23 +74,24 @@ const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({
                     </Select>
                 </Form.Item>
 
-                <Form.Item label="Difficulty">
+                <Form.Item label={t('difficulty')}>
                     <Select
                         value={quizData.difficulty}
                         onChange={(value) => onChange('difficulty', value)}
                     >
-                        <Option value="EASY">Easy</Option>
-                        <Option value="MEDIUM">Medium</Option>
-                        <Option value="HARD">Hard</Option>
+                        <Option value="EASY">{t('easy')}</Option>
+                        <Option value="MEDIUM">{t('medium')}</Option>
+                        <Option value="HARD">{t('hard')}</Option>
                     </Select>
                 </Form.Item>
-            </div>            <Form.Item label="Thumbnail">
+            </div>
+            <Form.Item label={t('thumbnail')}>
                 <div className="space-y-2">
                     {(quizData.thumbnailFile || previewUrl) && (
                         <div className="mb-2">
                             <img
                                 src={previewUrl || (typeof quizData.thumbnailFile === 'string' ? quizData.thumbnailFile : undefined)}
-                                alt="Quiz thumbnail preview"
+                                alt={t('thumbnailPreviewAlt')}
                                 className="max-w-xs max-h-40 object-cover rounded"
                             />
                         </div>
@@ -110,19 +113,20 @@ const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({
                             return false;
                         }}
                     >
-                        <Button icon={<FiUpload />}>Upload Thumbnail</Button>
+                        <Button icon={<FiUpload />}>
+                            {t('uploadThumbnail')}
+                        </Button>
                     </Upload>
                 </div>
             </Form.Item>
 
-            <Form.Item label="Visibility">
+            <Form.Item label={t('visibility')}>
                 <div className="flex items-center">
                     <Switch
                         checked={quizData.isPublic}
                         onChange={(checked) => onChange('isPublic', checked)}
-                    />
-                    <span className="ml-2">
-                        {quizData.isPublic ? 'Public (visible to everyone)' : 'Private (only visible to you)'}
+                    />                    <span className="ml-2">
+                        {quizData.isPublic ? t('publicVisibility') : t('privateVisibility')}
                     </span>
                 </div>
             </Form.Item>

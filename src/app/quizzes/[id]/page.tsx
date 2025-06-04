@@ -6,6 +6,7 @@ import { FiArrowLeft, FiSave } from 'react-icons/fi';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useSnackbar } from 'notistack';
+import { useTranslations } from 'next-intl';
 import { useQuizForm } from '@/hooks/useQuizForm';
 import { QuizAPI } from '@/api/quizAPI';
 import QuizFormDetails from '@/components/quizzes/QuizForm/QuizFormDetails';
@@ -20,7 +21,10 @@ const { Title } = Typography;
 export default function QuizForm() {
     const router = useRouter();
     const params = useParams();
-    const { enqueueSnackbar } = useSnackbar();
+    const { enqueueSnackbar } = useSnackbar(); const t = useTranslations('quizzes');
+    const commonT = useTranslations('common');
+    const successT = useTranslations('success');
+    const errorsT = useTranslations('errors');
 
     // Xác định xem đây là tạo mới hay chỉnh sửa quiz
     const id = params.id;
@@ -90,7 +94,7 @@ export default function QuizForm() {
                     }
                 } catch (error) {
                     console.error("Error fetching quiz:", error);
-                    enqueueSnackbar("Failed to load quiz data", { variant: "error" });
+                    enqueueSnackbar(errorsT('general'), { variant: "error" });
                 } finally {
                     setLoading(false);
                 }
@@ -108,19 +112,17 @@ export default function QuizForm() {
                 await handleQuizSubmit();
             } else {
                 // Cập nhật quiz hiện có - sử dụng QuizAPI
-                const response = await QuizAPI.updateQuizFromRequest(Number(id), quizData);
-
-                // Xử lý kết quả
+                const response = await QuizAPI.updateQuizFromRequest(Number(id), quizData);                // Xử lý kết quả
                 if (response.status === 'success') {
-                    enqueueSnackbar("Quiz updated successfully!", { variant: "success" });
+                    enqueueSnackbar(successT('updated'), { variant: "success" });
                     router.push("/quizzes");
                 } else {
-                    throw new Error(response.message || 'Failed to update quiz');
+                    throw new Error(response.message || errorsT('general'));
                 }
             }
         } catch (error) {
             console.error("Error saving quiz:", error);
-            enqueueSnackbar("Failed to save quiz", { variant: "error" });
+            enqueueSnackbar(errorsT('general'), { variant: "error" });
         }
     };
 
@@ -129,7 +131,7 @@ export default function QuizForm() {
         return (
             <div className="flex items-center justify-center h-64">
                 <Spin size="large" />
-                <div className="mt-4 text-gray-600">Loading quiz data...</div>
+                <div className="mt-4 text-gray-600">{t('loadingQuizData')}</div>
             </div>
         );
     }
@@ -139,10 +141,10 @@ export default function QuizForm() {
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center">
                     <Link href="/quizzes" className="mr-4">
-                        <Button icon={<FiArrowLeft />}>Back to Quizzes</Button>
+                        <Button icon={<FiArrowLeft />}>{t('backToQuizzes')}</Button>
                     </Link>
                     <Title level={4} className="m-0">
-                        {isNew ? "Create New Quiz" : `Edit Quiz: ${quizData.title}`}
+                        {isNew ? t('createNew') : t('editQuiz', { title: quizData.title })}
                     </Title>
                 </div>
                 <Button
@@ -152,7 +154,7 @@ export default function QuizForm() {
                     loading={isLoading}
                     onClick={handleSubmit}
                 >
-                    {isNew ? "Save Quiz" : "Update Quiz"}
+                    {isNew ? t('saveQuiz') : t('updateQuiz')}
                 </Button>
             </div>
 
@@ -161,21 +163,21 @@ export default function QuizForm() {
                     {error}
                 </div>
             )}
-
-            <Card title="Quiz Details" className="mb-6">
+            <Card title={t('quizDetails')} className="mb-6">
                 <QuizFormDetails
                     quizData={quizData}
                     onChange={handleQuizChange}
                     onThumbnailChange={handleThumbnailChange}
                 />
-            </Card>            <Card
-                title="Questions"
+            </Card>
+            <Card
+                title={t('questions')}
                 extra={
                     <Button
                         type="primary"
                         onClick={() => handleAddQuestion()}
                     >
-                        Add Question
+                        {t('addQuestion')}
                     </Button>
                 }
             >

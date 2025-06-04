@@ -2,12 +2,13 @@ import React from 'react';
 import { Card, Collapse, Form, Input, Button, InputNumber, Radio, Space, Upload, Select } from 'antd';
 import { FiTrash, FiPlusCircle, FiClock, FiAward, FiImage, FiUpload, FiType, FiMusic } from 'react-icons/fi';
 import { QuizQuestionRequest, QuizQuestionOptionRequest, QuestionType } from '@/types/database';
+import { useTranslations } from 'next-intl';
 
 const { TextArea } = Input;
 
-// Extended type for form handling with temporary ID
+// Loại mở rộng để xử lý form với ID tạm thời
 type FormQuizQuestion = QuizQuestionRequest & {
-    id: number; // Temporary ID for form management
+    id: number; // ID tạm thời để quản lý form
 };
 
 interface QuestionListProps {
@@ -25,6 +26,8 @@ const QuestionList: React.FC<QuestionListProps> = ({
     onAudioChange,
     onRemove
 }) => {
+    const t = useTranslations('questions');
+
     // Xử lý thay đổi đáp án
     const handleAnswerChange = (questionId: number, answerIndex: number, content: string) => {
         const question = questions.find(q => q.id === questionId);
@@ -104,15 +107,15 @@ const QuestionList: React.FC<QuestionListProps> = ({
         if (!question.options || question.options.length === 0) {
             if (question.type === 'TRUE_FALSE') {
                 question.options = [
-                    { content: 'True', isCorrect: true },
-                    { content: 'False', isCorrect: false }
+                    { content: t('true'), isCorrect: true },
+                    { content: t('false'), isCorrect: false }
                 ];
             } else if (question.type === 'TYPE_ANSWER') {
                 question.options = [
                     { content: '', isCorrect: true }
                 ];
             } else {
-                // Default for QUIZ, CHECKBOX, POLL
+                // Mặc định cho QUIZ, CHECKBOX, POLL
                 question.options = [
                     { content: '', isCorrect: true },
                     { content: '', isCorrect: false }
@@ -120,14 +123,12 @@ const QuestionList: React.FC<QuestionListProps> = ({
             }
         }
 
-        // Set default question type if not specified
+        // Thiết lập loại câu hỏi mặc định nếu chưa được chỉ định
         if (!question.type) {
             onChange(question.id, { type: 'QUIZ' });
-        }
-
-        return {
+        } return {
             key: String(question.id),
-            label: `Question ${index + 1}: ${question.content || 'New Question'}`,
+            label: `${t('newQuestion')} ${index + 1}: ${question.content || t('newQuestion')}`,
             extra: (
                 <Button
                     danger
@@ -137,36 +138,35 @@ const QuestionList: React.FC<QuestionListProps> = ({
                         onRemove(question.id);
                     }}
                 >
-                    Remove
+                    {t('remove')}
                 </Button>
-            ),
-            children: (
+            ), children: (
                 <Form layout="vertical">
-                    <Form.Item label="Question Text" required>
+                    <Form.Item label={t('questionText')} required>
                         <TextArea
                             value={question.content}
                             onChange={(e) => onChange(question.id, { content: e.target.value })}
-                            placeholder="Enter question text"
+                            placeholder={t('enterQuestionText')}
                             rows={3}
                         />
                     </Form.Item>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                        <Form.Item label={<div className="flex items-center"><FiType className="mr-1" /> Question Type</div>}>
+                        <Form.Item label={<div className="flex items-center"><FiType className="mr-1" /> {t('questionType')}</div>}>
                             <Select
                                 value={question.type}
                                 onChange={(value) => onChange(question.id, { type: value as QuestionType })}
-                                placeholder="Select question type"
+                                placeholder={t('selectQuestionType')}
                             >
-                                <Select.Option value="QUIZ">Quiz</Select.Option>
-                                <Select.Option value="TRUE_FALSE">True/False</Select.Option>
-                                <Select.Option value="TYPE_ANSWER">Type Answer</Select.Option>
-                                <Select.Option value="CHECKBOX">Checkbox</Select.Option>
-                                <Select.Option value="POLL">Poll</Select.Option>
+                                <Select.Option value="QUIZ">{t('quiz')}</Select.Option>
+                                <Select.Option value="TRUE_FALSE">{t('trueFalse')}</Select.Option>
+                                <Select.Option value="TYPE_ANSWER">{t('typeAnswer')}</Select.Option>
+                                <Select.Option value="CHECKBOX">{t('checkbox')}</Select.Option>
+                                <Select.Option value="POLL">{t('poll')}</Select.Option>
                             </Select>
                         </Form.Item>
 
-                        <Form.Item label={<div className="flex items-center"><FiClock className="mr-1" /> Time Limit (seconds)</div>}>
+                        <Form.Item label={<div className="flex items-center"><FiClock className="mr-1" /> {t('timeLimitSeconds')}</div>}>
                             <InputNumber
                                 min={5}
                                 max={300}
@@ -175,7 +175,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                             />
                         </Form.Item>
 
-                        <Form.Item label={<div className="flex items-center"><FiAward className="mr-1" /> Points</div>}>
+                        <Form.Item label={<div className="flex items-center"><FiAward className="mr-1" /> {t('points')}</div>}>
                             <InputNumber
                                 min={1}
                                 max={100}
@@ -184,15 +184,14 @@ const QuestionList: React.FC<QuestionListProps> = ({
                             />
                         </Form.Item>
                     </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <Form.Item label={<div className="flex items-center"><FiImage className="mr-1" /> Question Image</div>}>
+                        <Form.Item label={<div className="flex items-center"><FiImage className="mr-1" /> {t('questionImage')}</div>}>
                             <div className="space-y-2">
                                 {typeof question.imageFile === 'string' && question.imageFile && (
                                     <div className="mb-2">
                                         <img
                                             src={question.imageFile}
-                                            alt="Question preview"
+                                            alt={t('questionPreview')}
                                             className="max-w-xs max-h-40 object-cover rounded"
                                         />
                                     </div>
@@ -207,19 +206,19 @@ const QuestionList: React.FC<QuestionListProps> = ({
                                     }}
                                 >
                                     <Button icon={<FiUpload />}>
-                                        {question.imageFile ? 'Change Image' : 'Upload Image'}
+                                        {question.imageFile ? t('changeImage') : t('uploadImage')}
                                     </Button>
                                 </Upload>
                             </div>
                         </Form.Item>
 
-                        <Form.Item label={<div className="flex items-center"><FiMusic className="mr-1" /> Question Audio</div>}>
+                        <Form.Item label={<div className="flex items-center"><FiMusic className="mr-1" /> {t('questionAudio')}</div>}>
                             <div className="space-y-2">
                                 {typeof question.audioFile === 'string' && question.audioFile && (
                                     <div className="mb-2">
                                         <audio controls className="w-full">
                                             <source src={question.audioFile} type="audio/mpeg" />
-                                            Your browser does not support the audio element.
+                                            {t('audioNotSupported')}
                                         </audio>
                                     </div>
                                 )}
@@ -233,20 +232,18 @@ const QuestionList: React.FC<QuestionListProps> = ({
                                     }}
                                 >
                                     <Button icon={<FiUpload />}>
-                                        {question.audioFile ? 'Change Audio' : 'Upload Audio'}
+                                        {question.audioFile ? t('changeAudio') : t('uploadAudio')}
                                     </Button>
                                 </Upload>
                             </div>
                         </Form.Item>
-                    </div>
-
-                    {/* Answers section - only show for question types that need options */}
+                    </div>                    {/* Phần đáp án - chỉ hiển thị cho các loại câu hỏi cần có tùy chọn */}
                     {(question.type === 'QUIZ' || question.type === 'TRUE_FALSE' || question.type === 'CHECKBOX' || question.type === 'POLL') && (
                         <div className="mb-2">
                             <div className="flex justify-between items-center mb-2">
                                 <h4 className="text-base font-medium m-0">
-                                    {question.type === 'TRUE_FALSE' ? 'True/False Options' :
-                                        question.type === 'POLL' ? 'Poll Options' : 'Answer Options'}
+                                    {question.type === 'TRUE_FALSE' ? t('trueFalseOptions') :
+                                        question.type === 'POLL' ? t('pollOptions') : t('answerOptions')}
                                 </h4>
                                 {question.type !== 'TRUE_FALSE' && (
                                     <Button
@@ -255,13 +252,13 @@ const QuestionList: React.FC<QuestionListProps> = ({
                                         icon={<FiPlusCircle />}
                                         onClick={() => handleAddAnswer(question.id)}
                                     >
-                                        Add Answer
+                                        {t('addAnswer')}
                                     </Button>
                                 )}
                             </div>
 
                             {question.type === 'CHECKBOX' ? (
-                                // Checkbox questions can have multiple correct answers
+                                // Câu hỏi checkbox có thể có nhiều đáp án đúng
                                 <Space direction="vertical" style={{ width: '100%' }}>
                                     {question.options.map((option, ansIndex) => (
                                         <div key={ansIndex} className="flex items-start gap-2">
@@ -279,7 +276,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                                                 className="mt-2"
                                             />
                                             <Input
-                                                placeholder={`Answer option ${ansIndex + 1}`}
+                                                placeholder={t('answerOption')}
                                                 value={option.content}
                                                 onChange={(e) => handleAnswerChange(question.id, ansIndex, e.target.value)}
                                                 className="flex-grow"
@@ -295,7 +292,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                                     ))}
                                 </Space>
                             ) : (
-                                // Single answer questions (QUIZ, TRUE_FALSE, POLL)
+                                // Câu hỏi một đáp án (QUIZ, TRUE_FALSE, POLL)
                                 <Radio.Group
                                     value={question.options.findIndex(a => a.isCorrect)}
                                     onChange={(e) => handleCorrectAnswerChange(question.id, e.target.value)}
@@ -307,8 +304,8 @@ const QuestionList: React.FC<QuestionListProps> = ({
                                                 <Input
                                                     placeholder={
                                                         question.type === 'TRUE_FALSE'
-                                                            ? (ansIndex === 0 ? 'True' : 'False')
-                                                            : `Answer option ${ansIndex + 1}`
+                                                            ? (ansIndex === 0 ? t('true') : t('false'))
+                                                            : t('answerOption')
                                                     }
                                                     value={option.content}
                                                     onChange={(e) => handleAnswerChange(question.id, ansIndex, e.target.value)}
@@ -328,14 +325,12 @@ const QuestionList: React.FC<QuestionListProps> = ({
                                 </Radio.Group>
                             )}
                         </div>
-                    )}
-
-                    {/* Type Answer questions show different UI */}
+                    )}                    {/* Câu hỏi Type Answer hiển thị giao diện khác */}
                     {question.type === 'TYPE_ANSWER' && (
                         <div className="mb-2">
-                            <Form.Item label="Expected Answer(s)" help="Enter the correct answer(s) that participants should type">
+                            <Form.Item label={t('expectedAnswers')} help={t('expectedAnswersHelp')}>
                                 <Input
-                                    placeholder="Enter the expected answer"
+                                    placeholder={t('enterExpectedAnswer')}
                                     value={question.options?.[0]?.content || ''}
                                     onChange={(e) => {
                                         const newOptions = [{ content: e.target.value, isCorrect: true }];
@@ -348,13 +343,11 @@ const QuestionList: React.FC<QuestionListProps> = ({
                 </Form>
             )
         };
-    });
-
-    return (
+    }); return (
         <div className="space-y-4">
             {questions.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                    No questions added yet. Click "Add Question" to start creating your quiz.
+                    {t('noQuestionsYet')}
                 </div>
             ) : (
                 <Collapse items={collapseItems} defaultActiveKey={[String(questions[0]?.id)]} />
