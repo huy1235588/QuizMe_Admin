@@ -16,6 +16,7 @@ import DeleteQuizModal from '@/components/quizzes/DeleteQuizModal';
 // Import hook tùy chỉnh để quản lý các quiz
 import { useQuizzes } from '@/hooks/useQuizzes';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 const { Title } = Typography;
 
@@ -23,6 +24,7 @@ const { Title } = Typography;
 export default function Quizzes() {
     const { enqueueSnackbar } = useSnackbar();
     const router = useRouter();
+    const t = useTranslations('quizzes');
 
     // Sử dụng hook tùy chỉnh để quản lý tất cả dữ liệu và chức năng liên quan đến quiz
     const {
@@ -67,7 +69,7 @@ export default function Quizzes() {
             {/* Tiêu đề và nút tạo mới */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
                 <div>
-                    <Title level={4} className="m-0">Quiz Management</Title>
+                    <Title level={4} className="m-0">{t('management')}</Title>
                 </div>
                 <Button
                     type="primary"
@@ -76,7 +78,7 @@ export default function Quizzes() {
                     onClick={() => router.push('/quizzes/new')}
                     className={`${isDarkMode ? 'bg-blue-600 hover:bg-blue-500' : ''}`}
                 >
-                    Create New Quiz
+                    {t('createNew')}
                 </Button>
             </div>
 
