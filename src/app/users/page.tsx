@@ -90,7 +90,7 @@ export default function UsersPage() {
     };
 
     const handleEditUser = (user: UserResponse) => {
-        router.push(`/users/${user.id}/edit`);
+        router.push(`/users/${user.id}`);
     };
 
     const handleViewUser = (user: UserResponse) => {

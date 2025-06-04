@@ -41,7 +41,7 @@ const UserFilters: React.FC<UserFiltersProps> = ({
         : 'bg-white border-gray-200';
 
     return (
-        <Card className={cardClass} bordered={false}>
+        <Card className={cardClass} variant="borderless">
             <div className="space-y-4">
                 {/* Tab Navigation */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

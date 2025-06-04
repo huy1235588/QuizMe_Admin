@@ -8,6 +8,7 @@ import { useSnackbar } from 'notistack';
 
 // Import components
 import UserDetailCard from '@/components/users/UserDetailCard';
+import UserForm from '@/components/users/UserForm';
 
 // Import hooks
 import { useUser } from '@/hooks/useUsers';
@@ -19,24 +20,40 @@ export default function UserDetailPage() {
     const { enqueueSnackbar } = useSnackbar();
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
+    const [saveLoading, setSaveLoading] = React.useState(false); const userId = params?.id ? (params.id === 'new' ? null : parseInt(params.id as string)) : null;
+    const isNewUser = params?.id === 'new';
 
-    const userId = params?.id ? parseInt(params.id as string) : null;
-
+    // Only fetch user data if not creating new user
     const {
         user,
         loading,
         error,
         refetch
-    } = useUser(userId);
+    } = useUser(isNewUser ? null : userId);
 
     const handleBack = () => {
         router.push('/users');
-    };
-
-    const handleEdit = () => {
+    }; const handleEdit = () => {
         if (user) {
             router.push(`/users/${user.id}/edit`);
         }
+    }; const handleSave = async (userData: any) => {
+        setSaveLoading(true);
+        try {
+            // Simulate API call for creating new user
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            enqueueSnackbar('Đã tạo người dùng thành công', { variant: 'success' });
+            router.push('/users');
+        } catch (error) {
+            enqueueSnackbar('Có lỗi xảy ra khi tạo người dùng', { variant: 'error' });
+        } finally {
+            setSaveLoading(false);
+        }
+    };
+
+    const handleCancel = () => {
+        router.push('/users');
     };
 
     const handleToggleStatus = async () => {
@@ -52,9 +69,7 @@ export default function UserDetailPage() {
         } catch (error) {
             enqueueSnackbar('Có lỗi xảy ra khi thay đổi trạng thái người dùng', { variant: 'error' });
         }
-    };
-
-    if (loading) {
+    }; if (loading && !isNewUser) {
         return (
             <div className="flex justify-center items-center min-h-[400px]">
                 <Spin size="large" />
@@ -62,7 +77,7 @@ export default function UserDetailPage() {
         );
     }
 
-    if (error || !user) {
+    if ((error || !user) && !isNewUser) {
         return (
             <Result
                 status="404"
@@ -89,35 +104,44 @@ export default function UserDetailPage() {
                     >
                         Quay lại
                     </Button>
-                    <div>
-                        <h1 className={`text-2xl font-bold m-0 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                            Chi tiết người dùng
-                        </h1>
+                    <div>                        <h1 className={`text-2xl font-bold m-0 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {isNewUser ? 'Tạo người dùng mới' : 'Chi tiết người dùng'}
+                    </h1>
                         <p className={`m-0 mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            Thông tin chi tiết về người dùng {user.fullName}
+                            {isNewUser
+                                ? 'Tạo tài khoản người dùng mới'
+                                : `Thông tin chi tiết về người dùng ${user?.fullName || ''}`
+                            }
                         </p>
                     </div>
-                </div>
-
-                <Space>
-                    <Button
-                        type="primary"
-                        icon={<EditOutlined />}
-                        onClick={handleEdit}
-                        className={isDarkMode ? 'bg-blue-600 hover:bg-blue-500' : ''}
-                    >
-                        Chỉnh sửa
-                    </Button>
+                </div>                <Space>
+                    {!isNewUser && (
+                        <Button
+                            type="primary"
+                            icon={<EditOutlined />}
+                            onClick={handleEdit}
+                            className={isDarkMode ? 'bg-blue-600 hover:bg-blue-500' : ''}
+                        >
+                            Chỉnh sửa
+                        </Button>
+                    )}
                 </Space>
-            </div>
-
-            {/* User Detail Card */}
-            <UserDetailCard
-                user={user}
-                isDarkMode={isDarkMode}
-                onEdit={handleEdit}
-                onToggleStatus={handleToggleStatus}
-            />
+            </div>            {/* User Detail Card or User Form */}
+            {isNewUser ? (
+                <UserForm
+                    isDarkMode={isDarkMode}
+                    onSave={handleSave}
+                    onCancel={handleCancel}
+                    loading={saveLoading}
+                />
+            ) : user && (
+                <UserDetailCard
+                    user={user}
+                    isDarkMode={isDarkMode}
+                    onEdit={handleEdit}
+                    onToggleStatus={handleToggleStatus}
+                />
+            )}
         </div>
     );
 }

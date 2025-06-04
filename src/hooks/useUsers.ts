@@ -232,9 +232,8 @@ export const useUsers = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [roleFilter, setRoleFilter] = useState<Role | null>(null);
-    const [statusFilter, setStatusFilter] = useState<boolean | null>(null);
-    const [sortBy, setSortBy] = useState<keyof UserResponse>('createdAt');
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [statusFilter, setStatusFilter] = useState<boolean | null>(null); const [sortBy, setSortBy] = useState<keyof UserResponse>('createdAt');
+    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'name' | 'lastLogin'>('newest');
     const [currentPage, setCurrentPage] = useState<number>(0);
     const [pageSize, setPageSize] = useState<number>(10);
     const [totalUsers, setTotalUsers] = useState<number>(0);
@@ -328,10 +327,8 @@ export const useUsers = () => {
         // Filter by status
         if (statusFilter !== null) {
             filtered = filtered.filter(user => user.isActive === statusFilter);
-        }
-
-        // Sort users
-        filtered = UserAPI.sortUsers(filtered, sortBy, sortOrder === 'asc');
+        }        // Sort users
+        filtered = UserAPI.sortUsers(filtered, sortBy, sortOrder === 'newest' ? false : sortOrder === 'oldest' ? true : sortOrder === 'name' ? true : false);
 
         return filtered;
     }, [users, searchQuery, roleFilter, statusFilter, sortBy, sortOrder]);
@@ -359,17 +356,27 @@ export const useUsers = () => {
     const handleStatusFilter = useCallback((status: boolean | null) => {
         setStatusFilter(status);
         setCurrentPage(0);
-    }, []);
+    }, []); const handleSort = useCallback((sortType: 'newest' | 'oldest' | 'name' | 'lastLogin') => {
+        setSortOrder(sortType);
 
-    const handleSort = useCallback((column: keyof UserResponse) => {
-        if (sortBy === column) {
-            setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortBy(column);
-            setSortOrder('asc');
+        // Update sortBy based on sortType
+        switch (sortType) {
+            case 'newest':
+                setSortBy('createdAt');
+                break;
+            case 'oldest':
+                setSortBy('createdAt');
+                break;
+            case 'name':
+                setSortBy('fullName');
+                break;
+            case 'lastLogin':
+                setSortBy('lastLogin');
+                break;
         }
+
         setCurrentPage(0);
-    }, [sortBy]);
+    }, []);
 
     const handlePageChange = useCallback((page: number) => {
         setCurrentPage(page);

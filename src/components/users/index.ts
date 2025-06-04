@@ -5,5 +5,6 @@ export { default as UserCard } from './UserCard';
 export { default as UserFilters } from './UserFilters';
 export { default as UserStatistics } from './UserStatistics';
 export { default as UserDetailCard } from './UserDetailCard';
+export { default as UserForm } from './UserForm';
 export { default as TopUsers } from './TopUsers';
 export { default as DeleteUserModal } from './DeleteUserModal';
