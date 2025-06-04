@@ -43,7 +43,7 @@ const QuizList: React.FC<QuizListProps> = ({
             key: 'title',
             render: (text: string, record: Quiz) => (
                 // Hiển thị tiêu đề quiz kèm hình ảnh và mô tả ngắn
-                <div className="flex items-center">
+                <div className="flex w-100 items-center">
                     <div className="w-10 h-10 mr-3 rounded overflow-hidden">
                         <img
                             src={record.quizThumbnails || `https://placehold.co/100x100/${['3b82f6', '8b5cf6', 'ec4899'][['easy', 'medium', 'hard'].indexOf(record.difficulty)]}/ffffff?text=${record.title.charAt(0)}`}
@@ -57,12 +57,6 @@ const QuizList: React.FC<QuizListProps> = ({
                     </div>
                 </div>
             ),
-        }, {
-            title: t('columnCategory'),
-            dataIndex: 'categoryName',
-            key: 'categoryName',
-            // Hiển thị danh mục với màu nền xanh
-            render: (text: string) => <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">{text}</span>,
         },
         {
             title: t('columnDifficulty'),
@@ -76,7 +70,7 @@ const QuizList: React.FC<QuizListProps> = ({
                     hard: 'bg-red-100 text-red-800'
                 }; return (
                     <span className={`${colors[text as keyof typeof colors]} text-xs font-medium px-2.5 py-0.5 rounded`}>
-                        {t(`${text}Difficulty`)}
+                        {t(`${text.toLowerCase()}`)}
                     </span>
                 );
             },
@@ -162,7 +156,7 @@ const QuizList: React.FC<QuizListProps> = ({
                         showSizeChanger: true,
                         onShowSizeChange: onPageSizeChange,
                         pageSizeOptions: ['12', '24', '36', '48'],
-                        showTotal: (total, range) => `${range[0]}-${range[1]} ${t('ofItems').replace('{total}', total.toString())}`,
+                        showTotal: (total, range) => `${range[0]}-${range[1]} ${t('ofItems', { total: total.toString() })}`,
                     }}
                 />
             )}
