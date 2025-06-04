@@ -32,6 +32,13 @@ export const useQuizForm = () => {
 
     // Xử lý thay đổi thông tin cơ bản của quiz
     const handleQuizChange = useCallback((field: string, value: any) => {
+        // Kiểm tra xem field có phải là categoryIds không
+        if (field === 'categoryIds' && !Array.isArray(value)) {
+            console.error('categoryIds must be an array');
+            return;
+        }
+
+        // Cập nhật dữ liệu quizData theo trường và giá trị
         setQuizData(prev => ({
             ...prev,
             [field]: value
@@ -44,7 +51,9 @@ export const useQuizForm = () => {
             ...prev,
             thumbnailFile: file || '', // Sử dụng chuỗi rỗng nếu file là null
         }));
-    }, []);    // Thêm câu hỏi mới
+    }, []);
+
+    // Thêm câu hỏi mới
     const handleAddQuestion = useCallback(() => {
         // Tạo câu hỏi mới với các giá trị mặc định
         const newQuestion: QuizQuestionRequest & { id: number } = {
@@ -175,6 +184,8 @@ export const useQuizForm = () => {
                 ...quizData,
                 questions: cleanQuestions
             };
+
+            console.log('Submitting quiz data:', completeQuizData);
 
             // Sử dụng QuizAPI để tạo quiz
             const response = await QuizAPI.createQuizFromRequest(completeQuizData);

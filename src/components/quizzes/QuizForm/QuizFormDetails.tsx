@@ -62,7 +62,8 @@ const QuizFormDetails: React.FC<QuizFormDetailsProps> = ({
                 <Form.Item label="Category" required>
                     <Select
                         value={quizData.categoryIds}
-                        onChange={(value) => onChange('categoryId', value)}
+                        onChange={(value) => onChange('categoryIds', value)}
+                        mode="multiple"
                         placeholder="Select category"
                     >
                         {categories.map(category => (

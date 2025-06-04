@@ -158,7 +158,7 @@ const QuestionList: React.FC<QuestionListProps> = ({
                                 onChange={(value) => onChange(question.id, { type: value as QuestionType })}
                                 placeholder="Select question type"
                             >
-                                <Select.Option value="QUIZ">Multiple Choice</Select.Option>
+                                <Select.Option value="QUIZ">Quiz</Select.Option>
                                 <Select.Option value="TRUE_FALSE">True/False</Select.Option>
                                 <Select.Option value="TYPE_ANSWER">Type Answer</Select.Option>
                                 <Select.Option value="CHECKBOX">Checkbox</Select.Option>
