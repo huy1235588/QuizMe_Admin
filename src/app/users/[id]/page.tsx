@@ -68,13 +68,14 @@ export default function UserDetailPage() {
         if (!user) return;
 
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 500));
+            const newStatus = !user.isActive;
+            await UserAPI.toggleUserStatus(user.id, newStatus);
 
             const action = user.isActive ? 'khóa' : 'mở khóa';
             enqueueSnackbar(`Đã ${action} tài khoản ${user.fullName}`, { variant: 'success' });
             refetch();
         } catch (error) {
+            console.error('Error toggling user status:', error);
             enqueueSnackbar('Có lỗi xảy ra khi thay đổi trạng thái người dùng', { variant: 'error' });
         }
     };

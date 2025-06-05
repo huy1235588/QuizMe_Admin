@@ -219,9 +219,8 @@ class UserService {
      */
     async toggleUserStatus(id: number, isActive: boolean): Promise<ApiResponse<UserResponse>> {
         try {
-            const response = await axiosInstance.patch<ApiResponse<UserResponse>>(
-                USER_ENDPOINTS.TOGGLE_STATUS(id),
-                { isActive }
+            const response = await axiosInstance.put<ApiResponse<UserResponse>>(
+                USER_ENDPOINTS.TOGGLE_STATUS(id) + `?isActive=${isActive}`,
             );
             return response.data;
         } catch (error) {

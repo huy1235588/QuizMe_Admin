@@ -89,8 +89,8 @@ export default function UsersPage() {
     const handleDeleteUser = (user: UserResponse) => {
         setUserToDelete(user);
         setIsDeleteModalVisible(true);
-    }; 
-    
+    };
+
     const confirmDeleteUser = async () => {
         if (!userToDelete) return;
 
@@ -111,11 +111,11 @@ export default function UsersPage() {
 
     const handleToggleUserStatus = async (user: UserResponse) => {
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 500)); const action = user.isActive ? 'khóa' : 'mở khóa';
-            enqueueSnackbar(`Đã ${action} tài khoản ${user.fullName}`, { variant: 'success' });
-            handleRefresh();
+            const newStatus = !user.isActive;
+            await UserAPI.toggleUserStatus(user.id, newStatus); const action = user.isActive ? 'khóa' : 'mở khóa';
+            enqueueSnackbar(`Đã ${action} tài khoản ${user.fullName}`, { variant: 'success' }); handleRefresh();
         } catch (error) {
+            console.error('Error toggling user status:', error);
             enqueueSnackbar('Có lỗi xảy ra khi thay đổi trạng thái người dùng', { variant: 'error' });
         }
     };
