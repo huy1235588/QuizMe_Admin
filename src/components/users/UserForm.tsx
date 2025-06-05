@@ -3,21 +3,14 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Card, Row, Col, Select, Switch, Avatar, Upload, message } from 'antd';
 import { UserOutlined, UploadOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
-import type { UploadProps } from 'antd';
+import type { UploadFile, UploadProps } from 'antd';
+import { UserRequest } from '@/types/database';
 
 const { Option } = Select;
 
-interface UserFormData {
-    fullName: string;
-    email: string;
-    role: string;
-    isActive: boolean;
-    avatar?: string;
-}
-
 interface UserFormProps {
     isDarkMode?: boolean;
-    onSave: (userData: UserFormData) => Promise<void>;
+    onSave: (userData: UserRequest) => Promise<void>;
     onCancel: () => void;
     loading?: boolean;
 }
@@ -30,19 +23,26 @@ const UserForm: React.FC<UserFormProps> = ({
 }) => {
     const [form] = Form.useForm();
     const [avatarUrl, setAvatarUrl] = useState<string>('');
+    const [avatarFile, setAvatarFile] = useState<File | undefined>();
 
     const cardClass = isDarkMode
         ? 'bg-gray-800 border-gray-700'
         : 'bg-white border-gray-200';
 
-    const handleSubmit = async (values: UserFormData) => {
+    const handleSubmit = async (values: UserRequest) => {
         try {
-            await onSave({
-                ...values,
-                avatar: avatarUrl
-            });
+            const userData: UserRequest = {
+                username: values.username,
+                email: values.email,
+                password: values.password,
+                fullName: values.fullName,
+                role: values.role,
+                isActive: values.isActive,
+                profileImage: avatarFile
+            };
+            await onSave(userData);
         } catch (error) {
-            console.error('Error saving user:', error);
+            console.error('Lỗi khi lưu người dùng:', error);
         }
     };
 
@@ -62,30 +62,38 @@ const UserForm: React.FC<UserFormProps> = ({
                 return false;
             }
 
-            // Create preview URL
+            // Lưu file để gửi lên server
+            setAvatarFile(file);
+
+            // Tạo URL xem trước ảnh
             const reader = new FileReader();
             reader.onload = (e) => {
-                setAvatarUrl(e.target?.result as string);
+                const result = e.target?.result;
+                if (typeof result === 'string') {
+                    setAvatarUrl(result);
+                }
             };
             reader.readAsDataURL(file);
 
-            return false; // Prevent auto upload
+            return false; // Ngăn tải lên tự động
         },
         onRemove: () => {
             setAvatarUrl('');
+            setAvatarFile(undefined);
         }
-    }; return (
+    };
+
+    return (
         <div className="space-y-8">
             <Form
                 form={form}
-                layout="vertical"
-                onFinish={handleSubmit}
+                layout="vertical" onFinish={handleSubmit}
                 initialValues={{
-                    role: 'user',
+                    role: 'USER',
                     isActive: true
                 }}
             >
-                {/* Avatar Upload Section */}
+                {/* Phần tải lên ảnh đại diện */}
                 <Card
                     className={`border-0 shadow-lg ${cardClass}`}
                     title={
@@ -96,7 +104,7 @@ const UserForm: React.FC<UserFormProps> = ({
                             </span>
                         </div>
                     }
-                    bordered={false}
+                    variant='borderless'
                 >
                     <div className="text-center space-y-6">
                         <div className="relative inline-block">
@@ -122,8 +130,8 @@ const UserForm: React.FC<UserFormProps> = ({
                                 <Button
                                     icon={<UploadOutlined />}
                                     className={`h-10 px-6 font-medium ${isDarkMode
-                                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 hover:from-purple-700 hover:to-pink-700'
-                                            : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 hover:from-purple-600 hover:to-pink-600'
+                                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 hover:from-purple-700 hover:to-pink-700'
+                                        : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 hover:from-purple-600 hover:to-pink-600'
                                         }`}
                                 >
                                     📷 Tải lên ảnh đại diện
@@ -136,7 +144,7 @@ const UserForm: React.FC<UserFormProps> = ({
                     </div>
                 </Card>
 
-                {/* Basic Information */}
+                {/* Thông tin cơ bản */}
                 <Card
                     className={`border-0 shadow-lg ${cardClass}`}
                     title={
@@ -148,14 +156,35 @@ const UserForm: React.FC<UserFormProps> = ({
                         </div>
                     }
                     bordered={false}
-                >
-                    <Row gutter={[24, 24]}>
+                >                    <Row gutter={[24, 24]}>
+                        <Col xs={24} md={12}>
+                            <Form.Item
+                                name="username"
+                                label={
+                                    <span className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        👤 Tên đăng nhập
+                                    </span>
+                                }
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập tên đăng nhập!' },
+                                    { min: 3, message: 'Tên đăng nhập phải có ít nhất 3 ký tự!' },
+                                    { pattern: /^[a-zA-Z0-9_]+$/, message: 'Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới!' }
+                                ]}
+                            >
+                                <Input
+                                    placeholder="Nhập tên đăng nhập"
+                                    className={`h-12 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
+                                    size="large"
+                                />
+                            </Form.Item>
+                        </Col>
+
                         <Col xs={24} md={12}>
                             <Form.Item
                                 name="fullName"
                                 label={
                                     <span className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        👤 Họ và tên
+                                        🏷️ Họ và tên
                                     </span>
                                 }
                                 rules={[
@@ -191,10 +220,31 @@ const UserForm: React.FC<UserFormProps> = ({
                                 />
                             </Form.Item>
                         </Col>
+
+                        <Col xs={24} md={12}>
+                            <Form.Item
+                                name="password"
+                                label={
+                                    <span className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        🔒 Mật khẩu
+                                    </span>
+                                }
+                                rules={[
+                                    { required: true, message: 'Vui lòng nhập mật khẩu!' },
+                                    { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' }
+                                ]}
+                            >
+                                <Input.Password
+                                    placeholder="Nhập mật khẩu"
+                                    className={`h-12 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
+                                    size="large"
+                                />
+                            </Form.Item>
+                        </Col>
                     </Row>
                 </Card>
 
-                {/* Account Settings */}
+                {/* Cài đặt tài khoản */}
                 <Card
                     className={`border-0 shadow-lg ${cardClass}`}
                     title={
@@ -217,28 +267,21 @@ const UserForm: React.FC<UserFormProps> = ({
                                     </span>
                                 }
                                 rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
+                            >                                <Select
+                                placeholder="Chọn vai trò cho người dùng"
+                                className={isDarkMode ? 'dark-select' : ''}
+                                size="large"
                             >
-                                <Select
-                                    placeholder="Chọn vai trò cho người dùng"
-                                    className={isDarkMode ? 'dark-select' : ''}
-                                    size="large"
-                                >
-                                    <Option value="user">
+                                    <Option value="USER">
                                         <div className="flex items-center space-x-2">
                                             <span>👤</span>
                                             <span>Người dùng</span>
                                         </div>
                                     </Option>
-                                    <Option value="admin">
+                                    <Option value="ADMIN">
                                         <div className="flex items-center space-x-2">
                                             <span>👑</span>
                                             <span>Quản trị viên</span>
-                                        </div>
-                                    </Option>
-                                    <Option value="moderator">
-                                        <div className="flex items-center space-x-2">
-                                            <span>🛡️</span>
-                                            <span>Điều hành viên</span>
                                         </div>
                                     </Option>
                                 </Select>
@@ -270,28 +313,28 @@ const UserForm: React.FC<UserFormProps> = ({
                         </Col>
                     </Row>
 
-                    {/* Info Box */}
+                    {/* Hộp thông tin */}
                     <div className={`mt-6 p-4 rounded-lg border-l-4 ${isDarkMode
-                            ? 'bg-blue-900/20 border-blue-400 text-blue-300'
-                            : 'bg-blue-50 border-blue-400 text-blue-700'
+                        ? 'bg-blue-900/20 border-blue-400 text-blue-300'
+                        : 'bg-blue-50 border-blue-400 text-blue-700'
                         }`}>
                         <div className="flex items-start space-x-3">
                             <div className="text-xl">💡</div>
                             <div>
                                 <h4 className={`font-medium mb-1 ${isDarkMode ? 'text-blue-200' : 'text-blue-800'}`}>
                                     Lưu ý khi tạo tài khoản
-                                </h4>
-                                <ul className={`text-sm space-y-1 ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>
-                                    <li>• Email sẽ được sử dụng làm tên đăng nhập</li>
-                                    <li>• Mật khẩu tạm thời sẽ được gửi qua email</li>
-                                    <li>• Người dùng nên đổi mật khẩu khi đăng nhập lần đầu</li>
+                                </h4>                                <ul className={`text-sm space-y-1 ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>
+                                    <li>• Tên đăng nhập phải là duy nhất trong hệ thống</li>
+                                    <li>• Email sẽ được sử dụng để thông báo và khôi phục mật khẩu</li>
+                                    <li>• Mật khẩu nên có ít nhất 6 ký tự để đảm bảo bảo mật</li>
+                                    <li>• Người dùng có thể đổi mật khẩu sau khi đăng nhập</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </Card>
 
-                {/* Action Buttons */}
+                {/* Các nút hành động */}
                 <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
                     <Button
                         icon={<CloseOutlined />}
@@ -299,7 +342,7 @@ const UserForm: React.FC<UserFormProps> = ({
                         className={`h-12 px-8 font-medium ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : ''}`}
                         size="large"
                     >
-                        ❌ Hủy bỏ
+                        Hủy bỏ
                     </Button>
                     <Button
                         type="primary"
@@ -310,7 +353,7 @@ const UserForm: React.FC<UserFormProps> = ({
                             }`}
                         size="large"
                     >
-                        {loading ? '⏳ Đang tạo...' : '✅ Tạo người dùng'}
+                        {loading ? '⏳ Đang tạo...' : 'Tạo người dùng'}
                     </Button>
                 </div>
             </Form>

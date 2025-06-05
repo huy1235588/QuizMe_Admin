@@ -1,5 +1,5 @@
 import { userService } from '@/services/userService';
-import { UserResponse, UserProfileResponse, UserFilterParams, PageResponse } from '@/types/database';
+import { UserResponse, UserProfileResponse, UserFilterParams, PageResponse, UserRequest } from '@/types/database';
 import { UserUtils } from '@/utils/userUtils';
 
 /**
@@ -26,7 +26,9 @@ export class UserAPI {
             return response.data;
         }
         throw new Error(response.message || 'Failed to get top users');
-    }    /**
+    }
+
+    /**
      * Lấy tổng số người dùng trong hệ thống
      */
     static async getUserCount(): Promise<number> {
@@ -96,6 +98,19 @@ export class UserAPI {
             return response.data;
         }
         throw new Error(response.message || 'Failed to remove avatar');
+    }
+
+    /**
+     * Tạo mới người dùng
+     * @param userData Dữ liệu người dùng mới
+     * @return Thông tin người dùng đã tạo
+     */
+    static async createUser(userData: UserRequest): Promise<UserResponse> {
+        const response = await userService.createUser(userData);
+        if (response.status === 'success') {
+            return response.data;
+        }
+        throw new Error(response.message || 'Failed to create user');
     }
 
     // Utility functions using UserUtils

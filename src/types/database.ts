@@ -24,6 +24,16 @@ export type RegisterRequest = {
     fullName: string;
 }
 
+export type UserRequest = {
+    username: string;
+    email: string;
+    password: string;
+    fullName: string;
+    profileImage?: File;
+    role: Role;
+    isActive: boolean;
+}
+
 export type CategoryRequest = {
     name: string;
     description: string;
@@ -255,7 +265,7 @@ export type ChatMessageResponse = {
 export type UserProfileResponse = {
     id: number;
     userId: number;
-    username: string; 
+    username: string;
     fullName: string;
     profileImage?: string;
     dateOfBirth?: string;

@@ -26,7 +26,9 @@ export const useCategories = (): UseCategoriesReturn => {
 
     const clearError = useCallback(() => {
         setError(null);
-    }, []); const fetchAllCategories = useCallback(async (): Promise<CategoryResponse[] | null> => {
+    }, []); 
+    
+    const fetchAllCategories = useCallback(async (): Promise<CategoryResponse[] | null> => {
         setIsLoading(true);
         setError(null);
 

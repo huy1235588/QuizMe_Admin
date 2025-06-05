@@ -1,5 +1,5 @@
 import axiosInstance from '@/utils/axios';
-import { UserResponse, UserProfileResponse, UserFilterParams, PageResponse } from '@/types/database';
+import { UserResponse, UserProfileResponse, UserFilterParams, PageResponse, UserRequest } from '@/types/database';
 import { USER_ENDPOINTS } from '@/constants/apiEndpoints';
 
 // Types for API responses
@@ -124,6 +124,37 @@ class UserService {
         try {
             const response = await axiosInstance.delete<ApiResponse<UserResponse>>(
                 USER_ENDPOINTS.AVATAR_REMOVE
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }    /**
+     * Tạo mới người dùng
+     */
+    async createUser(userData: UserRequest): Promise<ApiResponse<UserResponse>> {
+        try {
+            const formData = new FormData();
+            formData.append('username', userData.username);
+            formData.append('email', userData.email);
+            formData.append('password', userData.password);
+            formData.append('fullName', userData.fullName);
+            formData.append('role', userData.role);
+            formData.append('isActive', userData.isActive.toString());
+
+            // Nếu có avatar file, thêm vào formData
+            if (userData.profileImage) {
+                formData.append('profileImage', userData.profileImage);
+            }
+
+            const response = await axiosInstance.post<ApiResponse<UserResponse>>(
+                USER_ENDPOINTS.CREATE,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }
             );
             return response.data;
         } catch (error) {

@@ -13,6 +13,8 @@ import UserForm from '@/components/users/UserForm';
 // Import hooks
 import { useUser } from '@/hooks/useUsers';
 import { useTheme } from '@/contexts/ThemeContext';
+import { RegisterRequest, UserRequest } from '@/types/database';
+import { UserAPI } from '@/api/userAPI';
 
 export default function UserDetailPage() {
     const params = useParams();
@@ -37,12 +39,18 @@ export default function UserDetailPage() {
         if (user) {
             router.push(`/users/${user.id}/edit`);
         }
-    }; const handleSave = async (userData: any) => {
+    };
+
+    const handleSave = async (userData: UserRequest) => {
         setSaveLoading(true);
         try {
-            // Simulate API call for creating new user
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const response = await UserAPI.createUser(userData);
+            if (!response) {
+                enqueueSnackbar('Không thể tạo người dùng mới', { variant: 'error' });
+                return;
+            }
 
+            // Chuyển hướng về trang danh sách người dùng sau khi tạo thành công
             enqueueSnackbar('Đã tạo người dùng thành công', { variant: 'success' });
             router.push('/users');
         } catch (error) {
@@ -156,25 +164,13 @@ export default function UserDetailPage() {
                 <div className="relative -mt-16">
                     {/* Content Card */}
                     <div className={`rounded-2xl shadow-2xl border backdrop-blur-sm ${isDarkMode
-                            ? 'bg-gray-800/95 border-gray-700/50'
-                            : 'bg-white/95 border-gray-200/50'
+                        ? 'bg-gray-800/95 border-gray-700/50'
+                        : 'bg-white/95 border-gray-200/50'
                         }`}>
                         <div className="p-6 sm:p-8">
                             {/* User Detail Card or User Form */}
                             {isNewUser ? (
                                 <div className="space-y-6">
-                                    <div className="text-center pb-6 border-b border-gray-200 dark:border-gray-700">
-                                        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${isDarkMode ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-600'
-                                            }`}>
-                                            <UserOutlined className="text-2xl" />
-                                        </div>
-                                        <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                            Thông tin người dùng mới
-                                        </h2>
-                                        <p className={`mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                            Vui lòng điền đầy đủ thông tin bên dưới
-                                        </p>
-                                    </div>
                                     <UserForm
                                         isDarkMode={isDarkMode}
                                         onSave={handleSave}

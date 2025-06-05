@@ -31,6 +31,7 @@ export const USER_ENDPOINTS = {
     PROFILE_BY_ID: (id: number) => `/api/users/profile/${id}`,
     AVATAR_UPLOAD: '/api/users/avatar/upload',
     AVATAR_REMOVE: '/api/users/avatar',
+    CREATE: '/api/users/create',
 } as const;
 
 // Quiz Endpoints

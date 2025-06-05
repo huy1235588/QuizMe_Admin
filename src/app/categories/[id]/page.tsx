@@ -53,7 +53,9 @@ export default function CategoryDetailPage() {
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [iconPreview, setIconPreview] = useState<string>('');
     const [showCropper, setShowCropper] = useState(false);
-    const [selectedFile, setSelectedFile] = useState<RcFile | null>(null);    // Set form data when category is loaded
+    const [selectedFile, setSelectedFile] = useState<RcFile | null>(null);
+
+    // Set form data when category is loaded
     useEffect(() => {
         if (category && !isNewCategory) {
             form.setFieldsValue({
@@ -82,7 +84,9 @@ export default function CategoryDetailPage() {
         if (categoryError) {
             enqueueSnackbar(categoryError, { variant: 'error' });
         }
-    }, [categoryError, enqueueSnackbar]);    // Cấu hình tải lên tệp hình ảnh
+    }, [categoryError, enqueueSnackbar]);
+
+    // Cấu hình tải lên tệp hình ảnh
     const beforeUpload = (file: RcFile) => {
         const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/gif';
         if (!isJpgOrPng) {
@@ -130,7 +134,7 @@ export default function CategoryDetailPage() {
     const handleSubmit = async (values: any) => {
         setSubmitLoading(true);
         try {
-            const categoryRequest = createCategoryRequest(values);            if (isNewCategory) {
+            const categoryRequest = createCategoryRequest(values); if (isNewCategory) {
                 // Tạo danh mục mới
                 await createCategory(categoryRequest);
                 enqueueSnackbar(t('categoryCreatedSuccess'), { variant: 'success' });
@@ -225,7 +229,8 @@ export default function CategoryDetailPage() {
                             description: '',
                             isActive: true
                         }}
-                    >                        {/* Trường tên */}
+                    >
+                        {/* Trường tên */}
                         <Form.Item
                             name="name"
                             label={t('categoryName')}
