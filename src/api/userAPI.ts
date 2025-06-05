@@ -139,6 +139,20 @@ export class UserAPI {
         throw new Error(response.message || 'Failed to delete user');
     }
 
+    /**
+     * Khóa hoặc mở khóa tài khoản người dùng
+     * @param id ID của người dùng cần khóa/mở khóa
+     * @param isActive Trạng thái mới của tài khoản (true = mở khóa, false = khóa)
+     * @return Thông tin người dùng đã cập nhật trạng thái
+     */
+    static async toggleUserStatus(id: number, isActive: boolean): Promise<UserResponse> {
+        const response = await userService.toggleUserStatus(id, isActive);
+        if (response.status === 'success') {
+            return response.data;
+        }
+        throw new Error(response.message || 'Failed to toggle user status');
+    }
+
     // Utility functions using UserUtils
     /**
      * Utility function - Format user display name

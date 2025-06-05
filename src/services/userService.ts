@@ -210,6 +210,24 @@ class UserService {
             throw error;
         }
     }
+
+    /**
+     * Kích hoạt hoặc vô hiệu hóa người dùng
+     * @param id ID của người dùng
+     * @param isActive Trạng thái kích hoạt
+     * @return Thông tin người dùng đã cập nhật
+     */
+    async toggleUserStatus(id: number, isActive: boolean): Promise<ApiResponse<UserResponse>> {
+        try {
+            const response = await axiosInstance.patch<ApiResponse<UserResponse>>(
+                USER_ENDPOINTS.TOGGLE_STATUS(id),
+                { isActive }
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export const userService = new UserService();

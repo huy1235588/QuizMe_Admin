@@ -34,6 +34,7 @@ export const USER_ENDPOINTS = {
     CREATE: '/api/users/create',
     UPDATE: (id: number) => `/api/users/${id}`,
     DELETE: (id: number) => `/api/users/${id}`,
+    TOGGLE_STATUS: (id: number) => `/api/users/${id}/lock`,
 } as const;
 
 // Quiz Endpoints
