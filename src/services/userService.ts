@@ -129,7 +129,9 @@ class UserService {
         } catch (error) {
             throw error;
         }
-    }    /**
+    }
+
+    /**
      * Tạo mới người dùng
      */
     async createUser(userData: UserRequest): Promise<ApiResponse<UserResponse>> {
@@ -155,6 +157,53 @@ class UserService {
                         'Content-Type': 'multipart/form-data'
                     }
                 }
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * Cập nhật thông tin người dùng
+     */
+    async updateUser(userData: UserRequest): Promise<ApiResponse<UserResponse>> {
+        try {
+            const formData = new FormData();
+            formData.append('id', userData.id?.toString() || '');
+            formData.append('username', userData.username);
+            formData.append('email', userData.email);
+            formData.append('fullName', userData.fullName);
+            formData.append('role', userData.role);
+            formData.append('isActive', userData.isActive.toString());
+
+            // Nếu có avatar file, thêm vào formData
+            if (userData.profileImage) {
+                formData.append('profileImage', userData.profileImage);
+            }
+
+            const response = await axiosInstance.put<ApiResponse<UserResponse>>(
+                USER_ENDPOINTS.UPDATE(userData.id || 0),
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * Xóa người dùng theo ID
+     */
+    async deleteUser(id: number): Promise<ApiResponse<UserResponse>> {
+        try {
+            const response = await axiosInstance.delete<ApiResponse<UserResponse>>(
+                USER_ENDPOINTS.DELETE(id)
             );
             return response.data;
         } catch (error) {

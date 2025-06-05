@@ -113,6 +113,32 @@ export class UserAPI {
         throw new Error(response.message || 'Failed to create user');
     }
 
+    /**
+     * Cập nhật thông tin người dùng
+     * @param userData Dữ liệu người dùng cần cập nhật
+     * @return Thông tin người dùng đã cập nhật
+     * */
+    static async updateUser(userData: UserRequest): Promise<UserResponse> {
+        const response = await userService.updateUser(userData);
+        if (response.status === 'success') {
+            return response.data;
+        }
+        throw new Error(response.message || 'Failed to update user');
+    }
+
+    /**
+     * Xóa người dùng theo ID
+     * @param id ID của người dùng cần xóa
+     * @return Thông tin người dùng đã xóa
+     */
+    static async deleteUser(id: number): Promise<UserResponse> {
+        const response = await userService.deleteUser(id);
+        if (response.status === 'success') {
+            return response.data;
+        }
+        throw new Error(response.message || 'Failed to delete user');
+    }
+
     // Utility functions using UserUtils
     /**
      * Utility function - Format user display name

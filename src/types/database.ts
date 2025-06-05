@@ -25,6 +25,7 @@ export type RegisterRequest = {
 }
 
 export type UserRequest = {
+    id?: number; // Optional for create, required for update
     username: string;
     email: string;
     password: string;
