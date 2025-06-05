@@ -1,5 +1,5 @@
 import axiosInstance from '@/utils/axios';
-import { UserResponse, UserProfileResponse } from '@/types/database';
+import { UserResponse, UserProfileResponse, UserFilterParams, PageResponse } from '@/types/database';
 import { USER_ENDPOINTS } from '@/constants/apiEndpoints';
 
 // Types for API responses
@@ -37,15 +37,28 @@ class UserService {
         } catch (error) {
             throw error;
         }
-    }
-
-    /**
+    }    /**
      * Lấy tổng số người dùng trong hệ thống
      */
     async getUserCount(): Promise<ApiResponse<{ count: number }>> {
         try {
             const response = await axiosInstance.get<ApiResponse<{ count: number }>>(
                 USER_ENDPOINTS.USER_COUNT
+            );
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * Lấy danh sách người dùng theo phân trang và lọc
+     */
+    async getPagedUsers(params: UserFilterParams): Promise<ApiResponse<PageResponse<UserResponse>>> {
+        try {
+            const response = await axiosInstance.get<ApiResponse<PageResponse<UserResponse>>>(
+                USER_ENDPOINTS.PAGED,
+                { params }
             );
             return response.data;
         } catch (error) {

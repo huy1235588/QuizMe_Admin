@@ -1,5 +1,5 @@
 import { userService } from '@/services/userService';
-import { UserResponse, UserProfileResponse } from '@/types/database';
+import { UserResponse, UserProfileResponse, UserFilterParams, PageResponse } from '@/types/database';
 import { UserUtils } from '@/utils/userUtils';
 
 /**
@@ -26,9 +26,7 @@ export class UserAPI {
             return response.data;
         }
         throw new Error(response.message || 'Failed to get top users');
-    }
-
-    /**
+    }    /**
      * Lấy tổng số người dùng trong hệ thống
      */
     static async getUserCount(): Promise<number> {
@@ -37,6 +35,17 @@ export class UserAPI {
             return response.data.count;
         }
         throw new Error(response.message || 'Failed to get user count');
+    }
+
+    /**
+     * Lấy danh sách người dùng theo phân trang và lọc
+     */
+    static async getPagedUsers(params: UserFilterParams): Promise<PageResponse<UserResponse>> {
+        const response = await userService.getPagedUsers(params);
+        if (response.status === 'success') {
+            return response.data;
+        }
+        throw new Error(response.message || 'Failed to get paged users');
     }
 
     /**

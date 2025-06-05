@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSnackbar } from 'notistack';
 import { useTheme } from '@/contexts/ThemeContext';
 import { UserAPI } from '@/api/userAPI';
-import { UserResponse, UserProfileResponse, Role } from '@/types/database';
+import { UserResponse, UserProfileResponse, Role, UserFilterParams, PageResponse } from '@/types/database';
 
 /**
  * Hook để quản lý danh sách người dùng top
@@ -457,5 +457,140 @@ export const useUsers = () => {
 
         // Utilities
         isDarkMode
+    };
+};
+
+/**
+ * Hook để quản lý danh sách người dùng theo phân trang và lọc
+ */
+export const usePagedUsers = () => {
+    const [users, setUsers] = useState<UserResponse[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(0); // 0-based for API
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [isLastPage, setIsLastPage] = useState(false);
+
+    // Filter states
+    const [searchQuery, setSearchQuery] = useState('');
+    const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name' | 'username'>('newest');
+
+    const { enqueueSnackbar } = useSnackbar();
+
+    const fetchPagedUsers = useCallback(async (params?: Partial<UserFilterParams>) => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const filterParams: UserFilterParams = {
+                page: params?.page ?? currentPage,
+                pageSize: params?.pageSize ?? pageSize,
+                search: params?.search ?? (searchQuery || undefined),
+                sort: params?.sort ?? sortBy,
+            };
+
+            const response = await UserAPI.getPagedUsers(filterParams);
+
+            setUsers(response.content);
+            setTotalElements(response.totalElements);
+            setTotalPages(response.totalPages);
+            setIsLastPage(response.last);
+
+            // Update current page if provided in params
+            if (params?.page !== undefined) {
+                setCurrentPage(params.page);
+            }
+            if (params?.pageSize !== undefined) {
+                setPageSize(params.pageSize);
+            }
+
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to fetch users';
+            setError(errorMessage);
+            enqueueSnackbar(errorMessage, { variant: 'error' });
+        } finally {
+            setLoading(false);
+        }
+    }, [currentPage, pageSize, searchQuery, sortBy, enqueueSnackbar]);
+
+    // Initial fetch
+    useEffect(() => {
+        fetchPagedUsers();
+    }, [fetchPagedUsers]);
+
+    // Handlers
+    const handlePageChange = useCallback((page: number) => {
+        const newPage = page - 1; // Convert UI (1-based) to API (0-based)
+        fetchPagedUsers({ page: newPage });
+    }, [fetchPagedUsers]);
+
+    const handlePageSizeChange = useCallback((newPageSize: number) => {
+        fetchPagedUsers({ page: 0, pageSize: newPageSize }); // Reset to first page
+    }, [fetchPagedUsers]);
+
+    const handleSearch = useCallback((query: string) => {
+        setSearchQuery(query);
+        fetchPagedUsers({ page: 0, search: query }); // Reset to first page
+    }, [fetchPagedUsers]);
+
+    const handleSortChange = useCallback((sort: 'newest' | 'oldest' | 'name' | 'username') => {
+        setSortBy(sort);
+        fetchPagedUsers({ page: 0, sort }); // Reset to first page
+    }, [fetchPagedUsers]);
+
+    const handleRefresh = useCallback(() => {
+        fetchPagedUsers();
+    }, [fetchPagedUsers]);
+
+    const handleReset = useCallback(() => {
+        setSearchQuery('');
+        setSortBy('newest');
+        fetchPagedUsers({ page: 0, pageSize: 10, search: undefined, sort: 'newest' });
+    }, [fetchPagedUsers]);
+
+    // Computed values
+    const hasUsers = users.length > 0;
+    const hasMore = !isLastPage;
+    const currentPageUI = currentPage + 1; // Convert API (0-based) to UI (1-based)
+    const startIndex = currentPage * pageSize + 1;
+    const endIndex = Math.min((currentPage + 1) * pageSize, totalElements);
+
+    return {
+        // Data
+        users,
+        loading,
+        error,
+
+        // Pagination
+        currentPage: currentPageUI,
+        pageSize,
+        totalElements,
+        totalPages,
+        isLastPage,
+        hasMore,
+        startIndex,
+        endIndex,
+
+        // Filters
+        searchQuery,
+        sortBy,
+
+        // Computed
+        hasUsers,
+
+        // Actions
+        handlePageChange,
+        handlePageSizeChange,
+        handleSearch,
+        handleSortChange,
+        handleRefresh,
+        handleReset,
+
+        // Direct fetch with params
+        fetchPagedUsers
     };
 };

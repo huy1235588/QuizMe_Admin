@@ -130,6 +130,13 @@ export type QuestionFilterParams = {
     timeLimit?: number;
 }
 
+export type UserFilterParams = {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    sort?: 'newest' | 'oldest' | 'name' | 'username';
+}
+
 //-------------------------------------------------------------------------
 // Response Types - Kiểu dữ liệu cho các phản hồi từ server về client
 //-------------------------------------------------------------------------

@@ -27,6 +27,7 @@ export const USER_ENDPOINTS = {
     GET_BY_ID: (id: number) => `/api/users/${id}`,
     TOP_USERS: '/api/users/top',
     USER_COUNT: '/api/users/count',
+    PAGED: '/api/users/paged',
     PROFILE_BY_ID: (id: number) => `/api/users/profile/${id}`,
     AVATAR_UPLOAD: '/api/users/avatar/upload',
     AVATAR_REMOVE: '/api/users/avatar',

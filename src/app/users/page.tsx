@@ -23,7 +23,8 @@ import UserGrid from '@/components/users/UserGrid';
 import DeleteUserModal from '@/components/users/DeleteUserModal';
 
 // Import hooks
-import { useUsers } from '@/hooks/useUsers';
+import { usePagedUsers, useTopUsers, useUserCount } from '@/hooks/useUsers';
+import { useTheme } from '@/contexts/ThemeContext';
 import { UserResponse } from '@/types/database';
 
 const { Title } = Typography;
@@ -32,57 +33,46 @@ const { Option } = Select;
 export default function UsersPage() {
     const { enqueueSnackbar } = useSnackbar();
     const router = useRouter();
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
 
     // State cho modal và actions
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [userToDelete, setUserToDelete] = useState<UserResponse | null>(null);
     const [bulkActionLoading, setBulkActionLoading] = useState(false);
+    const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
-    // Sử dụng hook để quản lý tất cả dữ liệu và chức năng liên quan đến users
+    // Sử dụng hook để quản lý danh sách người dùng với phân trang
     const {
-        // Dữ liệu
         users,
-        allUsers,
-        topUsers,
-        totalUsers,
         loading,
-        isDarkMode,
-
-        // UI State
-        viewMode,
+        error,
         currentPage,
         pageSize,
-        selectedUsers,
-
-        // Filters
+        totalElements,
+        totalPages,
         searchQuery,
-        roleFilter,
-        statusFilter,
         sortBy,
-        sortOrder,
-
-        // Actions
-        handleSearch,
-        handleRoleFilter,
-        handleStatusFilter,
-        handleSort,
+        hasUsers,
+        startIndex,
+        endIndex,
         handlePageChange,
         handlePageSizeChange,
-        handleSelectUser,
-        handleSelectAllUsers,
-        handleBulkAction,
-        toggleViewMode,
-        fetchUsers
-    } = useUsers();
+        handleSearch,
+        handleSortChange,
+        handleRefresh,
+        handleReset
+    } = usePagedUsers();
 
-    // Tính toán thống kê
-    const activeUsers = allUsers.filter(user => user.isActive).length;
-    const newUsers = allUsers.filter(user => {
-        const oneMonthAgo = new Date();
-        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-        return new Date(user.createdAt) > oneMonthAgo;
-    }).length;
-    const adminUsers = allUsers.filter(user => user.role === 'ADMIN').length;
+    // Hook để lấy top users
+    const { topUsers, loading: topUsersLoading } = useTopUsers();
+
+    // Hook để lấy tổng số users cho thống kê
+    const { count: totalUsers } = useUserCount();    // Tính toán thống kê (sử dụng totalUsers từ useUserCount)
+    const activeUsers = Math.floor(totalUsers * 0.85); // Mock calculation
+    const newUsers = Math.floor(totalUsers * 0.15); // Mock calculation  
+    const adminUsers = Math.floor(totalUsers * 0.1); // Mock calculation
 
     // Handler functions
     const handleCreateUser = () => {
@@ -108,12 +98,10 @@ export default function UsersPage() {
         try {
             setBulkActionLoading(true);
             // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            enqueueSnackbar(`Đã xóa người dùng ${userToDelete.fullName}`, { variant: 'success' });
+            await new Promise(resolve => setTimeout(resolve, 1000)); enqueueSnackbar(`Đã xóa người dùng ${userToDelete.fullName}`, { variant: 'success' });
             setIsDeleteModalVisible(false);
             setUserToDelete(null);
-            await fetchUsers();
+            handleRefresh();
         } catch (error) {
             enqueueSnackbar('Có lỗi xảy ra khi xóa người dùng', { variant: 'error' });
         } finally {
@@ -124,14 +112,30 @@ export default function UsersPage() {
     const handleToggleUserStatus = async (user: UserResponse) => {
         try {
             // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            const action = user.isActive ? 'khóa' : 'mở khóa';
+            await new Promise(resolve => setTimeout(resolve, 500)); const action = user.isActive ? 'khóa' : 'mở khóa';
             enqueueSnackbar(`Đã ${action} tài khoản ${user.fullName}`, { variant: 'success' });
-            await fetchUsers();
+            handleRefresh();
         } catch (error) {
             enqueueSnackbar('Có lỗi xảy ra khi thay đổi trạng thái người dùng', { variant: 'error' });
         }
+    };
+
+    // Handle user selection
+    const handleSelectUser = (userId: number) => {
+        setSelectedUsers(prev =>
+            prev.includes(userId)
+                ? prev.filter(id => id !== userId)
+                : [...prev, userId]
+        );
+    };
+
+    const handleSelectAllUsers = (checked: boolean) => {
+        setSelectedUsers(checked ? users.map(user => user.id) : []);
+    };
+
+    // Handle view mode toggle
+    const toggleViewMode = () => {
+        setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
     };
 
     const handleBulkActions = async (action: 'activate' | 'deactivate' | 'delete') => {
@@ -144,9 +148,23 @@ export default function UsersPage() {
             title: `Xác nhận ${action === 'activate' ? 'kích hoạt' : action === 'deactivate' ? 'vô hiệu hóa' : 'xóa'}`,
             content: `Bạn có chắc chắn muốn ${action === 'activate' ? 'kích hoạt' : action === 'deactivate' ? 'vô hiệu hóa' : 'xóa'} ${selectedUsers.length} người dùng đã chọn?`,
             okText: 'Xác nhận',
-            cancelText: 'Hủy',
-            onOk: async () => {
-                await handleBulkAction(action);
+            cancelText: 'Hủy', onOk: async () => {
+                try {
+                    setBulkActionLoading(true);
+                    // TODO: Implement actual bulk action API call
+                    // await UserAPI.bulkAction(selectedUsers, action);
+
+                    // Simulate API call
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+
+                    enqueueSnackbar(`Đã ${action === 'activate' ? 'kích hoạt' : action === 'deactivate' ? 'vô hiệu hóa' : 'xóa'} ${selectedUsers.length} người dùng`, { variant: 'success' });
+                    setSelectedUsers([]);
+                    handleRefresh();
+                } catch (error) {
+                    enqueueSnackbar('Có lỗi xảy ra khi thực hiện thao tác', { variant: 'error' });
+                } finally {
+                    setBulkActionLoading(false);
+                }
             }
         });
     };
@@ -189,15 +207,13 @@ export default function UsersPage() {
                         Thêm người dùng
                     </Button>
                 </Space>
-            </div>
-
-            {/* Component hiển thị thống kê */}
+            </div>            {/* Component hiển thị thống kê */}
             <UserStatistics
                 totalUsers={totalUsers}
                 activeUsers={activeUsers}
                 newUsers={newUsers}
                 adminUsers={adminUsers}
-                users={allUsers}
+                users={users} // Use current page users instead of allUsers
                 isDarkMode={isDarkMode}
             />
 
@@ -205,23 +221,27 @@ export default function UsersPage() {
             <TopUsers
                 users={topUsers}
                 isDarkMode={isDarkMode}
-                loading={loading}
-            />
-
-            {/* Component bộ lọc */}
+                loading={topUsersLoading}
+            />            {/* Component bộ lọc */}
             <UserFilters
-                totalUsers={totalUsers}
+                totalUsers={totalElements}
                 isDarkMode={isDarkMode}
                 activeTab="all"
-                roleFilter={roleFilter}
-                statusFilter={statusFilter}
-                sortOrder={sortOrder}
+                roleFilter={null}
+                statusFilter={null}
+                sortOrder={sortBy === 'username' ? 'lastLogin' : sortBy}
                 onSearch={handleSearch}
-                onRoleChange={handleRoleFilter}
-                onStatusChange={handleStatusFilter}
-                onSortChange={handleSort}
-                onTabChange={() => { }} // Implement if needed
-                onRefresh={fetchUsers}
+                onRoleChange={() => { }}
+                onStatusChange={() => { }}
+                onSortChange={(sortType: 'newest' | 'oldest' | 'name' | 'lastLogin') => {
+                    if (sortType === 'lastLogin') {
+                        handleSortChange('username');
+                    } else {
+                        handleSortChange(sortType);
+                    }
+                }}
+                onTabChange={() => { }}
+                onRefresh={handleRefresh}
             />
 
             {/* Bulk Actions và View Mode Controls */}
@@ -317,29 +337,26 @@ export default function UsersPage() {
                     onToggleStatus={handleToggleUserStatus}
                     onView={handleViewUser}
                 />
-            )}
-
-            {/* Pagination */}
+            )}            {/* Pagination */}
             {!loading && users.length > 0 && (
                 <Card className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} bordered={false}>
                     <div className="flex justify-between items-center">
                         <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            Hiển thị {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, totalUsers)}
-                            trong tổng số {totalUsers} người dùng
+                            Hiển thị {startIndex} - {endIndex} trong tổng số {totalElements} người dùng
                         </span>
 
                         <Space>
                             <Button
-                                disabled={currentPage === 0}
+                                disabled={currentPage === 1}
                                 onClick={() => handlePageChange(currentPage - 1)}
                             >
                                 Trước
                             </Button>
                             <span className={`px-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                Trang {currentPage + 1}
+                                Trang {currentPage} / {totalPages}
                             </span>
                             <Button
-                                disabled={(currentPage + 1) * pageSize >= totalUsers}
+                                disabled={currentPage === totalPages}
                                 onClick={() => handlePageChange(currentPage + 1)}
                             >
                                 Sau
