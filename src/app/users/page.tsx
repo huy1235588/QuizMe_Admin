@@ -26,6 +26,7 @@ import DeleteUserModal from '@/components/users/DeleteUserModal';
 import { usePagedUsers, useTopUsers, useUserCount } from '@/hooks/useUsers';
 import { useTheme } from '@/contexts/ThemeContext';
 import { UserResponse } from '@/types/database';
+import { UserAPI } from '@/api/userAPI';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -77,10 +78,8 @@ export default function UsersPage() {
     // Handler functions
     const handleCreateUser = () => {
         router.push('/users/new');
-    };
-
-    const handleEditUser = (user: UserResponse) => {
-        router.push(`/users/${user.id}`);
+    }; const handleEditUser = (user: UserResponse) => {
+        router.push(`/users/${user.id}/edit`);
     };
 
     const handleViewUser = (user: UserResponse) => {
@@ -90,19 +89,20 @@ export default function UsersPage() {
     const handleDeleteUser = (user: UserResponse) => {
         setUserToDelete(user);
         setIsDeleteModalVisible(true);
-    };
-
+    }; 
+    
     const confirmDeleteUser = async () => {
         if (!userToDelete) return;
 
         try {
             setBulkActionLoading(true);
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000)); enqueueSnackbar(`Đã xóa người dùng ${userToDelete.fullName}`, { variant: 'success' });
+            await UserAPI.deleteUser(userToDelete.id);
+            enqueueSnackbar(`Đã xóa người dùng ${userToDelete.fullName}`, { variant: 'success' });
             setIsDeleteModalVisible(false);
             setUserToDelete(null);
             handleRefresh();
         } catch (error) {
+            console.error('Error deleting user:', error);
             enqueueSnackbar('Có lỗi xảy ra khi xóa người dùng', { variant: 'error' });
         } finally {
             setBulkActionLoading(false);

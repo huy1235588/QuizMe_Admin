@@ -9,6 +9,7 @@ import { useSnackbar } from 'notistack';
 // Import components
 import UserDetailCard from '@/components/users/UserDetailCard';
 import UserForm from '@/components/users/UserForm';
+import DeleteUserModal from '@/components/users/DeleteUserModal';
 
 // Import hooks
 import { useUser } from '@/hooks/useUsers';
@@ -19,10 +20,11 @@ import { UserAPI } from '@/api/userAPI';
 export default function UserDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const { enqueueSnackbar } = useSnackbar();
-    const { theme } = useTheme();
+    const { enqueueSnackbar } = useSnackbar(); const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
-    const [saveLoading, setSaveLoading] = React.useState(false); const userId = params?.id ? (params.id === 'new' ? null : parseInt(params.id as string)) : null;
+    const [saveLoading, setSaveLoading] = React.useState(false);
+    const [deleteModalVisible, setDeleteModalVisible] = React.useState(false);
+    const [deleteLoading, setDeleteLoading] = React.useState(false); const userId = params?.id ? (params.id === 'new' ? null : parseInt(params.id as string)) : null;
     const isNewUser = params?.id === 'new';
 
     // Only fetch user data if not creating new user
@@ -62,9 +64,7 @@ export default function UserDetailPage() {
 
     const handleCancel = () => {
         router.push('/users');
-    };
-
-    const handleToggleStatus = async () => {
+    }; const handleToggleStatus = async () => {
         if (!user) return;
 
         try {
@@ -77,6 +77,31 @@ export default function UserDetailPage() {
         } catch (error) {
             enqueueSnackbar('Có lỗi xảy ra khi thay đổi trạng thái người dùng', { variant: 'error' });
         }
+    };
+
+    const handleDelete = () => {
+        setDeleteModalVisible(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!user) return;
+
+        setDeleteLoading(true);
+        try {
+            await UserAPI.deleteUser(user.id);
+            enqueueSnackbar(`Đã xóa người dùng ${user.fullName} thành công`, { variant: 'success' });
+            router.push('/users');
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            enqueueSnackbar('Có lỗi xảy ra khi xóa người dùng', { variant: 'error' });
+        } finally {
+            setDeleteLoading(false);
+            setDeleteModalVisible(false);
+        }
+    };
+
+    const handleDeleteCancel = () => {
+        setDeleteModalVisible(false);
     }; if (loading && !isNewUser) {
         return (
             <div className="flex justify-center items-center min-h-[400px]">
@@ -177,15 +202,24 @@ export default function UserDetailPage() {
                                         onCancel={handleCancel}
                                         loading={saveLoading}
                                     />
-                                </div>
-                            ) : user && (
-                                <UserDetailCard
-                                    user={user}
-                                    isDarkMode={isDarkMode}
-                                    onEdit={handleEdit}
-                                    onToggleStatus={handleToggleStatus}
-                                />
-                            )}
+                                </div>) : user && (
+                                    <>
+                                        <UserDetailCard
+                                            user={user}
+                                            isDarkMode={isDarkMode}
+                                            onEdit={handleEdit}
+                                            onToggleStatus={handleToggleStatus}
+                                            onDelete={handleDelete}
+                                        />
+                                        <DeleteUserModal
+                                            visible={deleteModalVisible}
+                                            user={user}
+                                            onCancel={handleDeleteCancel}
+                                            onConfirm={handleDeleteConfirm}
+                                            loading={deleteLoading}
+                                        />
+                                    </>
+                                )}
                         </div>
                     </div>
                 </div>

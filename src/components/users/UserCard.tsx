@@ -166,12 +166,51 @@ const UserCard: React.FC<UserCardProps> = ({
                     >
                         {user.isActive ? 'Hoạt động' : 'Bị khóa'}
                     </Tag>
-                </Space>
-
-                {/* Dates */}
+                </Space>                {/* Dates */}
                 <div className={`text-xs space-y-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                     <div>Tham gia: {formatDate(user.createdAt)}</div>
                     <div>Lần cuối: {getLastLoginText()}</div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-center space-x-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <Tooltip title="Xem chi tiết">
+                        <Button
+                            type="text"
+                            icon={<EyeOutlined />}
+                            size="small"
+                            onClick={handleView}
+                            className="text-blue-500 hover:text-blue-600"
+                        />
+                    </Tooltip>
+                    <Tooltip title="Chỉnh sửa">
+                        <Button
+                            type="text"
+                            icon={<EditOutlined />}
+                            size="small"
+                            onClick={() => onEdit?.(user)}
+                            className="text-green-500 hover:text-green-600"
+                        />
+                    </Tooltip>
+                    <Tooltip title={user.isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}>
+                        <Button
+                            type="text"
+                            icon={user.isActive ? <LockOutlined /> : <UnlockOutlined />}
+                            size="small"
+                            onClick={() => onToggleStatus?.(user)}
+                            className={user.isActive ? "text-orange-500 hover:text-orange-600" : "text-green-500 hover:text-green-600"}
+                        />
+                    </Tooltip>
+                    <Tooltip title="Xóa">
+                        <Button
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            size="small"
+                            danger
+                            onClick={() => onDelete?.(user)}
+                            className="text-red-500 hover:text-red-600"
+                        />
+                    </Tooltip>
                 </div>
             </div>
         </Card>

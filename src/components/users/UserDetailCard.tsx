@@ -10,7 +10,8 @@ import {
     EditOutlined,
     LockOutlined,
     UnlockOutlined,
-    CrownOutlined
+    CrownOutlined,
+    DeleteOutlined
 } from '@ant-design/icons';
 import { UserResponse } from '@/types/database';
 
@@ -19,13 +20,15 @@ interface UserDetailCardProps {
     isDarkMode?: boolean;
     onEdit?: (user: UserResponse) => void;
     onToggleStatus?: (user: UserResponse) => void;
+    onDelete?: () => void;
 }
 
 const UserDetailCard: React.FC<UserDetailCardProps> = ({
     user,
     isDarkMode = false,
     onEdit,
-    onToggleStatus
+    onToggleStatus,
+    onDelete
 }) => {
     const cardClass = isDarkMode
         ? 'bg-gray-800 border-gray-700'
@@ -66,8 +69,8 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
         <div className="space-y-8">
             {/* User Profile Header */}
             <div className={`relative overflow-hidden rounded-2xl p-8 ${isDarkMode
-                    ? 'bg-gradient-to-br from-gray-700 to-gray-800 border border-gray-600'
-                    : 'bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200'
+                ? 'bg-gradient-to-br from-gray-700 to-gray-800 border border-gray-600'
+                : 'bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200'
                 }`}>
                 <div className="relative z-10">
                     <Row gutter={[32, 32]} align="middle">
@@ -76,8 +79,8 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
                                 {/* Enhanced Avatar */}
                                 <div className="relative inline-block">
                                     <div className={`p-1 rounded-full ${user.isActive
-                                            ? 'bg-gradient-to-r from-green-400 to-blue-500'
-                                            : 'bg-gradient-to-r from-gray-400 to-gray-600'
+                                        ? 'bg-gradient-to-r from-green-400 to-blue-500'
+                                        : 'bg-gradient-to-r from-gray-400 to-gray-600'
                                         }`}>
                                         <Avatar
                                             size={140}
@@ -117,14 +120,14 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
                                 {/* Enhanced Tags */}
                                 <div className="flex justify-center space-x-3">
                                     <div className={`px-4 py-2 rounded-full font-medium text-sm ${user.role === 'ADMIN'
-                                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                                            : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
+                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                                        : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
                                         }`}>
                                         {user.role === 'ADMIN' ? '👑 Quản trị viên' : '👤 Người dùng'}
                                     </div>
                                     <div className={`px-4 py-2 rounded-full font-medium text-sm ${user.isActive
-                                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
-                                            : 'bg-gradient-to-r from-red-500 to-pink-500 text-white'
+                                        ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                                        : 'bg-gradient-to-r from-red-500 to-pink-500 text-white'
                                         }`}>
                                         {user.isActive ? '✅ Hoạt động' : '🔒 Bị khóa'}
                                     </div>
@@ -180,30 +183,37 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
                                             </div>
                                         </div>
                                     </Col>
-                                </Row>
-
-                                {/* Action Buttons */}
+                                </Row>                                {/* Action Buttons */}
                                 <div className="flex flex-wrap gap-4">
                                     <Button
                                         type="primary"
                                         icon={<EditOutlined />}
                                         onClick={() => onEdit?.(user)}
-                                        className="flex-1 min-w-[200px] h-12 text-base font-medium bg-gradient-to-r from-blue-500 to-cyan-500 border-0 hover:from-blue-600 hover:to-cyan-600"
+                                        className="flex-1 min-w-[180px] h-12 text-base font-medium bg-gradient-to-r from-blue-500 to-cyan-500 border-0 hover:from-blue-600 hover:to-cyan-600"
                                         size="large"
                                     >
-                                        ✏️ Chỉnh sửa thông tin
+                                        Chỉnh sửa thông tin
                                     </Button>
                                     <Button
                                         type={user.isActive ? "default" : "primary"}
                                         icon={user.isActive ? <LockOutlined /> : <UnlockOutlined />}
                                         onClick={() => onToggleStatus?.(user)}
-                                        className={`flex-1 min-w-[200px] h-12 text-base font-medium border-0 ${user.isActive
-                                                ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white'
-                                                : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
+                                        className={`flex-1 min-w-[180px] h-12 text-base font-medium border-0 ${user.isActive
+                                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white'
+                                            : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
                                             }`}
                                         size="large"
                                     >
-                                        {user.isActive ? '🔒 Khóa tài khoản' : '🔓 Mở khóa tài khoản'}
+                                        {user.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
+                                    </Button>
+                                    <Button
+                                        danger
+                                        icon={<DeleteOutlined />}
+                                        onClick={onDelete}
+                                        className="flex-1 min-w-[180px] h-12 text-base font-medium bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 border-0 text-white"
+                                        size="large"
+                                    >
+                                        Xóa người dùng
                                     </Button>
                                 </div>
                             </div>
@@ -296,8 +306,8 @@ const UserDetailCard: React.FC<UserDetailCardProps> = ({
                                     </span>
                                 </div>
                                 <span className={`font-semibold px-3 py-1 rounded-full text-sm ${user.isActive
-                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                                     }`}>
                                     {user.isActive ? 'Đang hoạt động' : 'Tạm khóa'}
                                 </span>

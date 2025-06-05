@@ -1,50 +1,81 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, Card, Row, Col, Select, Switch, Avatar, Upload, message } from 'antd';
 import { UserOutlined, UploadOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import type { UploadFile, UploadProps } from 'antd';
-import { UserRequest } from '@/types/database';
+import { UserRequest, UserResponse } from '@/types/database';
 
 const { Option } = Select;
 
 interface UserFormProps {
+    formId?: string;
     isDarkMode?: boolean;
+    initialData?: UserResponse;
     onSave: (userData: UserRequest) => Promise<void>;
     onCancel: () => void;
     loading?: boolean;
+    isEditMode?: boolean;
 }
 
 const UserForm: React.FC<UserFormProps> = ({
+    formId,
     isDarkMode = false,
+    initialData,
     onSave,
     onCancel,
-    loading = false
+    loading = false,
+    isEditMode = false
 }) => {
     const [form] = Form.useForm();
     const [avatarUrl, setAvatarUrl] = useState<string>('');
     const [avatarFile, setAvatarFile] = useState<File | undefined>();
 
+    // Set initial values when in edit mode
+    useEffect(() => {
+        if (isEditMode && initialData) {
+            form.setFieldsValue({
+                username: initialData.username,
+                email: initialData.email,
+                fullName: initialData.fullName,
+                role: initialData.role,
+                isActive: initialData.isActive
+            });
+
+            if (initialData.profileImage) {
+                setAvatarUrl(initialData.profileImage);
+            }
+        }
+    }, [form, isEditMode, initialData]);
+
     const cardClass = isDarkMode
         ? 'bg-gray-800 border-gray-700'
-        : 'bg-white border-gray-200';
+        : 'bg-white border-gray-200'; const handleSubmit = async (values: any) => {
+            try {
+                const userData: any = {
+                    username: values.username,
+                    email: values.email,
+                    fullName: values.fullName,
+                    role: values.role,
+                    isActive: values.isActive,
+                    profileImage: avatarFile
+                };
 
-    const handleSubmit = async (values: UserRequest) => {
-        try {
-            const userData: UserRequest = {
-                username: values.username,
-                email: values.email,
-                password: values.password,
-                fullName: values.fullName,
-                role: values.role,
-                isActive: values.isActive,
-                profileImage: avatarFile
-            };
-            await onSave(userData);
-        } catch (error) {
-            console.error('Lỗi khi lưu người dùng:', error);
-        }
-    };
+                // Include ID for updates
+                if (isEditMode && initialData?.id) {
+                    userData.id = initialData.id;
+                }
+
+                // Include password if provided or if creating new user
+                if (!isEditMode || values.password) {
+                    userData.password = values.password;
+                }
+
+                await onSave(userData);
+            } catch (error) {
+                console.error('Lỗi khi lưu người dùng:', error);
+            }
+        };
 
     const uploadProps: UploadProps = {
         name: 'avatar',
@@ -87,7 +118,9 @@ const UserForm: React.FC<UserFormProps> = ({
         <div className="space-y-8">
             <Form
                 form={form}
-                layout="vertical" onFinish={handleSubmit}
+                layout="vertical"
+                onFinish={handleSubmit}
+                id={formId}
                 initialValues={{
                     role: 'USER',
                     isActive: true
@@ -219,23 +252,23 @@ const UserForm: React.FC<UserFormProps> = ({
                                     size="large"
                                 />
                             </Form.Item>
-                        </Col>
-
-                        <Col xs={24} md={12}>
+                        </Col>                        <Col xs={24} md={12}>
                             <Form.Item
                                 name="password"
                                 label={
                                     <span className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        🔒 Mật khẩu
+                                        🔒 {isEditMode ? 'Mật khẩu mới (để trống nếu không đổi)' : 'Mật khẩu'}
                                     </span>
                                 }
-                                rules={[
+                                rules={isEditMode ? [
+                                    { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' }
+                                ] : [
                                     { required: true, message: 'Vui lòng nhập mật khẩu!' },
                                     { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' }
                                 ]}
                             >
                                 <Input.Password
-                                    placeholder="Nhập mật khẩu"
+                                    placeholder={isEditMode ? "Để trống nếu không muốn đổi mật khẩu" : "Nhập mật khẩu"}
                                     className={`h-12 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
                                     size="large"
                                 />
@@ -353,7 +386,10 @@ const UserForm: React.FC<UserFormProps> = ({
                             }`}
                         size="large"
                     >
-                        {loading ? '⏳ Đang tạo...' : 'Tạo người dùng'}
+                        {loading
+                            ? (isEditMode ? '⏳ Đang cập nhật...' : '⏳ Đang tạo...')
+                            : (isEditMode ? 'Cập nhật người dùng' : 'Tạo người dùng')
+                        }
                     </Button>
                 </div>
             </Form>
