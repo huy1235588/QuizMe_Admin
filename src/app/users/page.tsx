@@ -9,7 +9,8 @@ import {
     FiDownload,
     FiTrash2,
     FiLock,
-    FiUnlock
+    FiUnlock,
+    FiFileText
 } from 'react-icons/fi';
 import { useSnackbar } from 'notistack';
 import { useRouter } from 'next/navigation';
@@ -21,6 +22,8 @@ import UserFilters from '@/components/users/UserFilters';
 import UserList from '@/components/users/UserList';
 import UserGrid from '@/components/users/UserGrid';
 import DeleteUserModal from '@/components/users/DeleteUserModal';
+import ExportModal from '@/components/users/ExportModal';
+import ExportDropdown from '@/components/users/ExportDropdown';
 
 // Import hooks
 import { usePagedUsers, useTopUsers, useUserCount } from '@/hooks/useUsers';
@@ -35,12 +38,13 @@ export default function UsersPage() {
     const { enqueueSnackbar } = useSnackbar();
     const router = useRouter();
     const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
-
-    // State cho modal và actions
+    const isDarkMode = theme === 'dark';    // State cho modal và actions
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [isExportModalVisible, setIsExportModalVisible] = useState(false);
+    const [exportType, setExportType] = useState<'current' | 'all'>('current');
     const [userToDelete, setUserToDelete] = useState<UserResponse | null>(null);
     const [bulkActionLoading, setBulkActionLoading] = useState(false);
+    const [exportLoading, setExportLoading] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
@@ -167,15 +171,51 @@ export default function UsersPage() {
                 }
             }
         });
+    }; const handleExportUsers = () => {
+        setExportType('current');
+        setIsExportModalVisible(true);
     };
 
-    const handleExportUsers = () => {
-        // Simulate export functionality
-        enqueueSnackbar('Đang xuất dữ liệu người dùng...', { variant: 'info' });
+    const handleExportAllUsers = () => {
+        setExportType('all');
+        setIsExportModalVisible(true);
+    };
 
-        setTimeout(() => {
+    const handleExportConfirm = async (format: 'excel' | 'csv', includeFields: string[]) => {
+        try {
+            setExportLoading(true);
+
+            enqueueSnackbar('Đang xuất dữ liệu người dùng...', { variant: 'info' });
+
+            const usersToExport = exportType === 'all' ? undefined : users;
+
+            if (format === 'excel') {
+                await UserAPI.exportUsersToExcel(usersToExport, { includeFields });
+            } else {
+                await UserAPI.exportUsersToCSV(usersToExport, { includeFields });
+            }
+
             enqueueSnackbar('Đã xuất dữ liệu thành công', { variant: 'success' });
-        }, 2000);
+            setIsExportModalVisible(false);
+        } catch (error) {
+            console.error('Error exporting users:', error);
+            enqueueSnackbar('Có lỗi xảy ra khi xuất dữ liệu', { variant: 'error' });
+        } finally {
+            setExportLoading(false);
+        }
+    };
+
+    const handleCreateImportTemplate = async () => {
+        try {
+            enqueueSnackbar('Đang tạo template import...', { variant: 'info' });
+
+            await UserAPI.createImportTemplate();
+
+            enqueueSnackbar('Đã tạo template import thành công', { variant: 'success' });
+        } catch (error) {
+            console.error('Error creating import template:', error);
+            enqueueSnackbar('Có lỗi xảy ra khi tạo template import', { variant: 'error' });
+        }
     };
 
     return (
@@ -187,16 +227,16 @@ export default function UsersPage() {
                     <p className={`m-0 mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         Quản lý và theo dõi tất cả người dùng trong hệ thống
                     </p>
-                </div>
-
-                <Space size="middle" wrap>
-                    <Button
-                        icon={<FiDownload />}
-                        onClick={handleExportUsers}
-                        className={isDarkMode ? 'border-gray-600' : ''}
-                    >
-                        Xuất dữ liệu
-                    </Button>
+                </div>                <Space size="middle" wrap>
+                    <ExportDropdown
+                        onExportCurrent={handleExportUsers}
+                        onExportAll={handleExportAllUsers}
+                        onCreateTemplate={handleCreateImportTemplate}
+                        loading={exportLoading}
+                        isDarkMode={isDarkMode}
+                        currentCount={users.length}
+                        totalCount={totalElements}
+                    />
                     <Button
                         type="primary"
                         size="large"
@@ -207,7 +247,9 @@ export default function UsersPage() {
                         Thêm người dùng
                     </Button>
                 </Space>
-            </div>            {/* Component hiển thị thống kê */}
+            </div>
+
+            {/* Component hiển thị thống kê */}
             <UserStatistics
                 totalUsers={totalUsers}
                 activeUsers={activeUsers}
@@ -364,9 +406,7 @@ export default function UsersPage() {
                         </Space>
                     </div>
                 </Card>
-            )}
-
-            {/* Modal xác nhận xóa */}
+            )}            {/* Modal xác nhận xóa */}
             <DeleteUserModal
                 visible={isDeleteModalVisible}
                 user={userToDelete}
@@ -376,6 +416,16 @@ export default function UsersPage() {
                 }}
                 onConfirm={confirmDeleteUser}
                 loading={bulkActionLoading}
+            />            {/* Modal xuất dữ liệu */}
+            <ExportModal
+                visible={isExportModalVisible}
+                onCancel={() => setIsExportModalVisible(false)}
+                onExport={handleExportConfirm}
+                loading={exportLoading}
+                isDarkMode={isDarkMode}
+                exportType={exportType}
+                currentCount={users.length}
+                totalCount={totalElements}
             />
         </div>
     );

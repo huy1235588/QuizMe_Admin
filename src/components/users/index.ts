@@ -8,3 +8,5 @@ export { default as UserDetailCard } from './UserDetailCard';
 export { default as UserForm } from './UserForm';
 export { default as TopUsers } from './TopUsers';
 export { default as DeleteUserModal } from './DeleteUserModal';
+export { default as ExportModal } from './ExportModal';
+export { default as ExportDropdown } from './ExportDropdown';

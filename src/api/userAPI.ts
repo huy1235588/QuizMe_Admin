@@ -1,6 +1,7 @@
 import { userService } from '@/services/userService';
 import { UserResponse, UserProfileResponse, UserFilterParams, PageResponse, UserRequest } from '@/types/database';
 import { UserUtils } from '@/utils/userUtils';
+import { ExportService, ExportOptions } from '@/services/exportService';
 
 /**
  * User API Helper - Utility functions for user management
@@ -222,5 +223,82 @@ export class UserAPI {
      */
     static calculateUserStats(profile: UserProfileResponse) {
         return UserUtils.calculateUserStats(profile);
+    }    /**
+     * Lấy tất cả người dùng để xuất dữ liệu
+     */
+    static async getAllUsersForExport(): Promise<UserResponse[]> {
+        try {
+            // Lấy tất cả users với page size lớn
+            const params: UserFilterParams = {
+                page: 1,
+                pageSize: 10000, // Lấy tối đa 10000 users
+                sort: 'newest'
+            };
+
+            const response = await userService.getPagedUsers(params);
+            if (response.status === 'success') {
+                return response.data.content;
+            }
+            throw new Error(response.message || 'Failed to get users for export');
+        } catch (error) {
+            console.error('Error getting users for export:', error);
+            throw new Error('Không thể lấy dữ liệu người dùng để xuất');
+        }
+    }
+
+    /**
+     * Xuất dữ liệu người dùng ra file Excel
+     */
+    static async exportUsersToExcel(
+        users?: UserResponse[],
+        options?: Partial<ExportOptions>
+    ): Promise<void> {
+        try {
+            const usersToExport = users || await this.getAllUsersForExport();
+            const exportOptions: ExportOptions = {
+                format: 'excel',
+                fileName: 'danh-sach-nguoi-dung',
+                ...options
+            };
+
+            await ExportService.exportUsers(usersToExport, exportOptions);
+        } catch (error) {
+            console.error('Error exporting users to Excel:', error);
+            throw new Error('Có lỗi xảy ra khi xuất dữ liệu ra Excel');
+        }
+    }
+
+    /**
+     * Xuất dữ liệu người dùng ra file CSV
+     */
+    static async exportUsersToCSV(
+        users?: UserResponse[],
+        options?: Partial<ExportOptions>
+    ): Promise<void> {
+        try {
+            const usersToExport = users || await this.getAllUsersForExport();
+            const exportOptions: ExportOptions = {
+                format: 'csv',
+                fileName: 'danh-sach-nguoi-dung',
+                ...options
+            };
+
+            await ExportService.exportUsers(usersToExport, exportOptions);
+        } catch (error) {
+            console.error('Error exporting users to CSV:', error);
+            throw new Error('Có lỗi xảy ra khi xuất dữ liệu ra CSV');
+        }
+    }
+
+    /**
+     * Tạo template Excel để import người dùng
+     */
+    static async createImportTemplate(): Promise<void> {
+        try {
+            await ExportService.createUserImportTemplate();
+        } catch (error) {
+            console.error('Error creating import template:', error);
+            throw new Error('Có lỗi xảy ra khi tạo template import');
+        }
     }
 }
