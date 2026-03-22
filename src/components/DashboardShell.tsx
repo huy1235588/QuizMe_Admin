@@ -146,55 +146,58 @@ export default function DashboardShell({
                                 key: 'quizzes',
                                 icon: <FiHelpCircle />,
                                 label: t('quizzes'),
-                                children: [{
-                                    key: 'quizzes-list',
-                                    icon: <FiList />,
-                                    label: t('allQuizzes'),
-                                    onClick: () => router.push('/quizzes')
-                                },
-                                {
-                                    key: 'quizzes-add',
-                                    icon: <FiPlus />,
-                                    label: t('addQuiz'),
-                                    onClick: () => router.push('/quizzes/new')
-                                }
-                                ]
+                                onClick: () => router.push('/quizzes'),
+                                // children: [{
+                                //     key: 'quizzes-list',
+                                //     icon: <FiList />,
+                                //     label: t('allQuizzes'),
+                                //     onClick: () => router.push('/quizzes')
+                                // },
+                                // {
+                                //     key: 'quizzes-add',
+                                //     icon: <FiPlus />,
+                                //     label: t('addQuiz'),
+                                //     onClick: () => router.push('/quizzes/new')
+                                // }
+                                // ]
                             }, {
                                 key: 'categories',
                                 icon: <FiFolder />,
                                 label: t('categories'),
-                                children: [{
-                                    key: 'categories-list',
-                                    icon: <FiList />,
-                                    label: t('allCategories'),
-                                    onClick: () => router.push('/categories')
-                                },
-                                {
-                                    key: 'categories-add',
-                                    icon: <FiPlus />,
-                                    label: t('addCategory'),
-                                    onClick: () => router.push('/categories/new')
-                                }
-                                ]
-                            }, {
-                                key: 'questions',
-                                icon: <FiFileText />,
-                                label: t('questions'),
-                                children: [
-                                    {
-                                        key: 'questions-list',
-                                        icon: <FiList />,
-                                        label: t('allQuestions'),
-                                        onClick: () => router.push('/questions')
-                                    },
-                                    {
-                                        key: 'questions-add',
-                                        icon: <FiPlus />,
-                                        label: t('addQuestion'),
-                                        onClick: () => router.push('/questions/new')
-                                    }
-                                ]
-                            },
+                                onClick: () => router.push('/categories'),
+                                // children: [{
+                                //     key: 'categories-list',
+                                //     icon: <FiList />,
+                                //     label: t('allCategories'),
+                                //     onClick: () => router.push('/categories')
+                                // },
+                                // {
+                                //     key: 'categories-add',
+                                //     icon: <FiPlus />,
+                                //     label: t('addCategory'),
+                                //     onClick: () => router.push('/categories/new')
+                                // }
+                                // ]
+                            }, 
+                            // {
+                            //     key: 'questions',
+                            //     icon: <FiFileText />,
+                            //     label: t('questions'),
+                            //     children: [
+                            //         {
+                            //             key: 'questions-list',
+                            //             icon: <FiList />,
+                            //             label: t('allQuestions'),
+                            //             onClick: () => router.push('/questions')
+                            //         },
+                            //         {
+                            //             key: 'questions-add',
+                            //             icon: <FiPlus />,
+                            //             label: t('addQuestion'),
+                            //             onClick: () => router.push('/questions/new')
+                            //         }
+                            //     ]
+                            // },
                             {
                                 key: 'users',
                                 icon: <FiUsers />,
