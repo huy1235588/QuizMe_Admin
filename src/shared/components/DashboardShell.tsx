@@ -178,7 +178,7 @@ export default function DashboardShell({
                                 //     onClick: () => router.push('/categories/new')
                                 // }
                                 // ]
-                            }, 
+                            },
                             // {
                             //     key: 'questions',
                             //     icon: <FiFileText />,
@@ -247,7 +247,7 @@ export default function DashboardShell({
                             onClick={() => setCollapsed(!collapsed)}
                             className="w-16 h-16 flex items-center justify-center text-xl"
                         />
-                        <div className="flex-grow flex justify-end items-center pr-6">
+                        <div className="grow flex justify-end items-center pr-6">
                             <div className="flex items-center gap-4">
                                 <LanguageSwitcher />
                                 <Button
@@ -277,13 +277,6 @@ export default function DashboardShell({
                     >
                         {children}
                     </Content>
-                    <Footer
-                        style={{
-                            textAlign: 'center',
-                        }}
-                    >
-                        {tUI('copyright', { year: new Date().getFullYear() })}
-                    </Footer>
                 </Layout>
             </Layout>
         </ConfigProvider>

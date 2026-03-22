@@ -281,10 +281,10 @@
         "switchLanguage": "Switch Language",
         "english": "English",
         "vietnamese": "Vietnamese"
-    },    "ui": {
+    },
+    "ui": {
         "switchToLightMode": "Switch to light mode",
-        "switchToDarkMode": "Switch to dark mode",
-        "copyright": "QuizMe Admin ©{year} Created by Le Thien Huy"
+        "switchToDarkMode": "Switch to dark mode"
     },
     "imageCropper": {
         "title": "Adjust and Crop Image",

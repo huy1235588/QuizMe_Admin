@@ -282,8 +282,7 @@
         "vietnamese": "Tiếng Việt"
     },    "ui": {
         "switchToLightMode": "Chuyển sang chế độ sáng",
-        "switchToDarkMode": "Chuyển sang chế độ tối",
-        "copyright": "QuizMe Admin ©{year} Được tạo bởi Lê Thiện Huy"
+        "switchToDarkMode": "Chuyển sang chế độ tối"
     },
     "imageCropper": {
         "title": "Điều chỉnh và cắt ảnh",
