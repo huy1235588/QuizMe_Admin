@@ -23,11 +23,8 @@ axiosInstance.interceptors.request.use(
         if (typeof window !== 'undefined') {
             const token = localStorage.getItem('accessToken');
             if (token) {
-                // Thêm token vào Authorization header (cho API calls)
+                // Thêm token vào Authorization header
                 config.headers.Authorization = `Bearer ${token}`;
-
-                // Thêm token vào custom header (cho middleware)
-                config.headers['x-access-token'] = token;
             }
         }
         return config;
@@ -73,7 +70,7 @@ axiosInstance.interceptors.response.use(
                     { refreshToken }
                 );
 
-                if (response.data.status === 'success') {
+                if (response.data.status === true) {
                     const { accessToken, refreshToken: newRefreshToken } = response.data.data;
 
                     // Cập nhật tokens trong bộ nhớ cục bộ

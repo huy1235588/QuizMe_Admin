@@ -107,7 +107,7 @@ export class AuthAPI {
         try {
             if (this.isTokenExpired() && authService.getRefreshToken()) {
                 const response = await this.refreshUserToken();
-                return response?.status === 'success';
+                return response?.status === true;
             }
             return true;
         } catch (error) {
@@ -157,7 +157,7 @@ export class AuthAPI {
         const result = await this.loginWithCredentials(usernameOrEmail, password);
 
         // Sync tokens to cookies after successful login
-        if (result.status === 'success') {
+        if (result.status === true) {
             this.syncTokenToCookies();
         }
 

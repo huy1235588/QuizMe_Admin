@@ -24,12 +24,6 @@ function getTokenFromRequest(request: NextRequest): string | null {
         return cookieToken;
     }
 
-    // Thử lấy từ custom header (có thể được set từ client)
-    const customToken = request.headers.get('x-access-token');
-    if (customToken) {
-        return customToken;
-    }
-
     return null;
 }
 

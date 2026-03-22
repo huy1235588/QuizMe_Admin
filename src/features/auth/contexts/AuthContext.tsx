@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             const response = await authService.login(loginRequest);
 
-            if (response.status === 'success') {
+            if (response.status === true) {
                 const userData = response.data.user;
                 setUser(userData);
 
@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             const response = await authService.register(registerRequest);
 
-            if (response.status === 'success') {
+            if (response.status === true) {
                 const userData = response.data.user;
                 setUser(userData);
 
@@ -184,7 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refreshToken = async (): Promise<void> => {
         try {
             const response = await authService.refreshToken();
-            if (response.status === 'success') {
+            if (response.status === true) {
                 const userData = response.data.user;
                 setUser(userData);
                 localStorage.setItem('user', JSON.stringify(userData));

@@ -3,7 +3,7 @@ import { LoginRequest, RegisterRequest } from '@/shared/types/database';
 
 // Types for API responses
 export interface ApiResponse<T> {
-    status: 'success' | 'error';
+    status: boolean;
     data: T;
     message: string;
     timestamp?: string;
@@ -40,7 +40,7 @@ class AuthService {
             );
 
             // Lưu tokens vào localStorage nếu đăng nhập thành công
-            if (response.data.status === 'success') {
+            if (response.data.status === true) {
                 const { accessToken, refreshToken } = response.data.data;
                 localStorage.setItem('accessToken', accessToken);
                 localStorage.setItem('refreshToken', refreshToken);
@@ -66,7 +66,7 @@ class AuthService {
             );
 
             // Lưu tokens vào localStorage nếu đăng ký thành công
-            if (response.data.status === 'success') {
+            if (response.data.status === true) {
                 const { accessToken, refreshToken } = response.data.data;
                 localStorage.setItem('accessToken', accessToken);
                 localStorage.setItem('refreshToken', refreshToken);
@@ -136,7 +136,7 @@ class AuthService {
             );
 
             // Cập nhật tokens mới
-            if (response.data.status === 'success') {
+            if (response.data.status === true) {
                 const { accessToken, refreshToken: newRefreshToken } = response.data.data;
                 localStorage.setItem('accessToken', accessToken);
                 localStorage.setItem('refreshToken', newRefreshToken);
