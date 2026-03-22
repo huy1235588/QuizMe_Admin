@@ -25,9 +25,9 @@ import {
     FiHelpCircle,
     FiBarChart2
 } from 'react-icons/fi';
-import { useTheme } from '@/contexts/ThemeContext';
-import { Category, Quiz, Activity, Question } from '@/types/database';
-import axiosInstance from '@/utils/axios';
+import { useTheme } from '@/shared/contexts/ThemeContext';
+import { Category, Quiz, Activity, Question } from '@/shared/types/database';
+import axiosInstance from '@/shared/utils/axios';
 import { useTranslations } from 'next-intl';
 
 const { Title } = Typography;

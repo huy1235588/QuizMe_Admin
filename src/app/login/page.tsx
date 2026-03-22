@@ -3,12 +3,12 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/features/auth/contexts/AuthContext';
 import { Form, Input, Button, Alert, Card, Typography, Spin } from 'antd';
 import { FiUser, FiLock, FiLogIn } from 'react-icons/fi';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from '@/shared/contexts/ThemeContext';
 import { useSnackbar } from 'notistack';
-import { LoginRequest } from '@/types/database';
+import { LoginRequest } from '@/shared/types/database';
 import { useTranslations } from 'next-intl';
 
 const { Title, Text } = Typography;

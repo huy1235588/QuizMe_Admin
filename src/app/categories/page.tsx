@@ -36,8 +36,8 @@ import ReactECharts from 'echarts-for-react';
 import { useSnackbar } from 'notistack';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import { useCategories } from '@/hooks/useCategories';
-import { CategoryResponse } from '@/types/database';
+import { useCategories } from '@/features/categories/hooks/useCategories';
+import { CategoryResponse } from '@/shared/types/database';
 
 // Import Swiper styles
 import 'swiper/css';

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { GlobalContextProvider } from "@/contexts/GlobalContext";
-import DashboardShell from "@/components/DashboardShell";
+import { GlobalContextProvider } from "@/shared/contexts/GlobalContext";
+import DashboardShell from "@/shared/components/DashboardShell";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { cookies } from 'next/headers';

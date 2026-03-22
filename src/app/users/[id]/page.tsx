@@ -7,15 +7,15 @@ import { ArrowLeftOutlined, EditOutlined, UserOutlined } from '@ant-design/icons
 import { useSnackbar } from 'notistack';
 
 // Import components
-import UserDetailCard from '@/components/users/UserDetailCard';
-import UserForm from '@/components/users/UserForm';
-import DeleteUserModal from '@/components/users/DeleteUserModal';
+import UserDetailCard from '@/features/users/components/UserDetailCard';
+import UserForm from '@/features/users/components/UserForm';
+import DeleteUserModal from '@/features/users/components/DeleteUserModal';
 
 // Import hooks
-import { useUser } from '@/hooks/useUsers';
-import { useTheme } from '@/contexts/ThemeContext';
-import { RegisterRequest, UserRequest } from '@/types/database';
-import { UserAPI } from '@/api/userAPI';
+import { useUser } from '@/features/users/hooks/useUsers';
+import { useTheme } from '@/shared/contexts/ThemeContext';
+import { RegisterRequest, UserRequest } from '@/shared/types/database';
+import { UserAPI } from '@/features/users/api/userAPI';
 
 export default function UserDetailPage() {
     const params = useParams();

@@ -16,20 +16,20 @@ import { useSnackbar } from 'notistack';
 import { useRouter } from 'next/navigation';
 
 // Import components
-import UserStatistics from '@/components/users/UserStatistics';
-import TopUsers from '@/components/users/TopUsers';
-import UserFilters from '@/components/users/UserFilters';
-import UserList from '@/components/users/UserList';
-import UserGrid from '@/components/users/UserGrid';
-import DeleteUserModal from '@/components/users/DeleteUserModal';
-import ExportModal from '@/components/users/ExportModal';
-import ExportDropdown from '@/components/users/ExportDropdown';
+import UserStatistics from '@/features/users/components/UserStatistics';
+import TopUsers from '@/features/users/components/TopUsers';
+import UserFilters from '@/features/users/components/UserFilters';
+import UserList from '@/features/users/components/UserList';
+import UserGrid from '@/features/users/components/UserGrid';
+import DeleteUserModal from '@/features/users/components/DeleteUserModal';
+import ExportModal from '@/features/users/components/ExportModal';
+import ExportDropdown from '@/features/users/components/ExportDropdown';
 
 // Import hooks
-import { usePagedUsers, useTopUsers, useUserCount } from '@/hooks/useUsers';
-import { useTheme } from '@/contexts/ThemeContext';
-import { UserResponse } from '@/types/database';
-import { UserAPI } from '@/api/userAPI';
+import { usePagedUsers, useTopUsers, useUserCount } from '@/features/users/hooks/useUsers';
+import { useTheme } from '@/shared/contexts/ThemeContext';
+import { UserResponse } from '@/shared/types/database';
+import { UserAPI } from '@/features/users/api/userAPI';
 
 const { Title } = Typography;
 const { Option } = Select;

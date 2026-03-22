@@ -19,9 +19,9 @@ import { FiInbox } from 'react-icons/fi';
 import { useSnackbar } from 'notistack';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { RcFile } from 'antd/es/upload';
-import { useCategory, useCategories } from '@/hooks/useCategories';
-import { CategoryRequest } from '@/types/database';
-import ImageCropper from '@/components/ImageCropper';
+import { useCategory, useCategories } from '@/features/categories/hooks/useCategories';
+import { CategoryRequest } from '@/shared/types/database';
+import ImageCropper from '@/shared/components/ImageCropper';
 import { useTranslations } from 'next-intl';
 
 const { Title } = Typography;

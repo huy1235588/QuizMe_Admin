@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AuthAPI } from '@/api/authAPI';
+import { AuthAPI } from '@/features/auth/api/authAPI';
 
 // Danh sách các routes không cần xác thực
 const publicRoutes = ['/login', '/register'];

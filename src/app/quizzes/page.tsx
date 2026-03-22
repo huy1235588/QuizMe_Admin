@@ -7,14 +7,14 @@ import { FiPlus } from 'react-icons/fi';
 import { useSnackbar } from 'notistack';
 
 // Import các component tùy chỉnh cho trang quiz
-import QuizStatistics from '@/components/quizzes/QuizStatistics';
-import TrendingQuizzes from '@/components/quizzes/TrendingQuizzes';
-import QuizFilters from '@/components/quizzes/QuizFilters';
-import QuizList from '@/components/quizzes/QuizList';
-import DeleteQuizModal from '@/components/quizzes/DeleteQuizModal';
+import QuizStatistics from '@/features/quizzes/components/QuizStatistics';
+import TrendingQuizzes from '@/features/quizzes/components/TrendingQuizzes';
+import QuizFilters from '@/features/quizzes/components/QuizFilters';
+import QuizList from '@/features/quizzes/components/QuizList';
+import DeleteQuizModal from '@/features/quizzes/components/DeleteQuizModal';
 
 // Import hook tùy chỉnh để quản lý các quiz
-import { useQuizzes } from '@/hooks/useQuizzes';
+import { useQuizzes } from '@/features/quizzes/hooks/useQuizzes';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 

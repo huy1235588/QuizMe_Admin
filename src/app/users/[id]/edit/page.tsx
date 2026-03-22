@@ -7,13 +7,13 @@ import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import { useSnackbar } from 'notistack';
 
 // Import components
-import UserForm from '@/components/users/UserForm';
+import UserForm from '@/features/users/components/UserForm';
 
 // Import hooks
-import { useUser } from '@/hooks/useUsers';
-import { useTheme } from '@/contexts/ThemeContext';
-import { UserRequest } from '@/types/database';
-import { UserAPI } from '@/api/userAPI';
+import { useUser } from '@/features/users/hooks/useUsers';
+import { useTheme } from '@/shared/contexts/ThemeContext';
+import { UserRequest } from '@/shared/types/database';
+import { UserAPI } from '@/features/users/api/userAPI';
 
 export default function UserEditPage() {
     const params = useParams();

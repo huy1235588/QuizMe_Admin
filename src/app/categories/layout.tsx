@@ -1,6 +1,6 @@
 "use client";
 
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/shared/components/ProtectedRoute";
 
 export default function CategoriesLayout({
     children,

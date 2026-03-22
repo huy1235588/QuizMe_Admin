@@ -7,14 +7,14 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { useTranslations } from 'next-intl';
-import { useQuizForm } from '@/hooks/useQuizForm';
-import { QuizAPI } from '@/api/quizAPI';
-import QuizFormDetails from '@/components/quizzes/QuizForm/QuizFormDetails';
-import QuestionList from '@/components/quizzes/QuizForm/QuestionList';
+import { useQuizForm } from '@/features/quizzes/hooks/useQuizForm';
+import { QuizAPI } from '@/features/quizzes/api/quizAPI';
+import QuizFormDetails from '@/features/quizzes/components/QuizForm/QuizFormDetails';
+import QuestionList from '@/features/quizzes/components/QuizForm/QuestionList';
 import {
     QuizRequest,
-} from '@/types/database';
-import { QuestionAPI } from '@/api/questionAPI';
+} from '@/shared/types/database';
+import { QuestionAPI } from '@/features/questions/api/questionAPI';
 
 const { Title } = Typography;
 
