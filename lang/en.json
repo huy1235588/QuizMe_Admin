@@ -295,5 +295,32 @@
         "rotateRight": "Rotate Right",
         "rotateLeftTooltip": "Rotate 90° left",
         "rotateRightTooltip": "Rotate 90° right"
+    },
+    "users": {
+        "viewDetails": "View details",
+        "editUser": "Edit",
+        "lockAccount": "Lock account",
+        "unlockAccount": "Unlock account",
+        "deleteUser": "Delete",
+        "admin": "Administrator",
+        "user": "User",
+        "active": "Active",
+        "locked": "Locked",
+        "joinedDate": "Joined",
+        "lastLogin": "Last login",
+        "neverLoggedIn": "Never logged in",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "daysAgo": "{days} days ago",
+        "totalUsers": "Total users",
+        "activeUsers": "Active users",
+        "newUsers": "New users",
+        "adminUsers": "Administrators",
+        "ofTotal": "{rate}% of total",
+        "thisMonth": "This month",
+        "roleDistribution": "Role distribution",
+        "recentActivity": "Recent activity",
+        "noRecentActivity": "No recent activity",
+        "people": "{count} people"
     }
 }

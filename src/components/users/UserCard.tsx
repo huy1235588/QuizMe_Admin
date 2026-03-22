@@ -13,6 +13,8 @@ import {
 } from '@ant-design/icons';
 import { UserResponse } from '@/types/database';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 
 interface UserCardProps {
     user: UserResponse;
@@ -32,6 +34,8 @@ const UserCard: React.FC<UserCardProps> = ({
     onView
 }) => {
     const router = useRouter();
+    const t = useTranslations('users');
+    const locale = useLocale();
 
     const cardClass = isDarkMode
         ? 'bg-gray-800 border-gray-700 hover:bg-gray-750'
@@ -46,7 +50,7 @@ const UserCard: React.FC<UserCardProps> = ({
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('vi-VN', {
+        return new Date(dateString).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
@@ -54,14 +58,14 @@ const UserCard: React.FC<UserCardProps> = ({
     };
 
     const getLastLoginText = () => {
-        if (!user.lastLogin) return 'Chưa đăng nhập';
+        if (!user.lastLogin) return t('neverLoggedIn');
         const now = new Date();
         const lastLogin = new Date(user.lastLogin);
         const diffDays = Math.floor((now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24));
 
-        if (diffDays === 0) return 'Hôm nay';
-        if (diffDays === 1) return 'Hôm qua';
-        if (diffDays < 7) return `${diffDays} ngày trước`;
+        if (diffDays === 0) return t('today');
+        if (diffDays === 1) return t('yesterday');
+        if (diffDays < 7) return t('daysAgo', { days: diffDays });
         return formatDate(user.lastLogin);
     };
 
@@ -72,7 +76,7 @@ const UserCard: React.FC<UserCardProps> = ({
             hoverable
             onClick={handleView}
             actions={[
-                <Tooltip title="Xem chi tiết" key="view">
+                <Tooltip title={t('viewDetails')} key="view">
                     <Button
                         type="text"
                         icon={<EyeOutlined />}
@@ -83,7 +87,7 @@ const UserCard: React.FC<UserCardProps> = ({
                         }}
                     />
                 </Tooltip>,
-                <Tooltip title="Chỉnh sửa" key="edit">
+                <Tooltip title={t('editUser')} key="edit">
                     <Button
                         type="text"
                         icon={<EditOutlined />}
@@ -94,7 +98,7 @@ const UserCard: React.FC<UserCardProps> = ({
                         }}
                     />
                 </Tooltip>,
-                <Tooltip title={user.isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"} key="toggle">
+                <Tooltip title={user.isActive ? t('lockAccount') : t('unlockAccount')} key="toggle">
                     <Button
                         type="text"
                         icon={user.isActive ? <LockOutlined /> : <UnlockOutlined />}
@@ -105,7 +109,7 @@ const UserCard: React.FC<UserCardProps> = ({
                         }}
                     />
                 </Tooltip>,
-                <Tooltip title="Xóa" key="delete">
+                <Tooltip title={t('deleteUser')} key="delete">
                     <Button
                         type="text"
                         icon={<DeleteOutlined />}
@@ -130,7 +134,7 @@ const UserCard: React.FC<UserCardProps> = ({
                     />
                     {user.role === 'ADMIN' && (
                         <div className="absolute -top-1 -right-1">
-                            <Tooltip title="Quản trị viên">
+                            <Tooltip title={t('admin')}>
                                 <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
                                     <CrownOutlined className="text-white text-xs" />
                                 </div>
@@ -158,59 +162,18 @@ const UserCard: React.FC<UserCardProps> = ({
                         color={user.role === 'ADMIN' ? 'purple' : 'blue'}
                         className="text-xs"
                     >
-                        {user.role === 'ADMIN' ? 'Quản trị viên' : 'Người dùng'}
+                        {user.role === 'ADMIN' ? t('admin') : t('user')}
                     </Tag>
                     <Tag
                         color={user.isActive ? 'green' : 'red'}
                         className="text-xs"
                     >
-                        {user.isActive ? 'Hoạt động' : 'Bị khóa'}
+                        {user.isActive ? t('active') : t('locked')}
                     </Tag>
                 </Space>                {/* Dates */}
                 <div className={`text-xs space-y-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                    <div>Tham gia: {formatDate(user.createdAt)}</div>
-                    <div>Lần cuối: {getLastLoginText()}</div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-center space-x-2 pt-3 border-t border-gray-200 dark:border-gray-700">
-                    <Tooltip title="Xem chi tiết">
-                        <Button
-                            type="text"
-                            icon={<EyeOutlined />}
-                            size="small"
-                            onClick={handleView}
-                            className="text-blue-500 hover:text-blue-600"
-                        />
-                    </Tooltip>
-                    <Tooltip title="Chỉnh sửa">
-                        <Button
-                            type="text"
-                            icon={<EditOutlined />}
-                            size="small"
-                            onClick={() => onEdit?.(user)}
-                            className="text-green-500 hover:text-green-600"
-                        />
-                    </Tooltip>
-                    <Tooltip title={user.isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}>
-                        <Button
-                            type="text"
-                            icon={user.isActive ? <LockOutlined /> : <UnlockOutlined />}
-                            size="small"
-                            onClick={() => onToggleStatus?.(user)}
-                            className={user.isActive ? "text-orange-500 hover:text-orange-600" : "text-green-500 hover:text-green-600"}
-                        />
-                    </Tooltip>
-                    <Tooltip title="Xóa">
-                        <Button
-                            type="text"
-                            icon={<DeleteOutlined />}
-                            size="small"
-                            danger
-                            onClick={() => onDelete?.(user)}
-                            className="text-red-500 hover:text-red-600"
-                        />
-                    </Tooltip>
+                    <div>{t('joinedDate')}: {formatDate(user.createdAt)}</div>
+                    <div>{t('lastLogin')}: {getLastLoginText()}</div>
                 </div>
             </div>
         </Card>

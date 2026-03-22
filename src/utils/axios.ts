@@ -1,5 +1,12 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL, AUTH_ENDPOINTS } from '@/constants/apiEndpoints';
+
+// Các endpoint không cần refresh token khi gặp lỗi 401
+const AUTH_ENDPOINTS_NO_REFRESH = [
+    AUTH_ENDPOINTS.LOGIN,
+    AUTH_ENDPOINTS.REGISTER,
+    AUTH_ENDPOINTS.REFRESH_TOKEN,
+];
 
 // Tạo instance Axios với cấu hình mặc định
 const axiosInstance = axios.create({
@@ -34,8 +41,20 @@ axiosInstance.interceptors.response.use(
     async (error: AxiosError) => {
         const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
+        // Lấy endpoint URL từ request
+        const requestUrl = originalRequest.url || '';
+
+        // Bỏ qua refresh token cho các endpoint xác thực (login, register, refresh-token)
+        const isAuthEndpoint = AUTH_ENDPOINTS_NO_REFRESH.some(endpoint => requestUrl.includes(endpoint));
+
         // Kiểm tra nếu lỗi là do token hết hạn (401) và chưa thử làm mới token
-        if (error.response?.status === 401 && !originalRequest._retry && typeof window !== 'undefined') {
+        // Không áp dụng cho các auth endpoints
+        if (
+            error.response?.status === 401 &&
+            !originalRequest._retry &&
+            !isAuthEndpoint &&
+            typeof window !== 'undefined'
+        ) {
             originalRequest._retry = true;
 
             try {

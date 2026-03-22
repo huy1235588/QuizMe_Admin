@@ -36,8 +36,16 @@ type StatItem = {
     title: string;
     value: number;
     icon: React.ReactNode;
-    color: string;
+    color: 'blue' | 'green' | 'purple' | 'orange';
 }
+
+// Color map for stat cards - using explicit class names for Tailwind to detect
+const statColorClasses = {
+    blue: { bgDark: 'bg-blue-900', bgLight: 'bg-blue-100', textDark: 'text-blue-400', textLight: 'text-blue-500' },
+    green: { bgDark: 'bg-green-900', bgLight: 'bg-green-100', textDark: 'text-green-400', textLight: 'text-green-500' },
+    purple: { bgDark: 'bg-purple-900', bgLight: 'bg-purple-100', textDark: 'text-purple-400', textLight: 'text-purple-500' },
+    orange: { bgDark: 'bg-orange-900', bgLight: 'bg-orange-100', textDark: 'text-orange-400', textLight: 'text-orange-500' },
+} as const;
 
 export default function Dashboard() {
     const { theme } = useTheme();
@@ -362,8 +370,8 @@ export default function Dashboard() {
                         >
                             <div className="flex items-center">
                                 <div className={`flex items-center justify-center w-12 h-12 rounded-lg mr-4 ${isDarkMode
-                                    ? `bg-${stat.color}-900 text-${stat.color}-400`
-                                    : `bg-${stat.color}-100 text-${stat.color}-500`
+                                    ? `${statColorClasses[stat.color].bgDark} ${statColorClasses[stat.color].textDark}`
+                                    : `${statColorClasses[stat.color].bgLight} ${statColorClasses[stat.color].textLight}`
                                     } text-xl`}>
                                     {stat.icon}
                                 </div>

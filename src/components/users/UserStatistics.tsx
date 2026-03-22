@@ -4,6 +4,8 @@ import React from 'react';
 import { Card, Row, Col, Statistic, Progress, Tag } from 'antd';
 import { UserOutlined, TeamOutlined, CrownOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { UserResponse, Role } from '@/types/database';
+import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 
 interface UserStatisticsProps {
     totalUsers: number;
@@ -22,6 +24,9 @@ const UserStatistics: React.FC<UserStatisticsProps> = ({
     users,
     isDarkMode = false
 }) => {
+    const t = useTranslations('users');
+    const locale = useLocale();
+
     // Tính toán thống kê
     const activeRate = totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0;
     const adminRate = totalUsers > 0 ? Math.round((adminUsers / totalUsers) * 100) : 0;
@@ -49,7 +54,7 @@ const UserStatistics: React.FC<UserStatisticsProps> = ({
                 <Col xs={24} sm={12} lg={6}>
                     <Card className={cardClass} bordered={false}>
                         <Statistic
-                            title="Tổng người dùng"
+                            title={t('totalUsers')}
                             value={totalUsers}
                             prefix={<UserOutlined className="text-blue-500" />}
                             valueStyle={{ color: '#1890ff' }}
@@ -59,7 +64,7 @@ const UserStatistics: React.FC<UserStatisticsProps> = ({
                 <Col xs={24} sm={12} lg={6}>
                     <Card className={cardClass} bordered={false}>
                         <Statistic
-                            title="Người dùng hoạt động"
+                            title={t('activeUsers')}
                             value={activeUsers}
                             prefix={<TeamOutlined className="text-green-500" />}
                             valueStyle={{ color: '#52c41a' }}
@@ -75,27 +80,27 @@ const UserStatistics: React.FC<UserStatisticsProps> = ({
                             }
                         />
                         <div className="text-xs text-gray-500 mt-1">
-                            {activeRate}% tổng số
+                            {t('ofTotal', { rate: activeRate })}
                         </div>
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
                     <Card className={cardClass} bordered={false}>
                         <Statistic
-                            title="Người dùng mới"
+                            title={t('newUsers')}
                             value={newUsers}
                             prefix={<ClockCircleOutlined className="text-orange-500" />}
                             valueStyle={{ color: '#fa8c16' }}
                         />
                         <div className="text-xs text-gray-500 mt-1">
-                            Tháng này
+                            {t('thisMonth')}
                         </div>
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
                     <Card className={cardClass} bordered={false}>
                         <Statistic
-                            title="Quản trị viên"
+                            title={t('adminUsers')}
                             value={adminUsers}
                             prefix={<CrownOutlined className="text-purple-500" />}
                             valueStyle={{ color: '#722ed1' }}
@@ -111,7 +116,7 @@ const UserStatistics: React.FC<UserStatisticsProps> = ({
                             }
                         />
                         <div className="text-xs text-gray-500 mt-1">
-                            {adminRate}% tổng số
+                            {t('ofTotal', { rate: adminRate })}
                         </div>
                     </Card>
                 </Col>
@@ -121,7 +126,7 @@ const UserStatistics: React.FC<UserStatisticsProps> = ({
             <Row gutter={[16, 16]}>
                 <Col xs={24} lg={12}>
                     <Card
-                        title="Phân bố theo vai trò"
+                        title={t('roleDistribution')}
                         className={cardClass}
                         bordered={false}
                     >
@@ -133,9 +138,9 @@ const UserStatistics: React.FC<UserStatisticsProps> = ({
                                             color={role === 'ADMIN' ? 'purple' : 'blue'}
                                             className="min-w-[80px] text-center"
                                         >
-                                            {role === 'ADMIN' ? 'Quản trị' : 'Người dùng'}
+                                            {role === 'ADMIN' ? t('admin') : t('user')}
                                         </Tag>
-                                        <span className="text-sm">{count} người</span>
+                                        <span className="text-sm">{t('people', { count })}</span>
                                     </div>
                                     <Progress
                                         percent={Math.round((count / totalUsers) * 100)}
@@ -152,7 +157,7 @@ const UserStatistics: React.FC<UserStatisticsProps> = ({
 
                 <Col xs={24} lg={12}>
                     <Card
-                        title="Hoạt động gần đây"
+                        title={t('recentActivity')}
                         className={cardClass}
                         bordered={false}
                     >
@@ -170,13 +175,13 @@ const UserStatistics: React.FC<UserStatisticsProps> = ({
                                             </div>
                                         </div>
                                         <div className="text-xs text-gray-500">
-                                            {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('vi-VN') : 'Chưa đăng nhập'}
+                                            {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US') : t('neverLoggedIn')}
                                         </div>
                                     </div>
                                 ))
                             ) : (
                                 <div className="text-center text-gray-500 py-4">
-                                    Chưa có hoạt động gần đây
+                                    {t('noRecentActivity')}
                                 </div>
                             )}
                         </div>

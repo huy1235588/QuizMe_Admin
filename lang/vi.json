@@ -294,5 +294,32 @@
         "rotateRight": "Xoay phải",
         "rotateLeftTooltip": "Xoay 90° sang trái",
         "rotateRightTooltip": "Xoay 90° sang phải"
+    },
+    "users": {
+        "viewDetails": "Xem chi tiết",
+        "editUser": "Chỉnh sửa",
+        "lockAccount": "Khóa tài khoản",
+        "unlockAccount": "Mở khóa tài khoản",
+        "deleteUser": "Xóa",
+        "admin": "Quản trị viên",
+        "user": "Người dùng",
+        "active": "Hoạt động",
+        "locked": "Bị khóa",
+        "joinedDate": "Tham gia",
+        "lastLogin": "Lần cuối",
+        "neverLoggedIn": "Chưa đăng nhập",
+        "today": "Hôm nay",
+        "yesterday": "Hôm qua",
+        "daysAgo": "{days} ngày trước",
+        "totalUsers": "Tổng người dùng",
+        "activeUsers": "Người dùng hoạt động",
+        "newUsers": "Người dùng mới",
+        "adminUsers": "Quản trị viên",
+        "ofTotal": "{rate}% tổng số",
+        "thisMonth": "Tháng này",
+        "roleDistribution": "Phân bố theo vai trò",
+        "recentActivity": "Hoạt động gần đây",
+        "noRecentActivity": "Chưa có hoạt động gần đây",
+        "people": "{count} người"
     }
 }

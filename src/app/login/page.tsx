@@ -4,14 +4,20 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-import { Form, Input, Button, Alert, Card, Typography, Divider } from 'antd';
-import { FiUser, FiLock } from 'react-icons/fi';
+import { Form, Input, Button, Alert, Card, Typography, Spin } from 'antd';
+import { FiUser, FiLock, FiLogIn } from 'react-icons/fi';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useSnackbar } from 'notistack';
 import { LoginRequest } from '@/types/database';
 import { useTranslations } from 'next-intl';
 
 const { Title, Text } = Typography;
+
+// Card styles for glassmorphism effect
+const cardStyles = {
+    light: 'bg-white/95 backdrop-blur-sm',
+    dark: 'bg-gray-800/90 backdrop-blur-sm border border-gray-700/50',
+};
 
 function LoginPageContent() {
     const t = useTranslations('auth');
@@ -72,7 +78,8 @@ function LoginPageContent() {
             };
 
             // Gọi hàm đăng nhập từ context
-            const result = await login(loginRequest); if (result.success) {
+            const result = await login(loginRequest);
+            if (result.success) {
                 enqueueSnackbar(t('loginSuccess'), { variant: 'success' });
 
                 // Reset form
@@ -93,7 +100,9 @@ function LoginPageContent() {
         } finally {
             setIsSubmitting(false);
         }
-    }; const onFinishFailed = (errorInfo: any) => {
+    };
+
+    const onFinishFailed = (errorInfo: any) => {
         console.log('Failed:', errorInfo);
         enqueueSnackbar(t('checkInput'), { variant: 'warning' });
     };
@@ -101,12 +110,15 @@ function LoginPageContent() {
     // Hiển thị loading khi đang check authentication
     if (authLoading) {
         return (
-            <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-                <Card className="w-full max-w-md shadow-lg" style={{ borderRadius: 12 }}>
-                    <div className="text-center py-8">
-                        <Title level={4}>{tCommon('loading')}</Title>
+            <div className={"min-h-screen flex items-center justify-center"}>
+                <div className={`p-8 rounded-3xl shadow-2xl ${isDarkMode ? cardStyles.dark : cardStyles.light}`}>
+                    <div className="text-center">
+                        <Spin size="large" />
+                        <Title level={4} className={`mt-4 ${isDarkMode ? 'text-white' : ''}`}>
+                            {tCommon('loading')}
+                        </Title>
                     </div>
-                </Card>
+                </div>
             </div>
         );
     }
@@ -115,35 +127,46 @@ function LoginPageContent() {
     const displayError = authError || localError;
 
     return (
-        <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="min-h-screen flex items-center justify-center p-4">
+            {/* Decorative elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className={`absolute -top-40 -right-40 w-80 h-80 rounded-full ${isDarkMode ? 'bg-purple-500/10' : 'bg-white/10'} blur-3xl`} />
+                <div className={`absolute -bottom-40 -left-40 w-80 h-80 rounded-full ${isDarkMode ? 'bg-pink-500/10' : 'bg-white/10'} blur-3xl`} />
+            </div>
+
             <Card
-                className="w-full max-w-md shadow-lg"
+                className={`w-full max-w-md shadow-2xl relative z-10 ${isDarkMode ? cardStyles.dark : cardStyles.light}`}
                 style={{
-                    borderRadius: 12,
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+                    borderRadius: 24,
+                }}
+                styles={{
+                    body: {
+                        padding: '40px 32px',
+                    }
                 }}
                 variant='borderless'
             >
-                <div className="text-center mb-6">
-                    <div className="flex justify-center mb-4">
+                {/* Logo and Header */}
+                <div className="text-center mb-8">
+                    <div className="flex justify-center mb-6">
                         <Image
                             src="/logo.png"
                             alt="QuizMe Admin Logo"
-                            width={120}
-                            height={120}
+                            width={80}
+                            height={80}
                             className="mx-auto"
                             priority
                         />
                     </div>
-                    <Title level={2} className="!mt-0">
+                    <Title level={2} className={`mb-2! mt-0! ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                         {t('loginTitle')}
                     </Title>
-                    <Text type="secondary">
+                    <Text className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>
                         {t('loginSubtitle')}
                     </Text>
                 </div>
 
-                <Divider />
+                {/* Error Alert */}
                 {displayError && (
                     <Alert
                         message={t('loginErrorTitle')}
@@ -151,7 +174,7 @@ function LoginPageContent() {
                         type="error"
                         showIcon
                         closable
-                        className="mb-4"
+                        className="mb-6 rounded-xl"
                         onClose={() => {
                             setLocalError('');
                             clearError();
@@ -159,6 +182,7 @@ function LoginPageContent() {
                     />
                 )}
 
+                {/* Login Form */}
                 <Form
                     form={form}
                     name="login_form"
@@ -178,13 +202,15 @@ function LoginPageContent() {
                         ]}
                     >
                         <Input
-                            prefix={<FiUser className="site-form-item-icon mr-2" />}
+                            prefix={<FiUser className="text-gray-400 mr-2" />}
                             placeholder={t('usernamePlaceholder')}
                             autoComplete="username"
                             onChange={handleInputChange}
                             disabled={isSubmitting}
+                            className={`h-12 rounded-xl ${isDarkMode ? 'bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-500' : ''}`}
                         />
                     </Form.Item>
+
                     <Form.Item
                         name="password"
                         rules={[
@@ -193,49 +219,51 @@ function LoginPageContent() {
                         ]}
                     >
                         <Input.Password
-                            prefix={<FiLock className="site-form-item-icon mr-2" />}
+                            prefix={<FiLock className="text-gray-400 mr-2" />}
                             placeholder={t('passwordPlaceholder')}
                             autoComplete="current-password"
                             onChange={handleInputChange}
                             disabled={isSubmitting}
+                            className={`h-12 rounded-xl ${isDarkMode ? 'bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-500' : ''}`}
                         />
                     </Form.Item>
 
-                    <Form.Item className="mb-0">
+                    <Form.Item className="mb-0 mt-6">
                         <Button
                             type="primary"
                             htmlType="submit"
                             loading={isSubmitting}
                             disabled={isSubmitting || authLoading}
                             block
-                            style={{ height: 45 }}
-                            className="mt-2"
+                            icon={!isSubmitting && <FiLogIn className="mr-1" />}
+                            className="h-12 rounded-xl font-semibold text-base bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 border-none shadow-lg hover:shadow-xl transition-all duration-300"
                         >
                             {isSubmitting ? t('loggingIn') : t('loginButton')}
                         </Button>
                     </Form.Item>
-                </Form>                <div className="text-center mt-4">
-                    <Text type="secondary" className="text-sm">
+                </Form>
+
+                {/* Footer */}
+                <div className="text-center mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <Text className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                         {t('noAccount')}
                     </Text>
-                </div></Card>
+                </div>
+            </Card>
         </div>
     );
 }
 
 // Loading component for Suspense fallback
 function LoginPageLoading() {
-    const { theme: currentTheme } = useTheme();
-    const isDarkMode = currentTheme === 'dark';
-    const tCommon = useTranslations('common');
-
     return (
-        <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-            <Card className="w-full max-w-md shadow-lg" style={{ borderRadius: 12 }}>
-                <div className="text-center py-8">
-                    <Title level={4}>{tCommon('loading')}</Title>
+        <div className="min-h-screen flex items-center justify-center">
+            <div className="p-8 rounded-3xl shadow-2xl bg-white/95 backdrop-blur-sm">
+                <div className="text-center">
+                    <Spin size="large" />
+                    <Title level={4} className="mt-4">Loading...</Title>
                 </div>
-            </Card>
+            </div>
         </div>
     );
 }
